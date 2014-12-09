@@ -1,6 +1,11 @@
 #! /usr/bin/env python
+""" 
+    Routines to performe virtual screening
+    These routines were developed by:
+    Rodrigo Antonio Faccioli - rodrigo.faccioli@usp.br / rodrigo.faccioli@gmail.com  
+    Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
+"""
 
-# This script run virtual screening
 
 import vina
 import ConfigParser as configparser

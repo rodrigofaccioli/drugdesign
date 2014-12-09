@@ -1,7 +1,10 @@
 #! /usr/bin/env python
-
-# This script prepares ligands
-
+""" 
+    Routines for preparing ligands: from mol2 to pdbqt files 
+    These routines were developed by:
+    Rodrigo Antonio Faccioli - rodrigo.faccioli@usp.br / rodrigo.faccioli@gmail.com  
+    Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
+"""
 
 import ConfigParser as configparser
 import vina

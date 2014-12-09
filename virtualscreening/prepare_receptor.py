@@ -1,7 +1,10 @@
 #! /usr/bin/env python
-
-# This script prepares receptors
-
+""" 
+    Routines for preparing receptors: from pdb to pdbqt files 
+    These routines were developed by:
+    Rodrigo Antonio Faccioli - rodrigo.faccioli@usp.br / rodrigo.faccioli@gmail.com  
+    Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
+"""
 
 import ConfigParser as configparser
 import vina

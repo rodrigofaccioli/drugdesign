@@ -1,4 +1,10 @@
-# functions to call Auto Vina Docking program
+""" 
+    Routines for interacting with AutoDock Vina program
+    These routines were developed by:
+    Rodrigo Antonio Faccioli - rodrigo.faccioli@usp.br / rodrigo.faccioli@gmail.com  
+    Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
+"""
+
 
 
 import sys
