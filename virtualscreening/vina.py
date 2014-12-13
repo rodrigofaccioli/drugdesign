@@ -99,25 +99,43 @@ def prepare_receptor(path_pdb, path_pdbqt, pythonsh, script_receptor4):
 		process = Popen([pythonsh, script_receptor4, '-r', fpdb, '-o', fpdbqt, '-v', '-U', 'nphs_lps', '-A', 'hydrogens'], stdout=PIPE, stderr=PIPE)		
 		stdout, stderr = process.communicate()	 	
 
+""" This function obtains the name of receptor
+	based on file name
+"""	
+def get_name_receptor(receptor):
+	path, filename = ntpath.split(receptor)
+	name =  str(filename.split(".")[0])
+	return name
+
+""" This function obtains the name of ligand
+	based on file name
+"""	
+def get_name_ligand(ligand):
+	path, filename = ntpath.split(ligand)
+	name =  str(filename.split(".")[0])
+	return name
+
+
 """ This function creates out file name
 """	
-def get_name_out(index):
-	return 'estrutura_'+str(index)+'.pdbqt'
+def get_name_out(receptor, ligand):
+	return receptor+'_-_'+ligand+'.pdbqt'
 
 """ This function creates log file name
 """	
-def get_name_log(index):
-	return 'log_'+str(index)+'.log'
+def get_name_log(receptor, ligand):
+	return receptor+'_-_'+ligand+'.log'
 
 """ This function is executed the docking from 
     one receptor against all ligands
 """	
-def run_docking(vina_program, vina_conf, receptor, path_ligand_pdbqt, path_struct, path_log):
-	index = int(-1)
+def run_docking(vina_program, vina_conf, receptor, path_ligand_pdbqt, path_struct, path_log):	
+	name_receptor = get_name_receptor(receptor)
+	
 	all_ligands = get_files_pdbqt(path_ligand_pdbqt)
 	for ligand in all_ligands:
-		index = index + 1
-		f_out = os.path.join(path_struct,get_name_out(index))
-		f_log = os.path.join(path_log, get_name_log(index)) 
+		name_ligand = get_name_ligand(ligand)		
+		f_out = os.path.join(path_struct,get_name_out(name_receptor, name_ligand))
+		f_log = os.path.join(path_log, get_name_log(name_receptor, name_ligand)) 			
 		process = Popen([vina_program, '--config', vina_conf, '--receptor', receptor, '--ligand', ligand, '--out', f_out, '--log', f_log], stdout=PIPE, stderr=PIPE)		
 		stdout, stderr = process.communicate()
