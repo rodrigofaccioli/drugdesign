@@ -12,6 +12,7 @@ import os
 import ntpath
 from subprocess import Popen, PIPE
 import shutil
+import mol2
 
 """ This function obtains all pdbqt files 
     in mypath 
@@ -59,6 +60,13 @@ def get_name_pdbqt(reference):
 	fpdbqt = name+".pdbqt"
 	return fpdbqt
 
+""" In this function is build the pdbqt file name for ligand 
+"""
+def get_name_ligand_pdbqt(reference):	
+	name =  mol2.get_molecule_name(reference)
+	fpdbqt = name+".pdbqt"
+	return fpdbqt
+
 
 """ This function converts mol2 files 
     to pdbqt files 
@@ -70,7 +78,7 @@ def prepare_ligand(path_mol2, path_pdbqt, pythonsh, script_ligand4):
 
 	mol2_files = get_files_mol2(path_mol2)
 	for fmol2 in mol2_files:
-		fpdbqt_filename = get_name_pdbqt(fmol2)
+		fpdbqt_filename = get_name_ligand_pdbqt(fmol2)
 		fpdbqt = os.path.join(path_pdbqt,fpdbqt_filename)
 		process = Popen([pythonsh, script_ligand4, '-l', fmol2, '-v', '-o', fpdbqt, '-U', 'nphs_lps', '-A', 'hydrogens'], stdout=PIPE, stderr=PIPE)		
 		stdout, stderr = process.communicate()	 	
