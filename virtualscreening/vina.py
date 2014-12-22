@@ -63,9 +63,9 @@ def get_name_pdbqt(reference):
 """ In this function is build the pdbqt file name for ligand 
 """
 def get_name_ligand_pdbqt(reference):	
-	name =  mol2.get_molecule_name(reference)
-	fpdbqt = name+".pdbqt"
-	return fpdbqt
+	name =  os.path.basename(reference)
+	name = str(name).replace(".mol2", ".pdbqt")	
+	return name
 
 
 """ This function converts mol2 files 
