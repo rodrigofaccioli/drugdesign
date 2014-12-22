@@ -6,9 +6,9 @@
     Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
 """
 
-
 import vina
 import ConfigParser as configparser
+from analysis import call_analysis as ana
 
 def main():
 	config = configparser.ConfigParser()
@@ -23,6 +23,8 @@ def main():
 			config.get('DEFAULT', 'pdbqt_ligand_path'),
 			config.get('DEFAULT', 'path_save_structure'),
 			config.get('DEFAULT', 'path_save_log')
-			) 
+			)
+		print "Analysing "+receptor
+		ana.call_vs_analysis()
 
 main()

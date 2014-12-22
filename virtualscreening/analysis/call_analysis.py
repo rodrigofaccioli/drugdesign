@@ -12,7 +12,16 @@ import analysisio as ana_io
 import histogram_energy as h_eger 
 import xvg_histogram_energy_values as xvghist
 
-def main():
+def call_vs_analysis():
+	"""
+	Executes the analysis of Virtual Screening. 
+	The analysis consists of: 
+	1) Creating a txt file that contains receptor, ligand and mode sorted by energies.
+	2) Creating a xvg file that is a histogram of energies
+	3) Ploting histogram of energies
+    Example:
+        >>> call_vs_analysis()
+	"""		
 	config = configparser.ConfigParser()
 	config.read('config.ini') 
 
@@ -22,6 +31,4 @@ def main():
 
 	xvghist.create_xvg_histogram_energy_values(config.get('DEFAULT', 'path_analysis'), log_sorted_dict)	
 
-	h_eger.build_histogram_energy(config.get('DEFAULT', 'path_analysis'), analysis.get_histogram_filename())
-
-main()
+	h_eger.build_histogram_energy(config.get('DEFAULT', 'path_analysis'), analysis.get_histogram_filename())	
