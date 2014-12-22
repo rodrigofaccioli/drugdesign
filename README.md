@@ -1,7 +1,11 @@
 drugdesign
 ==========
-came about starting the open-source initiative in drug design area. 
-Nowadays, this project allows to perform virtual screening.
+came about an initiative to develop a collaborative project 
+in drug design area. 
+Nowadays, this project allows to perform virtual screening
+protein and compounds. It concede a virtual screening of flexible 
+receptors that can be both experimental (PDB database) and 
+theoretical (molecular dynamics simulation)
 
 Instalation 
 ===========
