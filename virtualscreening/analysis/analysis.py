@@ -9,14 +9,30 @@ import os
 import ntpath
 import operator
 
+def get_histogram_filename():
+	"""
+	Returns the filename of energy histogram   
+    Example:
+        >>> get_histogram_filename()
+    @return: filename of energy histogram
+    @rtype: string	        
+	"""		
+	return 'vs_energy_histogram.xvg'
+
 
 def get_separator_filename_mode():
+	"""
+	Returns the separator file mode. It means a way to separate receptor_ligand and mode
+    Example:
+        >>> get_separator_filename_mode()
+    @return: the separator file mode
+    @rtype: string        
+	"""		
 	return '+----+'
 
-""" This function obtains all log files 
-    in mypath 
-"""
 def get_files_log(mypath):
+	""" This function obtains all log files in mypath 
+	"""	
 	only_log_file = []
 	for root, dirs, files in os.walk(mypath):
 		for f in files:
@@ -25,10 +41,11 @@ def get_files_log(mypath):
 				only_log_file.append(f_path)			
 	return only_log_file
 
-""" This function obtains the name of file  
-	without filename extension.
-"""
+
 def get_log_file_name(myfile):
+	""" 
+	This function obtains the name of file without filename extension
+	"""	
 	path, filename = ntpath.split(myfile)
 	name =  str(filename.split(".")[0]) #remove .log
 	return name
@@ -78,4 +95,3 @@ def log_files_by_energy(mylog):
 		log_name = get_log_file_name(f)
 		set_energies_dic_return(f, log_name, dic_return)		
 	return dic_return
-

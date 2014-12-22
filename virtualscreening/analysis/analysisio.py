@@ -1,5 +1,5 @@
 """ 
-    Routines for I/O analysing the virtual screening execution
+    Routines to create sorted energy file from virtual screening execution
     These routines were developed by:
     Rodrigo Antonio Faccioli - rodrigo.faccioli@usp.br / rodrigo.faccioli@gmail.com  
     Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
@@ -9,15 +9,18 @@ import os
 import operator
 import analysis as ana
 
+
 def create_file_by_sorted_energy(path_analysis, log_dict):
 	"""
-    Create a text file which shows the energies sorted
+    Create a text file which shows the energies sorted and returns the sorted dictionary
     Example:
-        >>> create_file_by_sorted_energy(path_analysis, log_dict)
+        >>> sorted_dict = create_file_by_sorted_energy(path_analysis, log_dict)
     @param path_analysis: place where files are saved
     @type path_analysis: string
-    @param log_dict: place where log files are
+    @param log_dict: dictionary with energy values
     @type log_dict: {}
+    @return: sorted dictonary of energy values 
+    @rtype: {}
 	"""	
 	text_file = os.path.join(path_analysis,'vs_energies_sorted.txt')
 	f_file = open(text_file, "w")
@@ -34,3 +37,6 @@ def create_file_by_sorted_energy(path_analysis, log_dict):
 		line = str(name)+"\t"+str(mode)+"\t"+str(energy)+"\n"
 		f_file.write(line)
 		n = n + 1
+	f_file.close()	
+
+	return sorted_log_dict
