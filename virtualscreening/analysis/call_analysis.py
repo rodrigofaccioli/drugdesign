@@ -6,13 +6,12 @@
     Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
 """
 
-import ConfigParser as configparser
 import analysis 
 import analysisio as ana_io
 import histogram_energy as h_eger 
 import xvg_histogram_energy_values as xvghist
 
-def call_vs_analysis():
+def call_vs_analysis(path_analysis, path_log):
 	"""
 	Executes the analysis of Virtual Screening. 
 	The analysis consists of: 
@@ -20,15 +19,16 @@ def call_vs_analysis():
 	2) Creating a xvg file that is a histogram of energies
 	3) Ploting histogram of energies
     Example:
-        >>> call_vs_analysis()
+        >>> call_vs_analysis(path_analysis, path_log)
+    @param path_analysis: place where analysis files will be saved
+    @type path_analysis: string        
+    @param path_log: place where log files were saved
+    @type path_log: string            
 	"""		
-	config = configparser.ConfigParser()
-	config.read('config.ini') 
+	log_dict = analysis.log_files_by_energy( path_log )
 
-	log_dict = analysis.log_files_by_energy(config.get('DEFAULT', 'path_save_log') )
+	log_sorted_dict = ana_io.create_file_by_sorted_energy(path_analysis, log_dict) 
 
-	log_sorted_dict = ana_io.create_file_by_sorted_energy(config.get('DEFAULT', 'path_analysis'), log_dict) 
+	xvghist.create_xvg_histogram_energy_values(path_analysis, log_sorted_dict)	
 
-	xvghist.create_xvg_histogram_energy_values(config.get('DEFAULT', 'path_analysis'), log_sorted_dict)	
-
-	h_eger.build_histogram_energy(config.get('DEFAULT', 'path_analysis'), analysis.get_histogram_filename())	
+	h_eger.build_histogram_energy(path_analysis, analysis.get_histogram_filename())	

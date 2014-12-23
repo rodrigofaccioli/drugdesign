@@ -16,7 +16,17 @@ def get_files_pdbqt(mypath):
 				only_pdbqt_file.append(f_path)			
 	return only_pdbqt_file
 
-def preparing_vs(path_save_structure, path_save_log, path_analysis, pdbqt_ligand_path, pdbqt_receptor_path):
+def preparing_vs(pdbqt_ligand_path, pdbqt_receptor_path):
+
+	#Checking pdbqt files of ligand
+	if len(get_files_pdbqt(pdbqt_ligand_path)) == 0:
+		raise EnvironmentError("pdbqt files of ligands not found. Remember, prepare_ligand.py must be executed ")
+
+	#Checking pdbqt files of receptor
+	if len(get_files_pdbqt(pdbqt_receptor_path)) == 0:
+		raise EnvironmentError("pdbqt files of receptors not found. Remember, prepare_receptor.py must be executed ")
+
+def preparing_vs_receptor(path_save_structure, path_save_log, path_analysis): 
 
 	#Checking path_save_structure
 	if not os.path.exists(path_save_structure):
@@ -38,11 +48,3 @@ def preparing_vs(path_save_structure, path_save_log, path_analysis, pdbqt_ligand
 	else:
 		if len(os.listdir(path_analysis)) > 0:
 			raise EnvironmentError("Analysis directory contains files ")
-
-	#Checking pdbqt files of ligand
-	if len(get_files_pdbqt(pdbqt_ligand_path)) == 0:
-		raise EnvironmentError("pdbqt files of ligands not found. Remember, prepare_ligand.py must be executed ")
-
-	#Checking pdbqt files of receptor
-	if len(get_files_pdbqt(pdbqt_receptor_path)) == 0:
-		raise EnvironmentError("pdbqt files of receptors not found. Remember, prepare_receptor.py must be executed ")
