@@ -51,6 +51,48 @@ def get_files_mol2(mypath):
 				only_mol2_file.append(f_path)			
 	return only_mol2_file
 
+def check_for_preparing_ligand(mol2_path, pdbqt_ligand_path, pythonsh, script_ligand4):
+
+	if len(get_files_mol2(mol2_path)) == 0:
+		raise EnvironmentError("mol2 of ligands not found ")
+
+	if not os.path.exists(pdbqt_ligand_path):
+		os.makedirs(pdbqt_ligand_path)
+
+	if os.path.isfile(pythonsh) == False:
+		raise EnvironmentError("pythonsh for vina, not found")
+
+	if os.path.isfile(script_ligand4) == False:
+		raise EnvironmentError("script_ligand4 for vina, not found")
+
+def check_for_preparing_receptor(pdb_path, pdbqt_receptor_path, pythonsh, script_receptor4):
+
+	if len(get_files_pdb(pdb_path)) == 0:
+		raise EnvironmentError("PDB of receptors not found ")
+
+	if not os.path.exists(pdbqt_receptor_path):
+		os.makedirs(pdbqt_receptor_path)
+
+	if os.path.isfile(pythonsh) == False:
+		raise EnvironmentError("pythonsh for vina, not found")
+
+	if os.path.isfile(script_receptor4) == False:
+		raise EnvironmentError("script_receptor4 for vina, not found")
+
+def check_for_running_docking(config_file, vina_program):
+	"""
+	Check programs and config file for performing of AutoDock vina   
+    Example:
+        >>> check_for_running_docking(config_file, vina_program)
+	"""	
+	if os.path.isfile(config_file) == False:
+		raise EnvironmentError("config_file for vina, not found")
+
+	if os.path.isfile(vina_program) == False:
+		raise EnvironmentError("vina_program for vina, not found")
+	
+
+
 """ This function is created the pdbqt file get_name_pdbqt
      based on fmol2 file name 
 """

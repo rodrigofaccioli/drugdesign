@@ -18,6 +18,7 @@ def main():
 
 	#Preparing the virtual screening enviroment
 	prep.preparing_vs(config.get('DEFAULT', 'pdbqt_ligand_path'), config.get('DEFAULT', 'pdbqt_receptor_path') )
+	vina.check_for_running_docking(config.get('VINA', 'config_file'), config.get('VINA', 'vina_program'))	
 
 	#Obtain all receptors to perform the virtual screening
 	all_receptor = vina.get_files_pdbqt(config.get('DEFAULT', 'pdbqt_receptor_path'))
