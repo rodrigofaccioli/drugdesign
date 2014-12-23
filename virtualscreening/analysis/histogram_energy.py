@@ -8,6 +8,8 @@
 
 import os
 import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 def build_histogram_energy(path_analysis, xvg_filename):
