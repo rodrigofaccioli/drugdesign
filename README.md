@@ -1,6 +1,6 @@
 drugdesign
 ==========
-came about an initiative to develop a collaborative project 
+came about as an initiative to develop a collaborative project 
 in drug design area. 
 Nowadays, this project allows to perform virtual screening.
 It employs AutoDock Vina and MGLTools-1.5.6 softwares. 
