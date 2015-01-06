@@ -9,7 +9,6 @@
 import os
 import numpy as np
 import matplotlib as mpl
-mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 def build_histogram_energy(path_analysis, xvg_filename):
@@ -35,9 +34,9 @@ def build_histogram_energy(path_analysis, xvg_filename):
 	fig = plt.figure()
 
 	width = 0.35
-	ind = np.arange(len(y1))
-	plt.bar(ind, y1)
-	plt.xticks(ind + width , x1, rotation=45)
+	ind = np.arange(len(x1))
+	plt.bar(ind, y1)	
+	plt.xticks(ind + width , x1, rotation=90)
 
 	png_pathfile = str(xvg_pathfile).replace('.xvg','.png')
 	plt.savefig(png_pathfile)

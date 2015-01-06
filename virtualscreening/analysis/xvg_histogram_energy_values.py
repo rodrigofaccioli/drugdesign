@@ -25,7 +25,8 @@ def create_xvg_histogram_energy_values(path_analysis, log_sort_dict):
 	dict_file[ref_energy] = 0
 	for l_item in log_sort_dict:
 		if float(l_item[1]) == ref_energy:
-			dict_file[ref_energy] = dict_file[ref_energy] + 1
+			if ref_energy <= 0:
+				dict_file[ref_energy] = dict_file[ref_energy] + 1
 		else:
 			ref_energy = float(l_item[1])
 			dict_file[ref_energy] = 1
