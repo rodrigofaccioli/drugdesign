@@ -19,12 +19,22 @@ It is necessary to install the follow softwares
 How to run a Virtual Screening?
 ===============================
 After the installing process decribed in Instalation section (see above), 
-seven steps are necessary to run virtual screening.
+eight steps are necessary to run virtual screening.
 
 1) Download compounds from ZINC Database: http://zinc.docking.org/
-2) Preparing config.ini file
+2) Preparing the config.ini file
 3) Extract the compounds from ZINC Database
 4) Preparing ligands
 5) Preparing receptors
-6) Preparing box of Auto Vina
+6) Preparing box of Auto Vina using Pymol
 7) Running the Virtual Screening
+8) Analysing the Virtual Screening
+
+
+Understanding the drugdesign project
+====================================
+it was decomposed into directory to assist its organization.
+In each directory, please, see READMINE file that contains
+more information.
+
+

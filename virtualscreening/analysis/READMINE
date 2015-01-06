@@ -1,0 +1,7 @@
+analysis
+========
+in this directory contains scripts to analysis the 
+virtual screening.
+Most of them are called during virtual screening process.
+Except the files that build graphs such as 
+plot_energy_histogram.py.
