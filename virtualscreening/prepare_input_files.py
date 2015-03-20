@@ -14,31 +14,35 @@ import vs_preparation as prep
 file_name_docking = "overall_docking_list.txt"
 file_name_config  = "config.conf"
 
-def creating_overall_docking_list(current_dir, vina, config):
+def creating_overall_docking_list(current_dir, vina, config):	
 	#Obtain all receptors to perform the virtual screening
 	all_receptor = vina.get_files_pdbqt(config.get('DEFAULT', 'pdbqt_receptor_path'))
 	#Obtain all compounds to perform the virtual screening
 	all_compounds = vina.get_files_pdbqt(config.get('DEFAULT', 'pdbqt_ligand_path'))
 	#List with all docking
 	path_file_docking = os.path.join(current_dir, file_name_docking)	
+	file_all_docking = open(path_file_docking, "w")
+	line = str(len(all_receptor) * len(all_compounds)) +"\n" #Computes how many docking	will be ran
+	file_all_docking.write(line)
+	file_all_docking.close()
 	for receptor in all_receptor:
 		#It is used append mode because, file is closed for each receptor 
 		file_all_docking = open(path_file_docking, "a+")
 		only_name_receptor = os.path.basename(receptor)
 		only_name_receptor = str(os.path.splitext(only_name_receptor)[0])		
-		for compound in all_compounds:
-			line = ""
+		for compound in all_compounds:			
 			only_name_compound = os.path.basename(compound)
 			only_name_compound = str(os.path.splitext(only_name_compound)[0])
 			line = str(only_name_receptor) + "\t" + str(only_name_compound) +"\n"
-			file_all_docking.write(line)
+			file_all_docking.write(line)			
 		# File is closed for each receptor because the number of compound can be large. 
 		# Therefore, this file is closed to avoid saving amount of data 
-		file_all_docking.close()	
+		file_all_docking.close()
 
 def creating_config_file(current_dir, config):
 	path_file_config = os.path.join(current_dir, file_name_config)
 	file_config = open(path_file_config, "w")
+	current_dir = current_dir + os.sep
 	line = "Local_Execute = "+ str(current_dir) + "\n"
 	file_config.write(line)
 	line = "Path_receptor = " + str(config.get('DEFAULT', 'pdbqt_receptor_path')) + "\n"
