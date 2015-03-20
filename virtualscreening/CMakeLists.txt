@@ -32,8 +32,7 @@ add_library(VS_lib STATIC
 src/futil.c
 src/string_owner.c
 src/messages.c
-src/load_parameters.c 
-src/mpi_owner.c
+src/load_parameters.c
 )#end of VS_lib
 
 # add target
