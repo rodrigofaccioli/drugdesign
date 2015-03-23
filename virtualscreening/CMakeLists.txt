@@ -21,7 +21,7 @@ set_source_files_properties(src/futil.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/string_owner.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/messages.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/load_parameters.c PROPERTIES LANGUAGE CXX )
-set_source_files_properties(src/mpi_owner.c PROPERTIES LANGUAGE CXX )
+set_source_files_properties(src/docking.c PROPERTIES LANGUAGE CXX )
 
 # set include
 include_directories(include)
@@ -33,6 +33,7 @@ src/futil.c
 src/string_owner.c
 src/messages.c
 src/load_parameters.c
+src/docking.c
 )#end of VS_lib
 
 # add target

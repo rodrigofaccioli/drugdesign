@@ -11,9 +11,26 @@
 #include <stddef.h>
 
 #include "defines.h"
+#include "docking.h"
+#include "messages.h"
 #include "load_parameters.h"
+#include "futil.h"
+ #include "string_owner.h"
 #include "mpi_parameters_type.h"
-#include "mpi_owner.h"
+#include "mpi_docking_type.h"
+
+// Calculates the number of docking for each process
+void get_number_docking(int *n_dock, int *n_dock_root, 
+  const int *world_size, const int *full_dock){  
+  if ( (*full_dock  % *world_size) == 0){
+    *n_dock = (int) *full_dock  / *world_size;
+    *n_dock_root = *n_dock;
+  }else{
+    *n_dock = (int) *full_dock  / *world_size;
+    *n_dock_root = *n_dock + 1;
+  }
+
+}
 
 int main(int argc, char const *argv[]) {
 
@@ -35,45 +52,93 @@ int main(int argc, char const *argv[]) {
   MPI_Type_commit(&mpi_input_parameters_t); 
 /*************  mpi_input_parameters_t end ***************************/
 
+/*************  mpi_docking_t ***************************/  
+  const int nitems_dock=2;
+  int blocklengths_dock[nitems_dock] = {MAX_PATH, MAX_PATH};
+  MPI_Datatype types_dock[nitems_dock] = {MPI_CHAR, MPI_CHAR};  
+  MPI_Aint offsets_dock[nitems_dock];
+
+  offsets_dock[0] = offsetof(docking_t, receptor);
+  offsets_dock[1] = offsetof(docking_t, compound);
+
+  MPI_Type_create_struct(nitems_dock, blocklengths_dock, offsets_dock, types_dock, &mpi_docking_t);
+  MPI_Type_commit(&mpi_docking_t); 
+/*************  mpi_docking_t end ***************************/
+
+
   int root = 0;
+  const int tag_docking = 1;
+  int number_dock = -1;
+  int number_dock_root = -1;      
   int world_size;
-  int world_rank;
+  int world_rank;  
 
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
 	// It is assuming at least 2 processes for performing the Virtual Screening
   if (world_size < 2) {
-    fprintf(stderr, "World size must be greater than 1 for performing the Virtual Screening\n");
+    fatal_error("World size must be greater than 1 for performing the Virtual Screening\n");
     MPI_Abort(MPI_COMM_WORLD, 1);
   }
 
   //Preparing input parameters data structure
   input_parameters_t *param=NULL;
   param = (input_parameters_t*)malloc(sizeof(input_parameters_t));    
-  //loading input parameters
-  if (world_rank == 0) {    
+  //loading input parameters files
+  if (world_rank == root) {    
     load_parameters_from_file(param,argv[1]);        
   }
+  //Broadcast input parameters
+  MPI_Bcast(param, 1, mpi_input_parameters_t, root, MPI_COMM_WORLD);  
 
-  MPI_Bcast(param, 1, mpi_input_parameters_t, root, MPI_COMM_WORLD);
+  //Preparing the docking number for each proecess
+  if (world_rank == root) {    
+    int full_dock;
+    full_dock = get_number_docking(argv[2]);    
+    get_number_docking(&number_dock, &number_dock_root, &world_size, &full_dock);     
+  } 
+  //Broadcast the docking number for each proecess
+  MPI_Bcast(&number_dock, 1, MPI_INT, root, MPI_COMM_WORLD);
 
-  show_parameters(param);
-/*
-  else{
-    MPI_Status status;
-    input_parameters_t *param_r=NULL;
-    param_r = (input_parameters_t*)malloc(sizeof(input_parameters_t));        
-    //initialize_parameters(param_r);
-    //MPI_Irecv(param, 1, mpi_input_parameters_t, 0, 0, MPI_COMM_WORLD, &request);
-    MPI_Recv(param_r, 1, mpi_input_parameters_t, root, 0, MPI_COMM_WORLD, &status);
-    //MPI_Wait(&request, &status); 
-    show_parameters(param_r);
-    deAllocateload_parameters(param_r);
-  }
-*/
+  docking_t *v_docking = NULL;
+  v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));
+
+  //Guarantee that all process received all data
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  docking_t  *buff = NULL;
+  int buffer_dock;
+  buffer_dock = number_dock*world_size;
+  buff = (docking_t *) malloc(sizeof(docking_t)*buffer_dock);
+
+  //Sending data for performing the Virtual Screening
+  if (world_rank == root){    
+    docking_t *docking_root = NULL;
+    FILE *f_dock=NULL;    
+    char *line=NULL;
+    int num_line_ref;
+      
+    docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));    
+    line = (char*)malloc(MAX_LINE_FILE);
+
+    f_dock = open_file(argv[2], fREAD);
+    //Ignoring first line of file
+    fgets(line, MAX_LINE_FILE, f_dock);
+    num_line_ref = -1;    
+    while (fgets(line, MAX_LINE_FILE, f_dock) != NULL){
+      num_line_ref = num_line_ref + 1;
+      set_receptor_compound(buff[num_line_ref].receptor, buff[num_line_ref].compound, line);
+    }
+    fclose(f_dock);
+  }  
+  MPI_Scatter(buff, number_dock, mpi_docking_t, v_docking, number_dock, mpi_docking_t, root, MPI_COMM_WORLD);
+
   deAllocateload_parameters(param);
-  MPI_Type_free(&mpi_input_parameters_t);
+  
+  MPI_Type_free(&mpi_docking_t);  
+  MPI_Type_free(&mpi_input_parameters_t);  
+
   MPI_Finalize();
 	return 0;
 }
