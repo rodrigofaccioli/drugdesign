@@ -42,8 +42,7 @@ void load_parameters_from_file(input_parameters_t *in_param,
 	key = (char*)malloc(MAX_LINE_FILE);
 	value = (char*)malloc(MAX_LINE_FILE);
 	key_r = 0;
-	while (fgets(line, MAX_LINE_FILE, conf) != NULL){
-		if (strncmp)
+	while (fgets(line, MAX_LINE_FILE, conf) != NULL){		
 		ch = strtok(line, "=");
 		while (ch != NULL) {
 			ltrim(ch);
