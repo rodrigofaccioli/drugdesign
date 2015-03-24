@@ -13,6 +13,10 @@ void show_parameters(const input_parameters_t *param){
 	printf("Local_Execute %s\n", param->local_execute);	
 	printf("Path_Receptors %s\n", param->path_receptors);	
 	printf("Path_compounds %s\n", param->path_compounds);
+	printf("Path_out %s\n", param->path_out);
+	printf("Path_log %s\n", param->path_log);
+	printf("Config_file %s\n", param->config_vina);
+	printf("Vina_program %s\n", param->vina_program);
 }
 
 static void set_parameters(input_parameters_t *param, const char *key, 
