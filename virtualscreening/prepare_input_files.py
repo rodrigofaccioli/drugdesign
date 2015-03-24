@@ -39,16 +39,30 @@ def creating_overall_docking_list(current_dir, vina, config):
 		# Therefore, this file is closed to avoid saving amount of data 
 		file_all_docking.close()
 
+def valid_end_terminator_path(path):
+	if str(path).endswith(os.sep) == False:
+		path = str(path)+os.sep
+	return path
+
 def creating_config_file(current_dir, config):
 	path_file_config = os.path.join(current_dir, file_name_config)
 	file_config = open(path_file_config, "w")
-	current_dir = current_dir + os.sep
+	current_dir = valid_end_terminator_path(current_dir)
 	line = "Local_Execute = "+ str(current_dir) + "\n"
 	file_config.write(line)
-	line = "Path_receptor = " + str(config.get('DEFAULT', 'pdbqt_receptor_path')) + "\n"
+	line = "Path_receptor = " + valid_end_terminator_path(str(config.get('DEFAULT', 'pdbqt_receptor_path'))) + "\n"
 	file_config.write(line)
-	line = "Path_compounds = "+ str(config.get('DEFAULT', 'pdbqt_ligand_path')) + "\n"
+	line = "Path_compounds = "+ valid_end_terminator_path(str(config.get('DEFAULT', 'pdbqt_ligand_path'))) + "\n"	
 	file_config.write(line)
+	line = "Path_out = "+ valid_end_terminator_path(str(config.get('DEFAULT', 'path_save_structure'))) + "\n"	
+	file_config.write(line)	
+	line = "Path_log = "+ valid_end_terminator_path(str(config.get('DEFAULT', 'path_save_log'))) + "\n"	
+	file_config.write(line)		
+	path_conf_file = os.path.join(current_dir, config.get('VINA', 'config_file'))
+	line = "Config_file = "+ str(path_conf_file) + "\n"	
+	file_config.write(line)		
+	line = "Vina_program = "+ str(config.get('VINA', 'vina_program')) + "\n"	
+	file_config.write(line)	
 	file_config.close()
 
 def main():
