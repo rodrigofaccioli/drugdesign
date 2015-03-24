@@ -169,7 +169,8 @@ def get_name_log(receptor, ligand):
 	return receptor+'_-_'+ligand+'.log'
 
 """ This function is executed the docking from 
-    one receptor against all ligands
+    one receptor against all ligands.
+    It is used when is not working with MPI
 """	
 def run_docking(vina_program, vina_conf, receptor, path_ligand_pdbqt, path_struct, path_log):	
 	name_receptor = get_name_receptor(receptor)
