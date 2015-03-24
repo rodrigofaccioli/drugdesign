@@ -76,7 +76,8 @@ int main(int argc, char const *argv[]) {
   int number_dock = -1;
   int number_dock_root = -1;      
   int world_size;
-  int world_rank;  
+  int world_rank;
+  MPI_Request request_dock;  
 
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -144,14 +145,14 @@ int main(int argc, char const *argv[]) {
       if (num_line_ref < number_dock){
         num_line_ref = num_line_ref + 1;
       }else{                
-        MPI_Bsend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD);
+        MPI_Isend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);
         dest = dest + 1;
         num_line_ref = 0;
       }
       set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
     }
     //Sending to last rank because MPI_Send inside while command is not executed for the last rank 
-    MPI_Bsend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD);    
+    MPI_Isend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);    
     fclose(f_dock);
     free(line);
 
@@ -166,7 +167,8 @@ int main(int argc, char const *argv[]) {
     MPI_Status status;
     int i;
     initialize_vina_execution();
-    MPI_Recv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &status);
+    MPI_Irecv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &request_dock);
+    MPI_Wait(&request_dock, &status);      
     for (i = 0; i < number_dock; i++){      
       call_vina(param, &v_docking[i]);
     }
