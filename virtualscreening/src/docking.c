@@ -33,6 +33,7 @@ void set_receptor_compound(char *receptor, char *compound, char *source){
     ltrim(ch);
     strcpy(receptor, ch);
     ch = strtok(NULL, "\t");
-    ltrim(ch);
+    trim(ch);
+    remove_character_enter(ch);
     strcpy(compound, ch);
 }
