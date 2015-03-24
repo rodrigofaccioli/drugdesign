@@ -101,25 +101,27 @@ int main(int argc, char const *argv[]) {
   //Broadcast the docking number for each proecess
   MPI_Bcast(&number_dock, 1, MPI_INT, root, MPI_COMM_WORLD);
 
+  number_dock = 2; //REMOVER
   docking_t *v_docking = NULL;
   v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));
 
   //Guarantee that all process received all data
   MPI_Barrier(MPI_COMM_WORLD);
 
+  //Preparing buffer to be sent
   docking_t  *buff = NULL;
   int buffer_dock;
-  buffer_dock = number_dock*world_size;
-  buff = (docking_t *) malloc(sizeof(docking_t)*buffer_dock);
+  buffer_dock = sizeof(docking_t)*number_dock*MPI_BSEND_OVERHEAD;
+  buff = (docking_t *) malloc(buffer_dock);
 
   //Sending data for performing the Virtual Screening
   if (world_rank == root){    
-    docking_t *docking_root = NULL;
+    //docking_t *docking_root = NULL;
     FILE *f_dock=NULL;    
     char *line=NULL;
     int num_line_ref;
       
-    docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));    
+    //docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));    
     line = (char*)malloc(MAX_LINE_FILE);
 
     f_dock = open_file(argv[2], fREAD);
@@ -128,12 +130,25 @@ int main(int argc, char const *argv[]) {
     num_line_ref = -1;    
     while (fgets(line, MAX_LINE_FILE, f_dock) != NULL){
       num_line_ref = num_line_ref + 1;
-      set_receptor_compound(buff[num_line_ref].receptor, buff[num_line_ref].compound, line);
+      set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
     }
+    free(line);
     fclose(f_dock);
-  }  
-  MPI_Scatter(buff, number_dock, mpi_docking_t, v_docking, number_dock, mpi_docking_t, root, MPI_COMM_WORLD);
+    MPI_Buffer_attach(buff, buffer_dock);
+    MPI_Bsend(v_docking, number_dock, mpi_docking_t, 1, tag_docking, MPI_COMM_WORLD);
+  }else{
+    MPI_Status status;
+    MPI_Recv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &status);
+    int i;
+    for (i=0; i < number_dock;i++){
+      printf("%s %s\n", v_docking[i].receptor, v_docking[i].compound);
+    }    
+  }
 
+  //MPI_Scatter(buff, number_dock, mpi_docking_t, v_docking, number_dock, mpi_docking_t, root, MPI_COMM_WORLD);
+  MPI_Buffer_detach(buff, &buffer_dock);
+  
+  deAllocate_docking(v_docking);
   deAllocateload_parameters(param);
   
   MPI_Type_free(&mpi_docking_t);  
