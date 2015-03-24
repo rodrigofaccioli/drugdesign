@@ -105,8 +105,7 @@ int main(int argc, char const *argv[]) {
   } 
   //Broadcast the docking number for each proecess
   MPI_Bcast(&number_dock, 1, MPI_INT, root, MPI_COMM_WORLD);
-
-  number_dock = 2; //REMOVER
+  
   docking_t *v_docking = NULL;
   v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));
 
@@ -121,37 +120,57 @@ int main(int argc, char const *argv[]) {
 
   //Sending data for performing the Virtual Screening
   if (world_rank == root){    
-    //docking_t *docking_root = NULL;
+    docking_t *docking_root = NULL;
     FILE *f_dock=NULL;    
     char *line=NULL;
     int num_line_ref;
+    int dest;
       
-    //docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));    
+    docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));    
     line = (char*)malloc(MAX_LINE_FILE);
 
     f_dock = open_file(argv[2], fREAD);
     //Ignoring first line of file
     fgets(line, MAX_LINE_FILE, f_dock);
+    //Obtaining docking that will be executed in root
+    for (num_line_ref = 0; num_line_ref < number_dock_root; num_line_ref++){
+      fgets(line, MAX_LINE_FILE, f_dock);
+      set_receptor_compound(docking_root[num_line_ref].receptor, docking_root[num_line_ref].compound, line);      
+    }    
+    MPI_Buffer_attach(buff, buffer_dock);
     num_line_ref = -1;    
+    dest = 1;
     while (fgets(line, MAX_LINE_FILE, f_dock) != NULL){
-      num_line_ref = num_line_ref + 1;
+      if (num_line_ref < number_dock){
+        num_line_ref = num_line_ref + 1;
+      }else{                
+        MPI_Bsend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD);
+        dest = dest + 1;
+        num_line_ref = 0;
+      }
       set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
     }
-    free(line);
+    //Sending to last rank because MPI_Send inside while command is not executed for the last rank 
+    MPI_Bsend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD);    
     fclose(f_dock);
-    MPI_Buffer_attach(buff, buffer_dock);
-    MPI_Bsend(v_docking, number_dock, mpi_docking_t, 1, tag_docking, MPI_COMM_WORLD);
+    free(line);
+
+    //Call vina by root 
+    initialize_vina_execution();
+    int i;
+    for (i = 0; i < number_dock_root; i++){      
+        call_vina(param, &docking_root[i]);
+    }
+    finish_vina_execution(); 
   }else{
     MPI_Status status;
     int i;
     initialize_vina_execution();
     MPI_Recv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &status);
-    for (i = 0; i < number_dock; i++){
-      printf("%s %s \n", v_docking[i].receptor, v_docking[i].compound);
+    for (i = 0; i < number_dock; i++){      
       call_vina(param, &v_docking[i]);
     }
-    finish_vina_execution();
-    printf("REMOVER O VALOR number_dock QUE ESTA 2. REPENSAR EM COMO ENVIAR \n");        
+    finish_vina_execution();    
   }
   
   MPI_Buffer_detach(buff, &buffer_dock);
