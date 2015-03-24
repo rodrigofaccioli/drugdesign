@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 """ 
-    Routines to performe virtual screening
+    Routines to performe virtual screening when MPI is NOT working
     These routines were developed by:
     Rodrigo Antonio Faccioli - rodrigo.faccioli@usp.br / rodrigo.faccioli@gmail.com  
     Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
