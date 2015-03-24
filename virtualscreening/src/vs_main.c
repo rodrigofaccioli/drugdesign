@@ -15,9 +15,10 @@
 #include "messages.h"
 #include "load_parameters.h"
 #include "futil.h"
- #include "string_owner.h"
+#include "string_owner.h"
 #include "mpi_parameters_type.h"
 #include "mpi_docking_type.h"
+#include "vina.h"
 
 // Calculates the number of docking for each process
 void get_number_docking(int *n_dock, int *n_dock_root, 
@@ -39,14 +40,18 @@ int main(int argc, char const *argv[]) {
 
   //Creating mpi struct types
 /*************  mpi_input_parameters_t ***************************/
-  const int nitems=3;
-  int blocklengths[nitems] = {MAX_PATH,MAX_PATH, MAX_PATH};
-  MPI_Datatype types[nitems] = {MPI_CHAR, MPI_CHAR, MPI_CHAR};  
+  const int nitems=7;
+  int blocklengths[nitems] = {MAX_PATH, MAX_PATH, MAX_PATH, MAX_PATH, MAX_PATH, MAX_PATH_FILE_NAME, MAX_PATH_FILE_NAME};
+  MPI_Datatype types[nitems] = {MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR};  
   MPI_Aint offsets[nitems];
 
   offsets[0] = offsetof(input_parameters_t, local_execute);
   offsets[1] = offsetof(input_parameters_t, path_receptors);
   offsets[2] = offsetof(input_parameters_t, path_compounds);
+  offsets[3] = offsetof(input_parameters_t, path_out);
+  offsets[4] = offsetof(input_parameters_t, path_log);
+  offsets[5] = offsetof(input_parameters_t, config_vina);
+  offsets[6] = offsetof(input_parameters_t, vina_program);
 
   MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_input_parameters_t);
   MPI_Type_commit(&mpi_input_parameters_t); 
@@ -138,16 +143,19 @@ int main(int argc, char const *argv[]) {
     MPI_Bsend(v_docking, number_dock, mpi_docking_t, 1, tag_docking, MPI_COMM_WORLD);
   }else{
     MPI_Status status;
-    MPI_Recv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &status);
     int i;
-    for (i=0; i < number_dock;i++){
-      printf("%s %s\n", v_docking[i].receptor, v_docking[i].compound);
-    }    
+    initialize_vina_execution();
+    MPI_Recv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &status);
+    for (i = 0; i < number_dock; i++){
+      printf("%s %s \n", v_docking[i].receptor, v_docking[i].compound);
+      call_vina(param, &v_docking[i]);
+    }
+    finish_vina_execution();
+    printf("REMOVER O VALOR number_dock QUE ESTA 2. REPENSAR EM COMO ENVIAR \n");        
   }
-
-  //MPI_Scatter(buff, number_dock, mpi_docking_t, v_docking, number_dock, mpi_docking_t, root, MPI_COMM_WORLD);
-  MPI_Buffer_detach(buff, &buffer_dock);
   
+  MPI_Buffer_detach(buff, &buffer_dock);
+
   deAllocate_docking(v_docking);
   deAllocateload_parameters(param);
   
