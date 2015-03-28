@@ -19,6 +19,7 @@
 #include "mpi_parameters_type.h"
 #include "mpi_docking_type.h"
 #include "vina.h"
+ #include "execution_information.h"
 
 // Calculates the number of docking for each process
 void get_number_docking(int *n_dock, int *n_dock_root, 
@@ -126,7 +127,10 @@ int main(int argc, char const *argv[]) {
     char *line=NULL;
     int num_line_ref;
     int dest;
-      
+    
+    //saving information of virtual screening execution
+    save_information(param->local_execute, &world_size,  &number_dock, &number_dock_root);  
+
     docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));    
     line = (char*)malloc(MAX_LINE_FILE);
 

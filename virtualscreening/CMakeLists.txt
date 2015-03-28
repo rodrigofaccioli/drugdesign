@@ -23,6 +23,7 @@ set_source_files_properties(src/messages.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/load_parameters.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/docking.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/vina.c PROPERTIES LANGUAGE CXX )
+set_source_files_properties(src/execution_information.c PROPERTIES LANGUAGE CXX )
 
 # set include
 include_directories(include)
@@ -36,6 +37,7 @@ src/messages.c
 src/load_parameters.c
 src/docking.c
 src/vina.c
+src/execution_information.c
 )#end of VS_lib
 
 # add target
