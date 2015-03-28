@@ -15,6 +15,13 @@ It is necessary to install the follow softwares
 1) AutoDock Vina - http://vina.scripps.edu/
 2) MGLTools-1.5.6 - http://mgltools.scripps.edu/downloads 
 3) python-matplotlib package - http://matplotlib.org/users/installing.html
+4) cmake - http://www.cmake.org/
+5) Massage Passing Interface (MPI) 
+6) Compile virtual screening
+6.1) mkdir build
+6.2) cd build
+6.3) cmake ../
+6.4) make
 
 How to run a Virtual Screening?
 ===============================
@@ -27,8 +34,9 @@ eight steps are necessary to run virtual screening.
 4) Preparing ligands
 5) Preparing receptors
 6) Preparing box of Auto Vina using Pymol
-7) Running the Virtual Screening
-8) Analysing the Virtual Screening
+7) Preparing input files
+8) Running the Virtual Screening MPI
+9) Analysing the Virtual Screening
 
 
 Understanding the drugdesign project
