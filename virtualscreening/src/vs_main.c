@@ -24,6 +24,7 @@
 // Calculates the number of docking for each process
 void get_number_docking(int *n_dock, int *n_dock_root, 
   const int *world_size, const int *full_dock){  
+  printf("full_dock %d\n", *full_dock);
   if ( (*full_dock  % *world_size) == 0){
     *n_dock = (int) *full_dock  / *world_size;
     *n_dock_root = *n_dock;
@@ -57,20 +58,6 @@ int main(int argc, char const *argv[]) {
   MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_input_parameters_t);
   MPI_Type_commit(&mpi_input_parameters_t); 
 /*************  mpi_input_parameters_t end ***************************/
-
-/*************  mpi_docking_t ***************************/  
-  const int nitems_dock=2;
-  int blocklengths_dock[nitems_dock] = {MAX_PATH, MAX_PATH};
-  MPI_Datatype types_dock[nitems_dock] = {MPI_CHAR, MPI_CHAR};  
-  MPI_Aint offsets_dock[nitems_dock];
-
-  offsets_dock[0] = offsetof(docking_t, receptor);
-  offsets_dock[1] = offsetof(docking_t, compound);
-
-  MPI_Type_create_struct(nitems_dock, blocklengths_dock, offsets_dock, types_dock, &mpi_docking_t);
-  MPI_Type_commit(&mpi_docking_t); 
-/*************  mpi_docking_t end ***************************/
-
 
   int root = 0;
   const int tag_docking = 1;
@@ -114,6 +101,24 @@ int main(int argc, char const *argv[]) {
   //Guarantee that all process received all data
   MPI_Barrier(MPI_COMM_WORLD);
 
+  //Creating mpi_docking_t data type to send docking for each process
+  /*************  mpi_docking_t ***************************/  
+  const int nitems_dock=2;
+  int blocklengths_dock[nitems_dock] = {MAX_PATH, MAX_PATH};
+  MPI_Datatype types_dock[nitems_dock] = {MPI_CHAR, MPI_CHAR};    
+  MPI_Aint offsets_dock[nitems_dock];
+
+  offsets_dock[0] = offsetof(docking_t, receptor);
+  offsets_dock[1] = offsetof(docking_t, compound);
+
+  MPI_Type_create_struct(nitems_dock, blocklengths_dock, offsets_dock, types_dock, &mpi_docking_t);  
+  MPI_Type_commit(&mpi_docking_t); 
+  MPI_Datatype mpi_docking_vector_t;
+  MPI_Type_contiguous(number_dock, mpi_docking_t, &mpi_docking_vector_t );    
+  MPI_Type_commit(&mpi_docking_vector_t); 
+/*************  mpi_docking_t end ***************************/
+
+
   //Preparing buffer to be sent
   docking_t  *buff = NULL;
   int buffer_dock;
@@ -143,20 +148,20 @@ int main(int argc, char const *argv[]) {
       set_receptor_compound(docking_root[num_line_ref].receptor, docking_root[num_line_ref].compound, line);      
     }    
     MPI_Buffer_attach(buff, buffer_dock);
-    num_line_ref = -1;    
+    num_line_ref = 0;    
     dest = 1;
     while (fgets(line, MAX_LINE_FILE, f_dock) != NULL){
       if (num_line_ref < number_dock){
         num_line_ref = num_line_ref + 1;
       }else{                
-        MPI_Isend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);
+        MPI_Isend(v_docking, number_dock, mpi_docking_vector_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);
         dest = dest + 1;
         num_line_ref = 0;
       }
       set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
     }
     //Sending to last rank because MPI_Send inside while command is not executed for the last rank 
-    MPI_Isend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);    
+    MPI_Isend(v_docking, number_dock, mpi_docking_vector_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);    
     fclose(f_dock);
     free(line);
 
@@ -171,7 +176,7 @@ int main(int argc, char const *argv[]) {
     MPI_Status status;
     int i;
     initialize_vina_execution();
-    MPI_Irecv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &request_dock);
+    MPI_Irecv(v_docking, number_dock, mpi_docking_vector_t, root,tag_docking, MPI_COMM_WORLD, &request_dock);
     MPI_Wait(&request_dock, &status);      
     for (i = 0; i < number_dock; i++){      
       call_vina(param, &v_docking[i]);
