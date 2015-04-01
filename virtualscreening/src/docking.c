@@ -12,7 +12,7 @@ void deAllocate_docking(docking_t *d){
 	free(d);
 }
 
-int get_number_docking(const char *file_name){
+int get_number_docking_from_file(const char *file_name){
 
 	FILE *f_dock=NULL;
 	char *line=NULL;
