@@ -22,11 +22,10 @@ void save_information(const char *local_execute, const int *num_proc,
 	fprintf(f_info, "Process Number = %d\n", *num_proc);
 	fprintf(f_info, "Docking Number root = %d\n", *num_dock_root);
 	fprintf(f_info, "Docking Number others = %d\n", *num_dock);
-	fprintf(f_info, "Docking Number total %d\n", (*num_dock * (*num_proc-1)) + *num_dock_root);
+	fprintf(f_info, "Docking Number total %d\n", (*num_dock * (*num_proc-1) ) + *num_dock_root);
 
 	fclose(f_info);
 
 	free(path_file_name);
 	free(f_information);
-
 }

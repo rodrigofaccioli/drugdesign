@@ -34,10 +34,10 @@ void get_number_docking(int *n_dock, int *n_dock_root,
 
 }
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char *argv[]) {
 
  
-  MPI_Init(NULL, NULL);	
+  MPI_Init(&argc, &argv);	
 
   //Creating mpi struct types
 /*************  mpi_input_parameters_t ***************************/
@@ -88,44 +88,52 @@ int main(int argc, char const *argv[]) {
   //Preparing the docking number for each proecess
   if (world_rank == root) {    
     int full_dock;
-    full_dock = get_number_docking(argv[2]);    
+    full_dock = get_number_docking_from_file(argv[2]);
     get_number_docking(&number_dock, &number_dock_root, &world_size, &full_dock);     
   } 
   //Broadcast the docking number for each proecess
   MPI_Bcast(&number_dock, 1, MPI_INT, root, MPI_COMM_WORLD);
   
-  docking_t *v_docking = NULL;
-  v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));
-
   //Guarantee that all process received all data
   MPI_Barrier(MPI_COMM_WORLD);
+
+  docking_t *v_docking = NULL;
+  v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));
 
   //Creating mpi_docking_t data type to send docking for each process
   /*************  mpi_docking_t ***************************/  
   const int nitems_dock=2;
-  int blocklengths_dock[nitems_dock] = {MAX_PATH, MAX_PATH};
-  MPI_Datatype types_dock[nitems_dock] = {MPI_CHAR, MPI_CHAR};    
-  MPI_Aint offsets_dock[nitems_dock];
+  int blocklengths_dock[nitems_dock] = {MAX_PATH, MAX_PATH};  
+  //MPI_Datatype types_dock[nitems_dock]= {MPI_CHAR, MPI_CHAR};  
+  MPI_Datatype types_dock[nitems_dock];
+  MPI_Aint offsets_dock[nitems_dock], s_lb, s_extent;
 
-  offsets_dock[0] = offsetof(docking_t, receptor);
-  offsets_dock[1] = offsetof(docking_t, compound);
+  MPI_Get_address(v_docking[0].receptor, &offsets_dock[0]);
+  MPI_Get_address(v_docking[0].compound, &offsets_dock[1]);
+  types_dock[0] = MPI_CHAR;
+  types_dock[1] = MPI_CHAR;
+  offsets_dock[1] -= offsets_dock[0];
+  offsets_dock[0] = 0;
+  //offsets_dock[0] = offsetof(docking_t, receptor);
+  //offsets_dock[1] = offsetof(docking_t, compound);
 
   MPI_Type_create_struct(nitems_dock, blocklengths_dock, offsets_dock, types_dock, &mpi_docking_t);  
+  MPI_Type_get_extent(mpi_docking_t, &s_lb, &s_extent);  
+  if (s_extent != sizeof(v_docking[0])) {
+    MPI_Datatype sold = mpi_docking_t;
+    MPI_Type_create_resized(sold, 0, sizeof(docking_t), &mpi_docking_t);
+    MPI_Type_free(&sold);
+  }
   MPI_Type_commit(&mpi_docking_t); 
-/*  
-  MPI_Datatype mpi_docking_vector_t;
-  MPI_Type_contiguous(number_dock, mpi_docking_t, &mpi_docking_vector_t );    
-  MPI_Type_commit(&mpi_docking_vector_t); 
-*/  
 /*************  mpi_docking_t end ***************************/
 
-
+/*
   //Preparing buffer to be sent
   docking_t  *buff = NULL;
   int buffer_dock;
   buffer_dock = sizeof(docking_t)*number_dock*MPI_BSEND_OVERHEAD;
   buff = (docking_t *) malloc(buffer_dock);
-
+*/
   //Sending data for performing the Virtual Screening
   if (world_rank == root){    
     docking_t *docking_root = NULL;
@@ -147,10 +155,16 @@ int main(int argc, char const *argv[]) {
     for (num_line_ref = 0; num_line_ref < number_dock_root; num_line_ref++){
       fgets(line, MAX_LINE_FILE, f_dock);
       set_receptor_compound(docking_root[num_line_ref].receptor, docking_root[num_line_ref].compound, line);      
-    }    
-    MPI_Buffer_attach(buff, buffer_dock);
+    }
+    printf("docking_root \n");    
+    int r;
+    for (r = 0; r < number_dock_root; r++){
+        printf("%s %s \n", docking_root[r].receptor, docking_root[r].compound);
+    }
+    //MPI_Buffer_attach(buff, buffer_dock);
     num_line_ref = -1;    
     dest = 1;
+    printf("LENDO ARQUIVO \n");    
     while (fgets(line, MAX_LINE_FILE, f_dock) != NULL){
       if (num_line_ref < number_dock){
         num_line_ref = num_line_ref + 1;
@@ -160,7 +174,8 @@ int main(int argc, char const *argv[]) {
         dest = dest + 1;
         num_line_ref = 0;
       }
-      set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
+      set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);      
+      printf("%s %s \n", v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound);      
     }
     //Sending to last rank because MPI_Send inside while command is not executed for the last rank 
     MPI_Send(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD);        
@@ -171,31 +186,37 @@ int main(int argc, char const *argv[]) {
     //Call vina by root 
     initialize_vina_execution();
     int i;
-    for (i = 0; i < number_dock_root; i++){      
+    for (i = 0; i < number_dock_root; i++){
+        printf("Rooot %d \n", number_dock_root);
         call_vina(param, &docking_root[i]);
     }
-    finish_vina_execution(); 
+    finish_vina_execution();
+    
+    deAllocate_docking(docking_root);
+    deAllocate_docking(v_docking);
+    deAllocateload_parameters(param);    
   }else{
     MPI_Status status;    
-    MPI_Recv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &status);    
+    MPI_Recv(v_docking, number_dock, mpi_docking_t, root, tag_docking, MPI_COMM_WORLD, &status);
     //MPI_Irecv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &request_dock);
     //MPI_Wait(&request_dock, &status);      
     int i;
     initialize_vina_execution();
-    for (i = 0; i < number_dock; i++){      
+    printf("Rank %d num_dock %d \n", world_rank, number_dock);
+    for (i = 0; i < number_dock; i++){            
       call_vina(param, &v_docking[i]);
     }
     finish_vina_execution();    
+    deAllocate_docking(v_docking);
+    deAllocateload_parameters(param);
+
   }
   
-  MPI_Buffer_detach(buff, &buffer_dock);
-
-  deAllocate_docking(v_docking);
-  deAllocateload_parameters(param);
-  
-  MPI_Type_free(&mpi_docking_t);  
+  //MPI_Buffer_detach(buff, &buffer_dock);
   MPI_Type_free(&mpi_input_parameters_t);  
-
+/*
+  MPI_Type_free(&mpi_docking_t);    
+*/  
   MPI_Finalize();
 	return 0;
 }
