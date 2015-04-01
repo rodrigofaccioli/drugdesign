@@ -156,26 +156,20 @@ int main(int argc, char *argv[]) {
       fgets(line, MAX_LINE_FILE, f_dock);
       set_receptor_compound(docking_root[num_line_ref].receptor, docking_root[num_line_ref].compound, line);      
     }
-    printf("docking_root \n");    
-    int r;
-    for (r = 0; r < number_dock_root; r++){
-        printf("%s %s \n", docking_root[r].receptor, docking_root[r].compound);
-    }
     //MPI_Buffer_attach(buff, buffer_dock);
     num_line_ref = -1;    
-    dest = 1;
-    printf("LENDO ARQUIVO \n");    
-    while (fgets(line, MAX_LINE_FILE, f_dock) != NULL){
-      if (num_line_ref < number_dock){
-        num_line_ref = num_line_ref + 1;
-      }else{                
-        MPI_Send(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD);        
-        //MPI_Isend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);
-        dest = dest + 1;
-        num_line_ref = 0;
-      }
-      set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);      
-      printf("%s %s \n", v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound);      
+    dest = 1;      
+    while (fgets(line, MAX_LINE_FILE, f_dock) != NULL){      
+        if (num_line_ref < number_dock){
+          num_line_ref = num_line_ref + 1;
+        }else{                
+          MPI_Send(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD);        
+          //MPI_Isend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);
+          dest = dest + 1;
+          num_line_ref = 0;
+        }
+        set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line); 
+      
     }
     //Sending to last rank because MPI_Send inside while command is not executed for the last rank 
     MPI_Send(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD);        
@@ -196,13 +190,13 @@ int main(int argc, char *argv[]) {
     deAllocate_docking(v_docking);
     deAllocateload_parameters(param);    
   }else{
+    printf("Rank %d num_dock %d \n", world_rank, number_dock);
     MPI_Status status;    
     MPI_Recv(v_docking, number_dock, mpi_docking_t, root, tag_docking, MPI_COMM_WORLD, &status);
     //MPI_Irecv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &request_dock);
     //MPI_Wait(&request_dock, &status);      
     int i;
-    initialize_vina_execution();
-    printf("Rank %d num_dock %d \n", world_rank, number_dock);
+    initialize_vina_execution();    
     for (i = 0; i < number_dock; i++){            
       call_vina(param, &v_docking[i]);
     }
