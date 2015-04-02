@@ -7,7 +7,7 @@
 #include "string_owner.h"
 
 void save_information(const char *local_execute, const int *num_proc, 
-	const int *num_dock, const int *num_dock_root){
+	const int *num_dock, const int *num_dock_root, const int *nthreads){
 	
 	FILE *f_info;
 	char *f_information = NULL;
@@ -20,6 +20,7 @@ void save_information(const char *local_execute, const int *num_proc,
 
 	f_info = open_file(path_file_name, fWRITE);
 	fprintf(f_info, "Process Number = %d\n", *num_proc);
+	fprintf(f_info, "Threads Number = %d\n", *nthreads);
 	fprintf(f_info, "Docking Number root = %d\n", *num_dock_root);
 	fprintf(f_info, "Docking Number others = %d\n", *num_dock);
 	fprintf(f_info, "Docking Number total %d\n", (*num_dock * (*num_proc-1) ) + *num_dock_root);

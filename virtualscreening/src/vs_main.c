@@ -5,6 +5,7 @@
  * Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com
 */
 #include <mpi.h>
+#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +52,7 @@ int main(int argc, char *argv[]) {
   int number_dock_root = -1;      
   int world_size;
   int world_rank;
+  int nthreads;
   MPI_Request request_dock;  
 
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -97,7 +99,8 @@ int main(int argc, char *argv[]) {
 
     docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));
     //saving information of virtual screening execution
-    save_information(param->local_execute, &world_size,  &number_dock, &number_dock_root);  
+    nthreads = omp_get_num_threads();
+    save_information(param->local_execute, &world_size,  &number_dock, &number_dock_root, &nthreads);  
 
     line = (char*)malloc(MAX_LINE_FILE);
     f_dock = open_file(argv[2], fREAD);
@@ -133,8 +136,13 @@ int main(int argc, char *argv[]) {
     load_docking_from_file(docking_root, &number_dock_root, param->local_execute, &world_rank);
     int i;
     initialize_vina_execution();    
-    for (i = 0; i < number_dock_root; i++){            
-      call_vina(param, &docking_root[i]);
+    #pragma omp parallel
+    {
+      //printf("rank %d nthreads %d\n", world_rank, nthreads);
+      #pragma omp for    
+      for (i = 0; i < number_dock_root; i++){
+        call_vina(param, &docking_root[i]);
+      }
     }
     finish_vina_execution();    
     deAllocate_docking(docking_root);
@@ -143,8 +151,13 @@ int main(int argc, char *argv[]) {
     load_docking_from_file(v_docking, &number_dock, param->local_execute, &world_rank);
     int i;
     initialize_vina_execution();    
-    for (i = 0; i < number_dock; i++){            
-      call_vina(param, &v_docking[i]);
+    #pragma omp parallel
+    {      
+      //printf("rank %d nthreads %d\n", world_rank, nthreads);
+      #pragma omp for    
+      for (i = 0; i < number_dock; i++){
+        call_vina(param, &v_docking[i]);
+      }
     }
     finish_vina_execution(); 
   }
