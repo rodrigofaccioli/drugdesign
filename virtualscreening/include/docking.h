@@ -10,5 +10,7 @@ void save_file_docking_from_array(const docking_t *v_doc, const int *num_doc,
   const char *local_execute, const int *suf);
 void load_docking_from_file(docking_t *v_doc, const int *num_dock, 
   const char *local, const int *suf);
+void set_number_docking(int *n_dock, int *n_dock_root, 
+  const int *world_size, const int *full_dock);
 #endif
 

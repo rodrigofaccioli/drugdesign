@@ -13,6 +13,20 @@ void deAllocate_docking(docking_t *d){
 	free(d);
 }
 
+// Calculates the number of docking for each process
+void set_number_docking(int *n_dock, int *n_dock_root, 
+  const int *world_size, const int *full_dock){  
+  if ( (*full_dock  % *world_size) == 0){
+    *n_dock = (int) *full_dock  / *world_size;
+    *n_dock_root = *n_dock;
+  }else{
+    *n_dock = (int) *full_dock  / *world_size;
+    *n_dock_root = *full_dock - ( (*world_size-1)* *n_dock);
+  }
+
+}
+
+
 int get_number_docking_from_file(const char *file_name){
 
 	FILE *f_dock=NULL;

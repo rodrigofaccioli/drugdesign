@@ -21,19 +21,6 @@
 #include "vina.h"
  #include "execution_information.h"
 
-// Calculates the number of docking for each process
-void set_number_docking(int *n_dock, int *n_dock_root, 
-  const int *world_size, const int *full_dock){  
-  if ( (*full_dock  % *world_size) == 0){
-    *n_dock = (int) *full_dock  / *world_size;
-    *n_dock_root = *n_dock;
-  }else{
-    *n_dock = (int) *full_dock  / *world_size;
-    *n_dock_root = *n_dock + 1;
-  }
-
-}
-
 int main(int argc, char *argv[]) {
 
  
