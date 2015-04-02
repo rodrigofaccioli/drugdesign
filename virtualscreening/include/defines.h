@@ -5,3 +5,4 @@
 #define MAX_FILE_NAME 200
 #define MAX_PATH 300
 #define MAX_LINE_FILE 500
+#define MAX_SUFIX 10
