@@ -17,6 +17,9 @@ void show_parameters(const input_parameters_t *param){
 	printf("Path_log %s\n", param->path_log);
 	printf("Config_file %s\n", param->config_vina);
 	printf("Vina_program %s\n", param->vina_program);
+	printf("Pythonsh %s\n", param->pythonsh);
+	printf("Script_ligand4 %s\n", param->script_ligand4);
+	printf("Path_mol2 %s\n", param->path_mol2);
 }
 
 static void set_parameters(input_parameters_t *param, const char *key, 
@@ -35,6 +38,12 @@ static void set_parameters(input_parameters_t *param, const char *key,
 		strcpy(param->config_vina, value);
 	}else if (strncmp(key,"Vina_program",12) == 0){
 		strcpy(param->vina_program, value);
+	}else if (strncmp(key,"Pythonsh",8) == 0){
+		strcpy(param->pythonsh, value);
+	}else if (strncmp(key,"Script_ligand4",14) == 0){
+		strcpy(param->script_ligand4, value);
+	}else if (strncmp(key,"Path_mol2",9) == 0){
+		strcpy(param->path_mol2, value);
 	}else{
 		fatal_error("Parameter not found\n");
 	}
