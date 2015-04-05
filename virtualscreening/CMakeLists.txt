@@ -24,6 +24,8 @@ set_source_files_properties(src/load_parameters.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/docking.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/vina.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/execution_information.c PROPERTIES LANGUAGE CXX )
+set_source_files_properties(src/prepare_ligand.c PROPERTIES LANGUAGE CXX )
+
 
 # set include
 include_directories(include)
@@ -44,5 +46,10 @@ src/execution_information.c
 add_executable(vs_main src/vs_main.c)
 target_link_libraries(vs_main VS_lib ${MPI_C_LIBRARIES})
 
+add_executable(prepare_ligand src/prepare_ligand.c)
+target_link_libraries(prepare_ligand VS_lib ${MPI_C_LIBRARIES})
+
+
 # install
 install(TARGETS vs_main DESTINATION bin)
+install(TARGETS prepare_ligand DESTINATION bin)
