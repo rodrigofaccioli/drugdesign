@@ -67,7 +67,7 @@ def creating_config_file(current_dir, config):
 	file_config.write(line)	
 	line = "Script_ligand4 = "+ str(config.get('VINA', 'script_ligand4')) + "\n"			
 	file_config.write(line)	
-	line = "Path_mol2 = "+ str(config.get('DEFAULT', 'mol2_path')) + "\n"			
+	line = "Path_mol2 = "+ valid_end_terminator_path(str(config.get('DEFAULT', 'mol2_path'))) + "\n"
 	file_config.write(line)		
 	file_config.close()
 
