@@ -58,26 +58,32 @@ int main(int argc, char *argv[]) {
 
 	initialize_vina_execution();
 	//Calling prepare ligand 
-	path_file_mol2 = (char*)malloc(sizeof(char)*MAX_PATH_FILE_NAME);
-	path_file_pdbqt = (char*)malloc(sizeof(char)*MAX_PATH_FILE_NAME);
-	file_pdbqt = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
-	base_file_name  = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
-	for (m = 0; m < mol2_size; m++){
-		set_base_file_name(base_file_name, all_mol2_files[m].file_name, ex_mol2);
-		strcpy(file_pdbqt, base_file_name);
-		add_ext_file_name(file_pdbqt, ex_pdbqt);
-		//mol2 file
-		strcpy(path_file_mol2, param->path_mol2);
-		strcat(path_file_mol2, all_mol2_files[m].file_name);
-		//pdbqt files		
-		strcpy(path_file_pdbqt, param->path_compounds);
-		strcat(path_file_pdbqt, file_pdbqt);
-		call_prepare_ligand(param, path_file_mol2, path_file_pdbqt);
-	}
-	free(base_file_name);
-	free(path_file_pdbqt);
-	free(path_file_mol2);
+    #pragma omp parallel shared(m,mol2_size) private(path_file_mol2, path_file_pdbqt, file_pdbqt, base_file_name)
+    {           	
+		path_file_mol2 = (char*)malloc(sizeof(char)*MAX_PATH_FILE_NAME);
+		path_file_pdbqt = (char*)malloc(sizeof(char)*MAX_PATH_FILE_NAME);
+		file_pdbqt = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
+		base_file_name  = (char*)malloc(sizeof(char)*MAX_FILE_NAME);     		    	
+		#pragma omp for 		
+		for (m = 0; m < mol2_size; m++){
+			//Obtaing base file name. This is file name without its extension
+			set_base_file_name(base_file_name, all_mol2_files[m].file_name, ex_mol2);
+			strcpy(file_pdbqt, base_file_name);
+			add_ext_file_name(file_pdbqt, ex_pdbqt);
+			//mol2 file
+			strcpy(path_file_mol2, param->path_mol2);
+			strcat(path_file_mol2, all_mol2_files[m].file_name);
+			//pdbqt files		
+			strcpy(path_file_pdbqt, param->path_compounds);
+			strcat(path_file_pdbqt, file_pdbqt);
+			call_prepare_ligand(param, path_file_mol2, path_file_pdbqt);
 
+		}
+		free(base_file_name);
+		free(file_pdbqt);
+		free(path_file_pdbqt);		
+		free(path_file_mol2);		    		
+    }
 	finish_vina_execution();
 
 	free(ex_pdbqt);
