@@ -6,6 +6,8 @@
 #include "futil.h"
 #include "string_owner.h"
 
+#define NAME_FILE "vs_execution_information.txt"
+
 void save_information(const char *local_execute, const int *num_proc, 
 	const int *num_dock, const int *num_dock_root, const int *nthreads){
 	
@@ -14,7 +16,7 @@ void save_information(const char *local_execute, const int *num_proc,
 	char *path_file_name = NULL;
 	f_information = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
 
-	strcpy(f_information, "vs_execution_information.txt");
+	strcpy(f_information, NAME_FILE);
 
 	path_file_name = path_join_file(local_execute, f_information);
 
@@ -27,6 +29,27 @@ void save_information(const char *local_execute, const int *num_proc,
 
 	fclose(f_info);
 
+	free(path_file_name);
+	free(f_information);
+}
+
+void saving_time_execution(const char *local, const double *finished, const double *started){
+	FILE *f_info;
+	char *f_information = NULL;
+	char *path_file_name = NULL;
+	f_information = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
+
+	strcpy(f_information, NAME_FILE);
+
+	path_file_name = path_join_file(local, f_information);
+
+	f_info = open_file(path_file_name, fAPPEND);
+	fprintf(f_info, "\n\nTime Execution\n");
+	fprintf(f_info, "Started = %f\n", *started);
+	fprintf(f_info, "Finished = %f\n", *finished);
+	fprintf(f_info, "Runtime = %f\n", *finished - *started);
+
+	fclose(f_info);
 	free(path_file_name);
 	free(f_information);
 }
