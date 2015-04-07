@@ -19,12 +19,12 @@
 #include "mpi_parameters_type.h"
 #include "mpi_docking_type.h"
 #include "vina.h"
- #include "execution_information.h"
+#include "execution_information.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char const *argv[]) {
 
  
-  MPI_Init(&argc, &argv);	
+  MPI_Init(NULL, NULL);	
 
   //Creating mpi struct types
 /*************  mpi_input_parameters_t ***************************/
@@ -44,6 +44,20 @@ int main(int argc, char *argv[]) {
   MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_input_parameters_t);
   MPI_Type_commit(&mpi_input_parameters_t); 
 /*************  mpi_input_parameters_t end ***************************/
+
+/*************  mpi_docking_t ***************************/  
+  const int nitems_dock=2;
+  int blocklengths_dock[nitems_dock] = {MAX_PATH, MAX_PATH};
+  MPI_Datatype types_dock[nitems_dock] = {MPI_CHAR, MPI_CHAR};  
+  MPI_Aint offsets_dock[nitems_dock];
+
+  offsets_dock[0] = offsetof(docking_t, receptor);
+  offsets_dock[1] = offsetof(docking_t, compound);
+
+  MPI_Type_create_struct(nitems_dock, blocklengths_dock, offsets_dock, types_dock, &mpi_docking_t);
+  MPI_Type_commit(&mpi_docking_t); 
+/*************  mpi_docking_t end ***************************/
+
 
   int root = 0;
   const int tag_docking = 1;
@@ -75,7 +89,7 @@ int main(int argc, char *argv[]) {
   //Preparing the docking number for each proecess
   if (world_rank == root) {    
     int full_dock;
-    full_dock = get_number_docking_from_file(argv[2]);
+    full_dock = get_number_docking_from_file(argv[2]);    
     set_number_docking(&number_dock, &number_dock_root, &world_size, &full_dock);     
   } 
   //Broadcast the docking number for each proecess
@@ -87,74 +101,78 @@ int main(int argc, char *argv[]) {
   //Guarantee that all process received all data
   MPI_Barrier(MPI_COMM_WORLD);
 
-  //Decompose all docking against all process
-  docking_t *docking_root = NULL;
-  if (world_rank == root){
+  //Preparing buffer to be sent
+  docking_t  *buff = NULL;
+  int buffer_dock;
+  buffer_dock = sizeof(docking_t)*number_dock*MPI_BSEND_OVERHEAD;
+  buff = (docking_t *) malloc(buffer_dock);
+
+  //Sending data for performing the Virtual Screening
+  if (world_rank == root){    
+    docking_t *docking_root = NULL;
     FILE *f_dock=NULL;    
     char *line=NULL;
     int num_line_ref;
-    int dest;    
-
-    docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));
+    int dest;
+    
     //saving information of virtual screening execution
     save_information(param->local_execute, &world_size,  &number_dock, &number_dock_root);  
 
+    docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));    
     line = (char*)malloc(MAX_LINE_FILE);
+
     f_dock = open_file(argv[2], fREAD);
-    //Ignoring first  line of file
+    //Ignoring first line of file
     fgets(line, MAX_LINE_FILE, f_dock);
     //Obtaining docking that will be executed in root
     for (num_line_ref = 0; num_line_ref < number_dock_root; num_line_ref++){
       fgets(line, MAX_LINE_FILE, f_dock);
-      set_receptor_compound(docking_root[num_line_ref].receptor, docking_root[num_line_ref].compound, line);
+      set_receptor_compound(docking_root[num_line_ref].receptor, docking_root[num_line_ref].compound, line);      
     }    
-    dest = 0;
-    save_file_docking_from_array(docking_root, &number_dock_root, param->local_execute, &dest);        
-    //Creating for all process    
-    for (dest = 1; dest < world_size; dest++){
-      num_line_ref = 0;      
-      do{
-        fgets(line, MAX_LINE_FILE, f_dock);
-        set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
+    MPI_Buffer_attach(buff, buffer_dock);
+    num_line_ref = -1;    
+    dest = 1;
+    while (fgets(line, MAX_LINE_FILE, f_dock) != NULL){
+      if (num_line_ref < number_dock){
         num_line_ref = num_line_ref + 1;
-      }while ( num_line_ref < number_dock  );     
-      save_file_docking_from_array(v_docking, &number_dock, param->local_execute, &dest);      
-    } 
+      }else{                
+        MPI_Isend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);
+        dest = dest + 1;
+        num_line_ref = 0;
+      }
+      set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
+    }
+    //Sending to last rank because MPI_Send inside while command is not executed for the last rank 
+    MPI_Isend(v_docking, number_dock, mpi_docking_t, dest, tag_docking, MPI_COMM_WORLD, &request_dock);    
     fclose(f_dock);
     free(line);
 
-  }
-  //Guarantee that all process received all data
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  //Call Docking from all process
-  if (world_rank == root){
-    //printf("Rank %d num_dock %d \n", world_rank, number_dock_root);
-    load_docking_from_file(docking_root, &number_dock_root, param->local_execute, &world_rank);
+    //Call vina by root 
+    initialize_vina_execution();
     int i;
-    initialize_vina_execution();    
-    for (i = 0; i < number_dock_root; i++){            
-      call_vina(param, &docking_root[i]);
-    }
-    finish_vina_execution();    
-    deAllocate_docking(docking_root);
-  }else{
-    //printf("Rank %d num_dock %d \n", world_rank, number_dock);
-    load_docking_from_file(v_docking, &number_dock, param->local_execute, &world_rank);
-    int i;
-    initialize_vina_execution();    
-    for (i = 0; i < number_dock; i++){            
-      call_vina(param, &v_docking[i]);
+    for (i = 0; i < number_dock_root; i++){      
+        call_vina(param, &docking_root[i]);
     }
     finish_vina_execution(); 
+  }else{
+    MPI_Status status;
+    int i;
+    initialize_vina_execution();
+    MPI_Irecv(v_docking, number_dock, mpi_docking_t, root,tag_docking, MPI_COMM_WORLD, &request_dock);
+    MPI_Wait(&request_dock, &status);      
+    for (i = 0; i < number_dock; i++){      
+      call_vina(param, &v_docking[i]);
+    }
+    finish_vina_execution();    
   }
-
   
-  MPI_Type_free(&mpi_input_parameters_t);  
+  MPI_Buffer_detach(buff, &buffer_dock);
 
   deAllocate_docking(v_docking);
   deAllocateload_parameters(param);
-
+  
+  MPI_Type_free(&mpi_docking_t);  
+  MPI_Type_free(&mpi_input_parameters_t);  
 
   MPI_Finalize();
 	return 0;
