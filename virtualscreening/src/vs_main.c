@@ -53,6 +53,7 @@ int main(int argc, char *argv[]) {
   int world_size;
   int world_rank;
   int nthreads;
+  double started_time, finished_time;
   MPI_Request request_dock;  
 
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -132,6 +133,7 @@ int main(int argc, char *argv[]) {
 
   //Call Docking from all process
   if (world_rank == root){
+    started_time = MPI_Wtime();
     //printf("Rank %d num_dock %d \n", world_rank, number_dock_root);
     load_docking_from_file(docking_root, &number_dock_root, param->local_execute, &world_rank);
     int i;
@@ -162,12 +164,17 @@ int main(int argc, char *argv[]) {
     finish_vina_execution(); 
   }
 
-  
+  MPI_Barrier(MPI_COMM_WORLD);
+  finished_time = MPI_Wtime();
+
+  if (world_rank == root){
+    saving_time_execution(param->local_execute, &finished_time, &started_time);
+  }
+
   MPI_Type_free(&mpi_input_parameters_t);  
 
   deAllocate_docking(v_docking);
   deAllocateload_parameters(param);
-
 
   MPI_Finalize();
 	return 0;
