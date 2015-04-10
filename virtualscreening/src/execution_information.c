@@ -39,15 +39,18 @@ void saving_time_execution(const char *local, const double *finished, const doub
 	FILE *f_info;
 	char *f_information = NULL;
 	char *path_file_name = NULL;
-	double elapsed;	
+	double diff_t;	
 	f_information = (char*)malloc(sizeof(char)*MAX_FILE_NAME);	
 
+	diff_t = difftime(*f_time, *s_time);
 	strcpy(f_information, NAME_FILE);
 	path_file_name = path_join_file(local, f_information);
 	f_info = open_file(path_file_name, fAPPEND);	
 	fprintf(f_info, "\n\nDate \n");
-	fprintf(f_info,"Started on %s \n",asctime(gmtime(s_time)));
-	fprintf(f_info, "Finished on %s \n",asctime(gmtime(f_time)));	
+	fprintf(f_info,"Started on %s", asctime(gmtime(s_time)));
+	fprintf(f_info, "Finished on %s", asctime(gmtime(f_time)));	
+	fprintf(f_info, "Total time %f seconds \n",diff_t);		
+
 	fprintf(f_info, "\n\nTime Execution\n");
 	fprintf(f_info, "Started = %f\n", *started);
 	fprintf(f_info, "Finished = %f\n", *finished);
