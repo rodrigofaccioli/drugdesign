@@ -20,7 +20,7 @@
 #include "mpi_parameters_type.h"
 #include "mpi_docking_type.h"
 #include "vina.h"
- #include "execution_information.h"
+#include "execution_information.h"
 
 int main(int argc, char *argv[]) {
 
@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
   int world_rank;
   int nthreads;
   double started_time, finished_time;
+  time_t started_date, finished_date;
   MPI_Request request_dock;  
 
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -134,6 +135,8 @@ int main(int argc, char *argv[]) {
   //Call Docking from all process
   if (world_rank == root){
     started_time = MPI_Wtime();
+    started_date = time(NULL);
+
     //printf("Rank %d num_dock %d \n", world_rank, number_dock_root);
     load_docking_from_file(docking_root, &number_dock_root, param->local_execute, &world_rank);
     int i;
@@ -166,9 +169,10 @@ int main(int argc, char *argv[]) {
 
   MPI_Barrier(MPI_COMM_WORLD);
   finished_time = MPI_Wtime();
+  finished_date = time(NULL);
 
   if (world_rank == root){
-    saving_time_execution(param->local_execute, &finished_time, &started_time);
+    saving_time_execution(param->local_execute, &finished_time, &started_time, &finished_date, &started_date);    
   }
 
   MPI_Type_free(&mpi_input_parameters_t);  
