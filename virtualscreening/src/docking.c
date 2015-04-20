@@ -13,17 +13,30 @@ void deAllocate_docking(docking_t *d){
 	free(d);
 }
 
-// Calculates the number of docking for each process
-void set_number_docking(int *n_dock, int *n_dock_root, 
-  const int *world_size, const int *full_dock){  
-  if ( (*full_dock  % *world_size) == 0){
-    *n_dock = (int) *full_dock  / *world_size;
-    *n_dock_root = *n_dock;
-  }else{
-    *n_dock = (int) *full_dock  / *world_size;
-    *n_dock_root = *full_dock - ( (*world_size-1)* *n_dock);
-  }
+/** Calculates the number of docking for each process
+* v_dock is an array that contains the number of docking that each process will execute
+*/
+void set_number_docking(int *v_dock, const int *world_size, const int *full_dock){
+  int i, j, s;
+  int num_dock;  
+  int num_dock_remainder;
 
+  num_dock = (int)*full_dock  / *world_size;
+  num_dock_remainder = *full_dock - (num_dock* *world_size);
+  //Assign equal number of docking for all process 
+  for (i = 0; i < *world_size; i++){
+      v_dock[i] = num_dock;
+  }
+  //Assign docking number which are remainder for each process
+  j=0;
+  while (j < num_dock_remainder){
+    s = 0;
+    while ( (j < num_dock_remainder) && (s < *world_size) ){
+        v_dock[s] = v_dock[s] + 1;
+        j = j + 1;
+        s = s + 1;
+    }
+  }  
 }
 
 
@@ -61,6 +74,10 @@ void build_docking_file_name(char *f_file, const int *suf){
   strcat(f_file, c_sufix);
   strcat(f_file, ".dock");
   free(c_sufix);
+}
+
+void get_docking_file_name(char *f_file, const int *suf){  
+  build_docking_file_name(f_file, suf);
 }
 
 //create a file with docking

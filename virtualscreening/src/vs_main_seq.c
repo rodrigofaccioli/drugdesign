@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   nthreads = omp_get_num_threads();
   number_dock_root = 0;
   number_dock = get_number_docking_from_file(argv[2]);  
-  save_information(param->local_execute, &world_size,  &number_dock, &number_dock_root, &nthreads);  
+  save_information(param->local_execute, &world_size,  &number_dock, &nthreads);  
 
   started_time = MPI_Wtime();
   started_date = time(NULL);

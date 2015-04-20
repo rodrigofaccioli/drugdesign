@@ -10,11 +10,13 @@
 #define NAME_FILE "vs_execution_information.txt"
 
 void save_information(const char *local_execute, const int *num_proc, 
-	const int *num_dock, const int *num_dock_root, const int *nthreads){
+	const int *v_num_dock, const int *nthreads){
 	
 	FILE *f_info;
 	char *f_information = NULL;
 	char *path_file_name = NULL;
+	int num_dock_total;
+	int i;
 	f_information = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
 
 	strcpy(f_information, NAME_FILE);
@@ -24,9 +26,13 @@ void save_information(const char *local_execute, const int *num_proc,
 	f_info = open_file(path_file_name, fWRITE);
 	fprintf(f_info, "Process Number = %d\n", *num_proc);
 	fprintf(f_info, "Threads Number = %d\n", *nthreads);
-	fprintf(f_info, "Docking Number root = %d\n", *num_dock_root);
-	fprintf(f_info, "Docking Number others = %d\n", *num_dock);
-	fprintf(f_info, "Docking Number total %d\n", (*num_dock * (*num_proc-1) ) + *num_dock_root);
+	num_dock_total = 0;
+	fprintf(f_info, "Docking Number per process\n");
+	for (i = 0; i < *num_proc; i++){
+		fprintf(f_info, "\t%d\t%d\n", i, v_num_dock[i]);
+		num_dock_total = num_dock_total + v_num_dock[i];
+	}		
+	fprintf(f_info, "Docking Number total %d\n", num_dock_total);
 
 	fclose(f_info);
 

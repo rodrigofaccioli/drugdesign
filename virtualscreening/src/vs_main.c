@@ -47,8 +47,8 @@ int main(int argc, char *argv[]) {
 
   int root = 0;
   const int tag_docking = 1;
-  int number_dock = -1;
-  int number_dock_root = -1;      
+  int *v_number_dock = NULL;
+  int number_dock;
   int world_size;
   int world_rank;
   int nthreads;
@@ -58,13 +58,13 @@ int main(int argc, char *argv[]) {
 
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
+/*
 	// It is assuming at least 2 processes for performing the Virtual Screening
   if (world_size < 2) {
     fatal_error("World size must be greater than 1 for performing the Virtual Screening\n");
     MPI_Abort(MPI_COMM_WORLD, 1);
   }
-
+*/
   //Preparing input parameters data structure
   input_parameters_t *param=NULL;
   param = (input_parameters_t*)malloc(sizeof(input_parameters_t));    
@@ -79,13 +79,9 @@ int main(int argc, char *argv[]) {
   if (world_rank == root) {    
     int full_dock;
     full_dock = get_number_docking_from_file(argv[2]);
-    set_number_docking(&number_dock, &number_dock_root, &world_size, &full_dock);     
+    v_number_dock = (int*)malloc(sizeof(int)*world_size);
+    set_number_docking(v_number_dock, &world_size, &full_dock);
   } 
-  //Broadcast the docking number for each proecess
-  MPI_Bcast(&number_dock, 1, MPI_INT, root, MPI_COMM_WORLD);
-  
-  docking_t *v_docking = NULL;
-  v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));
 
   //Guarantee that all process received all data
   MPI_Barrier(MPI_COMM_WORLD);
@@ -98,31 +94,33 @@ int main(int argc, char *argv[]) {
     int num_line_ref;
     int dest;    
 
-    docking_root = (docking_t*)malloc(number_dock_root*sizeof(docking_t));
+    docking_root = (docking_t*)malloc(v_number_dock[0]*sizeof(docking_t));
     //saving information of virtual screening execution
     nthreads = 1;//omp_get_num_threads();
-    save_information(param->local_execute, &world_size,  &number_dock, &number_dock_root, &nthreads);  
+    save_information(param->local_execute, &world_size, v_number_dock, &nthreads);  
 
     line = (char*)malloc(MAX_LINE_FILE);
     f_dock = open_file(argv[2], fREAD);
     //Ignoring first  line of file
     fgets(line, MAX_LINE_FILE, f_dock);
     //Obtaining docking that will be executed in root
-    for (num_line_ref = 0; num_line_ref < number_dock_root; num_line_ref++){
+    for (num_line_ref = 0; num_line_ref < v_number_dock[0]; num_line_ref++){
       fgets(line, MAX_LINE_FILE, f_dock);
       set_receptor_compound(docking_root[num_line_ref].receptor, docking_root[num_line_ref].compound, line);
     }    
     dest = 0;
-    save_file_docking_from_array(docking_root, &number_dock_root, param->local_execute, &dest);        
+    save_file_docking_from_array(docking_root, &v_number_dock[0], param->local_execute, &dest);
     //Creating for all process    
     for (dest = 1; dest < world_size; dest++){
       num_line_ref = 0;      
+      docking_t *v_docking = (docking_t*)malloc(v_number_dock[dest]*sizeof(docking_t));
       do{
         fgets(line, MAX_LINE_FILE, f_dock);
         set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
         num_line_ref = num_line_ref + 1;
-      }while ( num_line_ref < number_dock  );     
-      save_file_docking_from_array(v_docking, &number_dock, param->local_execute, &dest);      
+      }while ( num_line_ref < v_number_dock[dest]);     
+      save_file_docking_from_array(v_docking, &v_number_dock[dest], param->local_execute, &dest); 
+      free(v_docking);      
     } 
     fclose(f_dock);
     free(line);
@@ -136,26 +134,46 @@ int main(int argc, char *argv[]) {
     started_time = MPI_Wtime();
     started_date = time(NULL);
 
-    //printf("Rank %d num_dock %d \n", world_rank, number_dock_root);
-    load_docking_from_file(docking_root, &number_dock_root, param->local_execute, &world_rank);
+    //Obtaining the number of docking 
+    char *f_file_rank = NULL;
+    char *path_file_rank = NULL;    
+    f_file_rank = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
+    get_docking_file_name(f_file_rank, &world_rank);
+    path_file_rank = path_join_file(param->local_execute, f_file_rank);
+    number_dock = get_number_docking_from_file(path_file_rank);
+    free(path_file_rank);
+    free(f_file_rank);    
+    
+    load_docking_from_file(docking_root, &number_dock, param->local_execute, &world_rank);
     int i;
-    initialize_vina_execution();    
-    //printf("rank %d nthreads %d\n", world_rank, nthreads);
-    for (i = 0; i < number_dock_root; i++){
+    initialize_vina_execution();        
+    for (i = 0; i < number_dock; i++){
       call_vina(param, &docking_root[i]);
     }    
     finish_vina_execution();    
     deAllocate_docking(docking_root);
   }else{
-    //printf("Rank %d num_dock %d \n", world_rank, number_dock);
+    docking_t *v_docking = NULL;
+    char *f_file_rank = NULL;
+    char *path_file_rank = NULL;
+
+    //Obtaining the number of docking 
+    f_file_rank = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
+    get_docking_file_name(f_file_rank, &world_rank);
+    path_file_rank = path_join_file(param->local_execute, f_file_rank);
+    number_dock = get_number_docking_from_file(path_file_rank);
+    free(path_file_rank);
+    free(f_file_rank);
+    //Allocating array of docking_t
+    v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));    
     load_docking_from_file(v_docking, &number_dock, param->local_execute, &world_rank);
     int i;
-    initialize_vina_execution();    
-    //printf("rank %d nthreads %d\n", world_rank, nthreads);      
+    initialize_vina_execution();        
     for (i = 0; i < number_dock; i++){
       call_vina(param, &v_docking[i]);
     }
     finish_vina_execution(); 
+    deAllocate_docking(v_docking);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -167,8 +185,7 @@ int main(int argc, char *argv[]) {
   }
 
   MPI_Type_free(&mpi_input_parameters_t);  
-
-  deAllocate_docking(v_docking);
+  
   deAllocateload_parameters(param);
 
   MPI_Finalize();
