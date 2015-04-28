@@ -86,44 +86,56 @@ int main(int argc, char *argv[]) {
   //Guarantee that all process received all data
   MPI_Barrier(MPI_COMM_WORLD);
 
-  //Decompose all docking against all process
-  docking_t *docking_root = NULL;
+  //Decompose all docking against all process  
   if (world_rank == root){
     FILE *f_dock=NULL;    
     char *line=NULL;
-    int num_line_ref;
-    int dest;    
-
-    docking_root = (docking_t*)malloc(v_number_dock[0]*sizeof(docking_t));
+    int num_line_ref;    
+    int dock_dist; //represents all docking number
+    int r; 
+    int i; //represents index for array in docking_by_rank
+    docking_t **docking_by_rank = NULL;
+    
     //saving information of virtual screening execution
     nthreads = 1;//omp_get_num_threads();
     save_information(param->local_execute, &world_size, v_number_dock, &nthreads);  
 
+    
+    //Array of array to store docking per processs
+    docking_by_rank = (docking_t**)malloc(sizeof(docking_t)*world_size);
+    for (r = 0; r <world_size;r++){
+      docking_by_rank[r] = (docking_t*)malloc(sizeof(docking_t)*v_number_dock[r]);
+    }
+
+    dock_dist = get_number_docking_from_file(argv[2]);
     line = (char*)malloc(MAX_LINE_FILE);
     f_dock = open_file(argv[2], fREAD);
     //Ignoring first  line of file
     fgets(line, MAX_LINE_FILE, f_dock);
-    //Obtaining docking that will be executed in root
-    for (num_line_ref = 0; num_line_ref < v_number_dock[0]; num_line_ref++){
-      fgets(line, MAX_LINE_FILE, f_dock);
-      set_receptor_compound(docking_root[num_line_ref].receptor, docking_root[num_line_ref].compound, line);
-    }    
-    dest = 0;
-    save_file_docking_from_array(docking_root, &v_number_dock[0], param->local_execute, &dest);
-    //Creating for all process    
-    for (dest = 1; dest < world_size; dest++){
-      num_line_ref = 0;      
-      docking_t *v_docking = (docking_t*)malloc(v_number_dock[dest]*sizeof(docking_t));
-      do{
+    num_line_ref=0;
+    i = -1;
+    while (num_line_ref < dock_dist){
+      r = 0;
+      i = i + 1; 
+      while ( (num_line_ref < dock_dist) && (r < world_size) ){
         fgets(line, MAX_LINE_FILE, f_dock);
-        set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
+        set_receptor_compound(docking_by_rank[r][i].receptor, docking_by_rank[r][i].compound, line);
         num_line_ref = num_line_ref + 1;
-      }while ( num_line_ref < v_number_dock[dest]);     
-      save_file_docking_from_array(v_docking, &v_number_dock[dest], param->local_execute, &dest); 
-      free(v_docking);      
-    } 
+        r = r + 1;        
+      }
+    }  
     fclose(f_dock);
     free(line);
+
+    for (r = 0; r <world_size;r++){
+      save_file_docking_from_array(docking_by_rank[r], &v_number_dock[r], param->local_execute, &r); 
+    }
+    //free docking_by_rank    
+    for (r = 0; r <world_size;r++){
+      deAllocate_docking(docking_by_rank[r]);  
+      docking_by_rank[r] = NULL;
+    }
+    docking_by_rank = NULL;
 
   }
   //Guarantee that all process received all data
@@ -135,6 +147,7 @@ int main(int argc, char *argv[]) {
     started_date = time(NULL);
 
     //Obtaining the number of docking 
+    docking_t *v_docking = NULL;
     char *f_file_rank = NULL;
     char *path_file_rank = NULL;    
     f_file_rank = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
@@ -143,15 +156,16 @@ int main(int argc, char *argv[]) {
     number_dock = get_number_docking_from_file(path_file_rank);
     free(path_file_rank);
     free(f_file_rank);    
-    
-    load_docking_from_file(docking_root, &number_dock, param->local_execute, &world_rank);
+
+    v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));    
+    load_docking_from_file(v_docking, &number_dock, param->local_execute, &world_rank);
     int i;
     initialize_vina_execution();        
     for (i = 0; i < number_dock; i++){
-      call_vina(param, &docking_root[i]);
+      call_vina(param, &v_docking[i]);
     }    
     finish_vina_execution();    
-    deAllocate_docking(docking_root);
+    deAllocate_docking(v_docking);
   }else{
     docking_t *v_docking = NULL;
     char *f_file_rank = NULL;
