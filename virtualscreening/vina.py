@@ -13,6 +13,7 @@ import ntpath
 from subprocess import Popen, PIPE
 import shutil
 import mol2
+import pdbqt
 
 """ This function obtains all pdbqt files 
     in mypath 
@@ -23,9 +24,21 @@ def get_files_pdbqt(mypath):
 		for file in files:
 			if file.endswith(".pdbqt"):
 				f_path = os.path.join(root,file)
-				only_pdbqt_file.append(f_path)			
-	return only_pdbqt_file
+				only_pdbqt_file.append(f_path)
+	#Prepare to return a list sorted by torsion angles present in pdbqt 			
+	d_docking = {}
+	for f in  only_pdbqt_file:
+		f_name = str(str(os.path.basename(f)).split(".")[0])
+		d_docking[f_name] = pdbqt.get_number_torsion_angle(f)
+	sorted_log_dict = pdbqt.sort_dictionary(d_docking)
 
+	root, dirs, files in os.walk(mypath)
+	only_pdbqt_file = []
+	for l_item in sorted_log_dict:
+		f_lig = str(l_item[0])+".pdbqt"
+		f_path = os.path.join(root,f_lig)
+		only_pdbqt_file.append(f_path)
+	return only_pdbqt_file
 
 """ This function obtains all pdb files 
     in mypath 
