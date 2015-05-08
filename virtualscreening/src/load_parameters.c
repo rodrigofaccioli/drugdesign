@@ -20,6 +20,7 @@ void show_parameters(const input_parameters_t *param){
 	printf("Pythonsh %s\n", param->pythonsh);
 	printf("Script_ligand4 %s\n", param->script_ligand4);
 	printf("Path_mol2 %s\n", param->path_mol2);
+	printf("Ligand_database_path_file %s\n", param->compound_database);
 }
 
 static void set_parameters(input_parameters_t *param, const char *key, 
@@ -44,6 +45,8 @@ static void set_parameters(input_parameters_t *param, const char *key,
 		strcpy(param->script_ligand4, value);
 	}else if (strncmp(key,"Path_mol2",9) == 0){
 		strcpy(param->path_mol2, value);
+	}else if (strncmp(key,"Ligand_database_path_file",27) == 0){
+		strcpy(param->compound_database, value);
 	}else{
 		fatal_error("Parameter not found\n");
 	}

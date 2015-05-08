@@ -28,9 +28,9 @@ int main(int argc, char *argv[]) {
 
   //Creating mpi struct types
 /*************  mpi_input_parameters_t ***************************/
-  const int nitems=7;
-  int blocklengths[nitems] = {MAX_PATH, MAX_PATH, MAX_PATH, MAX_PATH, MAX_PATH, MAX_PATH_FILE_NAME, MAX_PATH_FILE_NAME};
-  MPI_Datatype types[nitems] = {MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR};  
+  const int nitems=8;
+  int blocklengths[nitems] = {MAX_PATH, MAX_PATH, MAX_PATH, MAX_PATH, MAX_PATH, MAX_PATH_FILE_NAME, MAX_PATH_FILE_NAME, MAX_PATH_FILE_NAME};
+  MPI_Datatype types[nitems] = {MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR};  
   MPI_Aint offsets[nitems];
 
   offsets[0] = offsetof(input_parameters_t, local_execute);
@@ -40,6 +40,7 @@ int main(int argc, char *argv[]) {
   offsets[4] = offsetof(input_parameters_t, path_log);
   offsets[5] = offsetof(input_parameters_t, config_vina);
   offsets[6] = offsetof(input_parameters_t, vina_program);
+  offsets[7] = offsetof(input_parameters_t, compound_database);
 
   MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_input_parameters_t);
   MPI_Type_commit(&mpi_input_parameters_t); 
