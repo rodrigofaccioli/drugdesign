@@ -162,14 +162,6 @@ def get_name_receptor(receptor):
 	name =  str(filename.split(".")[0])
 	return name
 
-""" This function obtains the name of ligand
-	based on file name
-"""	
-def get_name_ligand(ligand):
-	path, filename = ntpath.split(ligand)
-	name =  str(filename.split(".")[0])
-	return name
-
 
 """ This function creates out file name
 """	
@@ -190,7 +182,7 @@ def run_docking(vina_program, vina_conf, receptor, path_ligand_pdbqt, path_struc
 	
 	all_ligands = get_files_pdbqt(path_ligand_pdbqt)
 	for ligand in all_ligands:
-		name_ligand = get_name_ligand(ligand)		
+		name_ligand = pdbqt.get_name_ligand(ligand)		
 		f_out = os.path.join(path_struct,get_name_out(name_receptor, name_ligand))
 		f_log = os.path.join(path_log, get_name_log(name_receptor, name_ligand)) 			
 		process = Popen([vina_program, '--config', vina_conf, '--receptor', receptor, '--ligand', ligand, '--out', f_out, '--log', f_log], stdout=PIPE, stderr=PIPE)		
