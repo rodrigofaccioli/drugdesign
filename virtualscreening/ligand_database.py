@@ -6,8 +6,16 @@
     Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
 """
 
+import os
 import pdbqt
 
+def prepare_for_creating_database(database_path_file, pdbqt_path_file):
+	if len(pdbqt.get_files_pdbqt_no_sort(pdbqt_path_file)) == 0:
+		raise EnvironmentError("pdbqt files not found when tried to create ligand Database")
+
+	path = os.path.split(database_path_file)[0]
+	if not os.path.exists(path):
+		os.makedirs(path)	
 
 """
 	Builds the ligand database
