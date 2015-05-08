@@ -37,4 +37,23 @@ def build_database(database_path_file, pdbqt_path_file):
 		f_database.write(line)
 
 	f_database.close()
-		
+
+"""
+	Returns torsion and atom number from ligand database
+	
+	compound_name means the name of compound (ligand) that
+	wants to obtain the number of torsion angles and the number
+	of atoms
+"""		
+def get_torsion_atom_from_database(compound_name, ligand_database):
+	torsion = int(0)
+	atom = int(0)
+	database_file = open(ligand_database, 'r')
+	for line in database_file:		
+		if str(line).find(compound_name) > -1:
+			splited_line = str(line).split()
+			torsion = int(splited_line[1])
+			atom = int(splited_line[2])
+			break
+	database_file.close()
+	return torsion, atom
