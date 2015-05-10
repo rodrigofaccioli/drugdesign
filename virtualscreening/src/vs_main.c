@@ -120,7 +120,11 @@ int main(int argc, char *argv[]) {
       i = i + 1; 
       while ( (num_line_ref < dock_dist) && (r < world_size) ){
         fgets(line, MAX_LINE_FILE, f_dock);
-        set_receptor_compound(docking_by_rank[r][i].receptor, docking_by_rank[r][i].compound, line);
+        set_receptor_compound(docking_by_rank[r][i].receptor, 
+          docking_by_rank[r][i].compound,
+          &docking_by_rank[r][i].num_torsion_angle,
+          &docking_by_rank[r][i].num_atom,          
+          line);
         num_line_ref = num_line_ref + 1;
         r = r + 1;        
       }

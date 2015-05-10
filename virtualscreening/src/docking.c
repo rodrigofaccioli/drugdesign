@@ -55,15 +55,22 @@ int get_number_docking_from_file(const char *file_name){
   return num_dock;
 }
 
-void set_receptor_compound(char *receptor, char *compound, char *source){
-	char *ch=NULL;
+void set_receptor_compound(char *receptor, char *compound, 
+  int *num_torsion, int *num_atom, char *source){
+    char *ch=NULL;
     ch = strtok(source, "\t");
-    ltrim(ch);
+    trim(ch);
     strcpy(receptor, ch);
+    ch = strtok(NULL, "\t");
+    trim(ch);    
+    strcpy(compound, ch);
+    ch = strtok(NULL, "\t");
+    trim(ch);
+    *num_torsion = str2int(ch);
     ch = strtok(NULL, "\t");
     trim(ch);
     remove_character_enter(ch);
-    strcpy(compound, ch);
+    *num_atom = str2int(ch);
 }
 
 void build_docking_file_name(char *f_file, const int *suf){
@@ -96,7 +103,10 @@ void save_file_docking_from_array(const docking_t *v_doc, const int *num_doc,
   f_dock = open_file(path_file_name, fWRITE);
   fprintf(f_dock, "%d\n", *num_doc);
   for(d = 0; d < *num_doc; d++){
-    fprintf(f_dock, "%s\t%s\n", v_doc[d].receptor, v_doc[d].compound);
+    fprintf(f_dock, "%s\t%s\t%d\t%d\n", v_doc[d].receptor, 
+      v_doc[d].compound,
+      v_doc[d].num_torsion_angle, 
+      v_doc[d].num_atom);
   }
   fclose(f_dock);
   
@@ -123,7 +133,10 @@ void load_docking_from_file(docking_t *v_doc, const int *num_dock,
   fgets(line, MAX_LINE_FILE, f_dock);
   for (d = 0; d < *num_dock; d++){
       fgets(line, MAX_LINE_FILE, f_dock);
-      set_receptor_compound(v_doc[d].receptor, v_doc[d].compound, line);      
+      set_receptor_compound(v_doc[d].receptor, v_doc[d].compound,
+        &v_doc[d].num_torsion_angle,
+        &v_doc[d].num_atom,
+        line);      
   }
   fclose(f_dock);     
   free(line);

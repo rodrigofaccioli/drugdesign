@@ -73,7 +73,11 @@ int main(int argc, char *argv[]) {
   //Obtaining docking that will be executed in root  
   for (num_line_ref = 0; num_line_ref < number_dock; num_line_ref++){
       fgets(line, MAX_LINE_FILE, f_dock);
-      set_receptor_compound(v_docking[num_line_ref].receptor, v_docking[num_line_ref].compound, line);
+      set_receptor_compound(v_docking[num_line_ref].receptor, 
+        v_docking[num_line_ref].compound,
+        &v_docking[num_line_ref].num_torsion_angle,
+        &v_docking[num_line_ref].num_atom,
+        line);
   }    
   fclose(f_dock);
   free(line);

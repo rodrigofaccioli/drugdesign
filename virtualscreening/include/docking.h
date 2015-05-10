@@ -5,7 +5,8 @@
 
 void deAllocate_docking(docking_t *d);
 int get_number_docking_from_file(const char *file_name);
-void set_receptor_compound(char *receptor, char *compound, char *source);
+void set_receptor_compound(char *receptor, char *compound, 
+  int *num_torsion, int *num_atom, char *source);
 void save_file_docking_from_array(const docking_t *v_doc, const int *num_doc, 
   const char *local_execute, const int *suf);
 void load_docking_from_file(docking_t *v_doc, const int *num_dock, 
