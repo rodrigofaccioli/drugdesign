@@ -54,6 +54,8 @@ void save_log(const char *path_file_name, const docking_t *docking,
 		str_s_time,
 		str_f_time);
 	
+	free(str_f_time);
+	free(str_s_time);
 	fclose(f_log);
 
 }
