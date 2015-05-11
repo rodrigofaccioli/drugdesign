@@ -20,6 +20,7 @@
 #include "mpi_docking_type.h"
 #include "vina.h"
 #include "execution_information.h"
+#include "docking_log.h"
 
 int main(int argc, char *argv[]) {
 
@@ -155,26 +156,44 @@ int main(int argc, char *argv[]) {
     docking_t *v_docking = NULL;
     char *f_file_rank = NULL;
     char *path_file_rank = NULL;    
+    char *log_file_name = NULL;
+    char *path_file_log = NULL;
+    time_t f_time_docking, s_time_docking;
+
+    log_file_name = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
     f_file_rank = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
     get_docking_file_name(f_file_rank, &world_rank);
     path_file_rank = path_join_file(param->local_execute, f_file_rank);
     number_dock = get_number_docking_from_file(path_file_rank);
     free(path_file_rank);
     free(f_file_rank);    
+    //Preparing log
+    build_log_file_name_from_rank(log_file_name, &world_rank);
+    path_file_log = path_join_file(param->local_execute, log_file_name);
+    free(log_file_name);
+
 
     v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));    
     load_docking_from_file(v_docking, &number_dock, param->local_execute, &world_rank);
     int i;
-    initialize_vina_execution();        
-    for (i = 0; i < number_dock; i++){
+    initialize_vina_execution();
+    initialize_log(path_file_log);
+    for (i = 0; i < number_dock; i++){      
+      s_time_docking = time(NULL);
       call_vina(param, &v_docking[i]);
-    }    
+      f_time_docking = time(NULL);
+      save_log(path_file_log, &v_docking[i], &f_time_docking, &s_time_docking);
+    }
+    free(path_file_log);    
     finish_vina_execution();    
     deAllocate_docking(v_docking);
   }else{
     docking_t *v_docking = NULL;
     char *f_file_rank = NULL;
     char *path_file_rank = NULL;
+    char *log_file_name = NULL;
+    char *path_file_log = NULL;
+    time_t f_time_docking, s_time_docking;
 
     //Obtaining the number of docking 
     f_file_rank = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
@@ -183,14 +202,25 @@ int main(int argc, char *argv[]) {
     number_dock = get_number_docking_from_file(path_file_rank);
     free(path_file_rank);
     free(f_file_rank);
+    //Preparing log
+    log_file_name = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
+    build_log_file_name_from_rank(log_file_name, &world_rank);
+    path_file_log = path_join_file(param->local_execute, log_file_name);
+    free(log_file_name);
+
     //Allocating array of docking_t
     v_docking = (docking_t*)malloc(number_dock*sizeof(docking_t));    
     load_docking_from_file(v_docking, &number_dock, param->local_execute, &world_rank);
     int i;
-    initialize_vina_execution();        
+    initialize_vina_execution();
+    initialize_log(path_file_log);        
     for (i = 0; i < number_dock; i++){
+      s_time_docking = time(NULL);
       call_vina(param, &v_docking[i]);
+      f_time_docking = time(NULL);
+      save_log(path_file_log, &v_docking[i], &f_time_docking, &s_time_docking);
     }
+    free(path_file_log);
     finish_vina_execution(); 
     deAllocate_docking(v_docking);
   }

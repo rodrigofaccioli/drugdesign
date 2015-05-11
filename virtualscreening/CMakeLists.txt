@@ -26,6 +26,7 @@ set_source_files_properties(src/vina.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/execution_information.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/prepare_ligand.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/vs_main_seq.c PROPERTIES LANGUAGE CXX )
+set_source_files_properties(src/docking_log.c PROPERTIES LANGUAGE CXX )
 
 # set include
 include_directories(include)
@@ -40,6 +41,7 @@ src/load_parameters.c
 src/docking.c
 src/vina.c
 src/execution_information.c
+src/docking_log.c
 )#end of VS_lib
 
 # add target
