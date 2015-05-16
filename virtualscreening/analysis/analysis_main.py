@@ -9,6 +9,7 @@
 import os
 import ConfigParser as configparser
 import call_analysis as ana
+import docking_time as d_time
 
 def main():
 	config = configparser.ConfigParser()
@@ -22,6 +23,11 @@ def main():
 		if len(os.listdir(path_analysis)) > 0:
 			raise EnvironmentError("Analysis directory contains files ")
 
+	#Energy analysis
 	ana.call_vs_analysis(path_analysis, config.get('DEFAULT', 'path_save_log'))
+	
+	#Docking time execution analysis
+	path_log_files = os.getcwd()
+	d_time.vs_time_docking(path_log_files, path_analysis)
 
 main()
