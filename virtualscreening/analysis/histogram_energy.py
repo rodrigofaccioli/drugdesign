@@ -28,16 +28,17 @@ def build_histogram_energy(path_analysis, xvg_filename):
 
 	for line in f_file:
 		if str(line).find("#") == -1:
-			x1.append( float(str(line).split("\t")[0]) ) 
-			y1.append( int(str(line).split("\t")[1]) )			
-
-	fig = plt.figure()
-
+			energy = float(str(line).split("\t")[0])			
+			if energy <=0:
+				print energy
+				x1.append( energy ) 
+				y1.append( int(str(line).split("\t")[1]) )			
+		
 	width = 0.35
 	ind = np.arange(len(x1))
 	plt.bar(ind, y1)	
 	plt.xticks(ind + width , x1, rotation=90)
 
-	png_pathfile = str(xvg_pathfile).replace('.xvg','.png')
+	png_pathfile = str(xvg_pathfile).replace('.xvg','.png')	
 	plt.savefig(png_pathfile)
 

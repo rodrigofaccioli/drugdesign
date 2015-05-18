@@ -10,13 +10,14 @@ import sys
 import os
 import analysis
 import histogram_energy as h_eger 
+import ConfigParser as configparser
+
 
 def main():
+	config = configparser.ConfigParser()
+	config.read('config.ini')
 
-	root_path = sys.argv[1]
-
-	for sub_dir in os.listdir(root_path):
-		path_analysis = os.path.join(root_path, sub_dir)
-		h_eger.build_histogram_energy(path_analysis, analysis.get_histogram_filename())	
+	path_analysis = config.get('DEFAULT', 'path_analysis')	
+	h_eger.build_histogram_energy(path_analysis, analysis.get_histogram_filename())	
 
 main()
