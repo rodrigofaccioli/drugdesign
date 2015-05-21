@@ -9,6 +9,30 @@
 
 #define NAME_FILE "vs_execution_information.txt"
 
+void save_information_adaptive(const char *local_execute, const int *num_proc, 
+	const int *num_dock_total, const int *nthreads){
+	
+	FILE *f_info;
+	char *f_information = NULL;
+	char *path_file_name = NULL;	
+	int i;
+	f_information = (char*)malloc(sizeof(char)*MAX_FILE_NAME);
+
+	strcpy(f_information, NAME_FILE);
+
+	path_file_name = path_join_file(local_execute, f_information);
+
+	f_info = open_file(path_file_name, fWRITE);
+	fprintf(f_info, "Process Number = %d\n", *num_proc);
+	fprintf(f_info, "Threads Number = %d\n", *nthreads);	
+	fprintf(f_info, "Docking Number total %d\n", *num_dock_total);
+
+	fclose(f_info);
+
+	free(path_file_name);
+	free(f_information);
+}
+
 void save_information(const char *local_execute, const int *num_proc, 
 	const int *v_num_dock, const int *nthreads){
 	

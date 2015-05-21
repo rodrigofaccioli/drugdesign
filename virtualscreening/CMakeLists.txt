@@ -17,6 +17,7 @@ SET( CMAKE_CXX_FLAGS "-lm -fopenmp")
 
 #Set CXX compiler for all files below
 set_source_files_properties(src/vs_main_blocking.c PROPERTIES LANGUAGE CXX )
+set_source_files_properties(src/vs_main_adaptative.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/futil.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/string_owner.c PROPERTIES LANGUAGE CXX )
 set_source_files_properties(src/messages.c PROPERTIES LANGUAGE CXX )
@@ -53,6 +54,10 @@ target_link_libraries(prepare_ligand VS_lib ${MPI_C_LIBRARIES})
 
 add_executable(vs_main_blocking_seq src/vs_main_blocking_seq.c)
 target_link_libraries(vs_main_blocking_seq VS_lib ${MPI_C_LIBRARIES})
+
+add_executable(vs_main_adaptative src/vs_main_adaptative.c)
+target_link_libraries(vs_main_adaptative VS_lib ${MPI_C_LIBRARIES})
+
 
 # install
 install(TARGETS vs_main_blocking DESTINATION bin)
