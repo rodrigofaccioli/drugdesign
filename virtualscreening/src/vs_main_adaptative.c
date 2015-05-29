@@ -172,12 +172,9 @@ int main(int argc, char *argv[]) {
       set_log_file_line(docking_execution_info, docking_rank, &f_time_docking, &s_time_docking);      
       MPI_Send(docking_execution_info, MAX_LINE_FILE, 
         MPI_CHAR, root, tag_finsihed_docking, MPI_COMM_WORLD);      
-      strcpy(task_from_root, finished_docking);
-      /*      
       //Receive next either next docking or signal to finish      
       MPI_Recv(task_from_root, MAX_LINE_FILE, MPI_CHAR, root, tag_docking, 
         MPI_COMM_WORLD, &status);
-      */
     }    
     free(docking_execution_info);
     finish_vina_execution();    
@@ -206,12 +203,12 @@ int main(int argc, char *argv[]) {
 
       if (*doc_ref_root == *num_dock_dist){        
         printf("Sending sinal to stop \n");
-        /*MPI_Send(finished_docking, strlen(finished_docking), 
-          MPI_CHAR, 1, tag_docking, MPI_COMM_WORLD); */
+        MPI_Send(finished_docking, strlen(finished_docking), 
+          MPI_CHAR, 1, tag_docking, MPI_COMM_WORLD);
       }else{
         printf("Como saber o ranking que o receive recebeu? stat.MPI_SOURCE \n");
-        /*MPI_Send(all_docking[*doc_ref_root], strlen(all_docking[*doc_ref_root]), 
-          MPI_CHAR, 1, tag_docking, MPI_COMM_WORLD);*/
+        MPI_Send(all_docking[*doc_ref_root], strlen(all_docking[*doc_ref_root]), 
+          MPI_CHAR, 1, tag_docking, MPI_COMM_WORLD);
         *doc_ref_root = *doc_ref_root + 1;
       }
     }while (received_docking < *num_dock_dist);
