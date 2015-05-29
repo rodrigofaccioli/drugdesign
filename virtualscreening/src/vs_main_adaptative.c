@@ -61,11 +61,14 @@ int main(int argc, char *argv[]) {
   MPI_Status status;
 
   char **all_docking = NULL; //store whole docking file
-  int *dock_dist = NULL; //represents all docking number 
+  int *num_dock_dist = NULL; //represents all docking number 
   int *doc_ref_root = NULL; //represents reference docking
   docking_t *docking_rank = NULL; //it will be performed in each rank
   char *task_from_root = NULL; //represents char that was received by root 
-  char *task_executed_by_rank = NULL; //represents char that was executed by rank
+  char *task_executed_by_rank = NULL; //represents char that was executed by rank  
+  char *finished_docking = NULL; //represents signal for ranking no more docking from root 
+  finished_docking = (char*)malloc(sizeof(char)*MAX_LINE_FILE);
+  strcpy(finished_docking, "STOP DOCKING RANK");
 
   double started_time_global, finished_time_global;
   time_t started_date_global, finished_date_global;
@@ -94,28 +97,28 @@ int main(int argc, char *argv[]) {
     FILE *f_dock=NULL;    
     char *line=NULL;
     int i;
-    int num_line_ref;
-    int rank_ref;
+    int num_line_ref;    
 
-    dock_dist = (int*)malloc(sizeof(int));
-    *dock_dist = get_number_docking_from_file(argv[2]);
+    num_dock_dist = (int*)malloc(sizeof(int));
+    *num_dock_dist = get_number_docking_from_file(argv[2]);
     line = (char*)malloc(MAX_LINE_FILE);
     //allocating all_docking
-    all_docking = (char**)malloc(*dock_dist*sizeof(char*) );
-    for (i = 0; i < *dock_dist; i++){
+    all_docking = (char**)malloc(*num_dock_dist*sizeof(char*) );
+    for (i = 0; i < *num_dock_dist; i++){
       all_docking[i] = (char*)malloc(sizeof(char)*MAX_LINE_FILE);
     } 
 
     //Opening docking file and storing into all_docking
     f_dock = open_file(argv[2], fREAD);
-    //Ignoring first line of file, because the number of docking we are know at dock_dist variable
+    //Ignoring first line of file, because the number of docking we are know at num_dock_dist variable
     fgets(line, MAX_LINE_FILE, f_dock);
     //Storing whole docking file into all_docking
     num_line_ref=0;
     i = -1;
-    while (num_line_ref < *dock_dist){
+    while (num_line_ref < *num_dock_dist){
       i = i + 1;
       fgets(line, MAX_LINE_FILE, f_dock);
+      remove_character_enter(line);
       strcpy(all_docking[i], line);
       num_line_ref = num_line_ref + 1;
     }
@@ -125,18 +128,19 @@ int main(int argc, char *argv[]) {
     //sending first docking
     doc_ref_root = (int*)malloc(sizeof(int));
     *doc_ref_root = 0;
+    int rank_ref;    
     for (rank_ref = 1; rank_ref < world_size; rank_ref++){
       MPI_Send(all_docking[*doc_ref_root], strlen(all_docking[*doc_ref_root]), 
         MPI_CHAR, rank_ref, tag_docking, MPI_COMM_WORLD);
       *doc_ref_root = *doc_ref_root + 1;
-    }
+    }    
     //saving information of virtual screening execution
     nthreads = 1;//omp_get_num_threads();
-    save_information_adaptive(param->local_execute, &world_size, dock_dist, &nthreads);
+    save_information_adaptive(param->local_execute, &world_size, num_dock_dist, &nthreads);
 
   }else{
     //Allocating char that receives task from root
-    task_from_root = (char*)malloc(MAX_LINE_FILE);
+    task_from_root = (char*)malloc(sizeof(char)*MAX_LINE_FILE);
     //Allocating docking_t which will perform docking
     docking_rank = (docking_t*)malloc(sizeof(docking_t));
   }
@@ -154,7 +158,8 @@ int main(int argc, char *argv[]) {
 
     MPI_Recv(task_from_root, MAX_LINE_FILE, MPI_CHAR, root, tag_docking, 
       MPI_COMM_WORLD, &status);
-    if (strcmp(task_from_root, "") != 0 ){
+    while (strncmp(task_from_root, finished_docking, strlen(finished_docking)) != 0 ){
+      printf("%s \n", task_from_root);
       set_receptor_compound(docking_rank->receptor, 
             docking_rank->compound,
             &docking_rank->num_torsion_angle,
@@ -164,12 +169,15 @@ int main(int argc, char *argv[]) {
       call_vina(param, docking_rank);
       f_time_docking = time(NULL);            
       // Sending to root docking executing information
-      set_log_file_line(docking_execution_info, docking_rank, &f_time_docking, &s_time_docking);
-      MPI_Send(docking_execution_info, strlen(docking_execution_info), 
-        MPI_CHAR, root, tag_finsihed_docking, MPI_COMM_WORLD);
-      //Receive next either next docking or "" to finish
+      set_log_file_line(docking_execution_info, docking_rank, &f_time_docking, &s_time_docking);      
+      MPI_Send(docking_execution_info, MAX_LINE_FILE, 
+        MPI_CHAR, root, tag_finsihed_docking, MPI_COMM_WORLD);      
+      strcpy(task_from_root, finished_docking);
+      /*      
+      //Receive next either next docking or signal to finish      
       MPI_Recv(task_from_root, MAX_LINE_FILE, MPI_CHAR, root, tag_docking, 
         MPI_COMM_WORLD, &status);
+      */
     }    
     free(docking_execution_info);
     finish_vina_execution();    
@@ -177,8 +185,7 @@ int main(int argc, char *argv[]) {
     free(task_from_root);    
   }else{
     //root is watting messages from any rank    
-    char *log_file_name = NULL;
-    char *finished_docking = NULL;
+    char *log_file_name = NULL;    
     int received_docking;
     task_executed_by_rank = (char*)malloc(MAX_LINE_FILE);
 
@@ -190,40 +197,45 @@ int main(int argc, char *argv[]) {
     initialize_log(path_file_log);
 
     received_docking = 0;
-    finished_docking = (char*)malloc(sizeof(char)*4);
-    strcpy(finished_docking, " ");
     do{
       //Receiving docking from rank
       MPI_Recv(task_executed_by_rank, MAX_LINE_FILE, MPI_CHAR, MPI_ANY_SOURCE,
-        tag_finsihed_docking, MPI_COMM_WORLD, &status);
+        tag_finsihed_docking, MPI_COMM_WORLD, &status);      
       received_docking = received_docking + 1;
       save_log_by_line(path_file_log,task_executed_by_rank);
 
-      if (*doc_ref_root == *dock_dist){
-        MPI_Send(finished_docking, strlen(finished_docking), 
-          MPI_CHAR, 1, tag_docking, MPI_COMM_WORLD);
+      if (*doc_ref_root == *num_dock_dist){        
+        printf("Sending sinal to stop \n");
+        /*MPI_Send(finished_docking, strlen(finished_docking), 
+          MPI_CHAR, 1, tag_docking, MPI_COMM_WORLD); */
       }else{
-        printf("ENVIAR NOVO DOCKING PRO RANK\n");
+        printf("Como saber o ranking que o receive recebeu? stat.MPI_SOURCE \n");
+        /*MPI_Send(all_docking[*doc_ref_root], strlen(all_docking[*doc_ref_root]), 
+          MPI_CHAR, 1, tag_docking, MPI_COMM_WORLD);*/
+        *doc_ref_root = *doc_ref_root + 1;
       }
-    }while (received_docking < *dock_dist);
+    }while (received_docking < *num_dock_dist);
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);  
   finished_time_global = MPI_Wtime();
   finished_date_global = time(NULL);
 
+/******* Desalocating and Saving finished information ***************************/
+  //all ranking allocates
+  free(finished_docking);
+  //Specific for root desallocating and savind information 
   if (world_rank == root){
-    //Desalocating
     int i;
-    for (i = 0; i < *dock_dist; i++){
+    for (i = 0; i < *num_dock_dist; i++){
       free(all_docking[i]);
     }
-    free(all_docking);    
-    free(doc_ref_root);
-    free(dock_dist);  
-    free(task_executed_by_rank);
-    free(path_file_log);
-    
+    free(all_docking);        
+    free(doc_ref_root);    
+    free(num_dock_dist);      
+    free(task_executed_by_rank);    
+    free(path_file_log);        
+    //Saving information docking execution
     saving_time_execution(param->local_execute, &finished_time_global, &started_time_global, &finished_date_global, &started_date_global); 
   }
 
@@ -232,5 +244,6 @@ int main(int argc, char *argv[]) {
   deAllocateload_parameters(param);
 
   MPI_Finalize();
+
 	return 0;
 }
