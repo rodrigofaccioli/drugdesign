@@ -76,6 +76,13 @@ int main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
+  // It is assuming the number if processes for performing the Virtual Screening must be greater 2, because task-consumer architecture
+  if (world_size < 2) {
+    fatal_error("World size must be greater than 2 for performing the Virtual Screening in task-consumer architecture\n");
+    MPI_Abort(MPI_COMM_WORLD, 1);
+  }
+
+
   //Preparing input parameters data structure
   input_parameters_t *param=NULL;
   param = (input_parameters_t*)malloc(sizeof(input_parameters_t));    
@@ -158,8 +165,7 @@ int main(int argc, char *argv[]) {
 
     MPI_Recv(task_from_root, MAX_LINE_FILE, MPI_CHAR, root, tag_docking, 
       MPI_COMM_WORLD, &status);
-    while (strncmp(task_from_root, finished_docking, strlen(finished_docking)) != 0 ){
-      printf("%s \n", task_from_root);
+    while (strncmp(task_from_root, finished_docking, strlen(finished_docking)) != 0 ){      
       set_receptor_compound(docking_rank->receptor, 
             docking_rank->compound,
             &docking_rank->num_torsion_angle,
@@ -201,14 +207,12 @@ int main(int argc, char *argv[]) {
       received_docking = received_docking + 1;
       save_log_by_line(path_file_log,task_executed_by_rank);
 
-      if (*doc_ref_root == *num_dock_dist){        
-        printf("Sending sinal to stop \n");
+      if (*doc_ref_root == *num_dock_dist){                
         MPI_Send(finished_docking, strlen(finished_docking), 
-          MPI_CHAR, 1, tag_docking, MPI_COMM_WORLD);
-      }else{
-        printf("Como saber o ranking que o receive recebeu? stat.MPI_SOURCE \n");
+          MPI_CHAR, status.MPI_SOURCE, tag_docking, MPI_COMM_WORLD);
+      }else{        
         MPI_Send(all_docking[*doc_ref_root], strlen(all_docking[*doc_ref_root]), 
-          MPI_CHAR, 1, tag_docking, MPI_COMM_WORLD);
+          MPI_CHAR, status.MPI_SOURCE, tag_docking, MPI_COMM_WORLD);
         *doc_ref_root = *doc_ref_root + 1;
       }
     }while (received_docking < *num_dock_dist);
