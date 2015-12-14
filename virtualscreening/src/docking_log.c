@@ -85,15 +85,16 @@ void set_log_file_line(char *line, const docking_t *docking,
 	double diff_t;	
 	char *s_diff_t = NULL;
 	char *aux = NULL;
-	char *str_f_time, *str_s_time;
+	char *str_f_time = NULL; 
+	char *str_s_time = NULL;
 
 	aux = (char*)malloc(sizeof(char)*20);
 	
-	str_f_time = (char*)malloc(sizeof(char)*500);
-	str_s_time = (char*)malloc(sizeof(char)*500);
+	str_f_time = (char*)malloc(sizeof(char)*50);
+	str_s_time = (char*)malloc(sizeof(char)*50);
+	s_diff_t = (char*)malloc(sizeof(char)*50);
 
-	diff_t = difftime(*f_time, *s_time);
-	s_diff_t = (char*)malloc(sizeof(char)*20);
+	diff_t = difftime(*f_time, *s_time);	
 	sprintf (s_diff_t, "%f", diff_t);
 	
 	strcpy(str_s_time, asctime(gmtime(s_time)) );

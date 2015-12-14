@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "messages.h"
 #include "docking.h"
 #include "defines.h"
 #include "futil.h"
@@ -48,8 +49,11 @@ int get_number_docking_from_file(const char *file_name){
 
 	f_dock = open_file(file_name, fREAD);
 	line = (char*)malloc(MAX_LINE_FILE);
-	fgets(line, MAX_LINE_FILE, f_dock);
-	num_dock = str2int(line);
+	if ( fgets(line, MAX_LINE_FILE, f_dock) != NULL ){
+    num_dock = str2int(line);
+  }	else{
+    fatal_error("Error when executing get_number_docking_from_file function");
+  }
   free(line);
   fclose(f_dock);	
   return num_dock;
@@ -120,6 +124,7 @@ void load_docking_from_file(docking_t *v_doc, const int *num_dock,
   FILE *f_dock=NULL;
   char *f_file = NULL;
   char *line=NULL;
+  char *aux_fget=NULL;
   int d;
 
   line = (char*)malloc(MAX_LINE_FILE);
@@ -130,9 +135,11 @@ void load_docking_from_file(docking_t *v_doc, const int *num_dock,
 
   f_dock = open_file(path_file_name, fREAD);
   //ignoring first line of file
-  fgets(line, MAX_LINE_FILE, f_dock);
+  if ( fgets(line, MAX_LINE_FILE, f_dock) == NULL){
+    fatal_error("Error when running load_docking_from_file function");
+  }
   for (d = 0; d < *num_dock; d++){
-      fgets(line, MAX_LINE_FILE, f_dock);
+      aux_fget = fgets(line, MAX_LINE_FILE, f_dock);
       set_receptor_compound(v_doc[d].receptor, v_doc[d].compound,
         &v_doc[d].num_torsion_angle,
         &v_doc[d].num_atom,

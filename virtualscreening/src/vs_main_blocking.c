@@ -58,6 +58,8 @@ int main(int argc, char *argv[]) {
   time_t started_date, finished_date;
   MPI_Request request_dock;  
 
+  char *aux_fgets = NULL; //used for getting return of fgets
+
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 /*
@@ -113,14 +115,14 @@ int main(int argc, char *argv[]) {
     line = (char*)malloc(MAX_LINE_FILE);
     f_dock = open_file(argv[2], fREAD);
     //Ignoring first  line of file
-    fgets(line, MAX_LINE_FILE, f_dock);
+    aux_fgets = fgets(line, MAX_LINE_FILE, f_dock);
     num_line_ref=0;
     i = -1;
     while (num_line_ref < dock_dist){
       r = 0;
       i = i + 1; 
       while ( (num_line_ref < dock_dist) && (r < world_size) ){
-        fgets(line, MAX_LINE_FILE, f_dock);
+        aux_fgets = fgets(line, MAX_LINE_FILE, f_dock);
         set_receptor_compound(docking_by_rank[r][i].receptor, 
           docking_by_rank[r][i].compound,
           &docking_by_rank[r][i].num_torsion_angle,

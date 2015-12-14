@@ -67,6 +67,7 @@ int main(int argc, char *argv[]) {
   char *task_from_root = NULL; //represents char that was received by root 
   char *task_executed_by_rank = NULL; //represents char that was executed by rank  
   char *finished_docking = NULL; //represents signal for ranking no more docking from root 
+  char *aux_fgets = NULL; //used for getting return of fgets
   finished_docking = (char*)malloc(sizeof(char)*MAX_LINE_FILE);
   strcpy(finished_docking, "STOP DOCKING RANK");
 
@@ -118,13 +119,13 @@ int main(int argc, char *argv[]) {
     //Opening docking file and storing into all_docking
     f_dock = open_file(argv[2], fREAD);
     //Ignoring first line of file, because the number of docking we are know at num_dock_dist variable
-    fgets(line, MAX_LINE_FILE, f_dock);
+    aux_fgets = fgets(line, MAX_LINE_FILE, f_dock);
     //Storing whole docking file into all_docking
     num_line_ref=0;
     i = -1;
     while (num_line_ref < *num_dock_dist){
       i = i + 1;
-      fgets(line, MAX_LINE_FILE, f_dock);
+      aux_fgets = fgets(line, MAX_LINE_FILE, f_dock);
       remove_character_enter(line);
       strcpy(all_docking[i], line);
       num_line_ref = num_line_ref + 1;
@@ -170,7 +171,7 @@ int main(int argc, char *argv[]) {
             docking_rank->compound,
             &docking_rank->num_torsion_angle,
             &docking_rank->num_atom,          
-            task_from_root);          
+            task_from_root);
       s_time_docking = time(NULL);
       call_vina(param, docking_rank);
       f_time_docking = time(NULL);            
@@ -204,7 +205,7 @@ int main(int argc, char *argv[]) {
       //Receiving docking from rank
       MPI_Recv(task_executed_by_rank, MAX_LINE_FILE, MPI_CHAR, MPI_ANY_SOURCE,
         tag_finsihed_docking, MPI_COMM_WORLD, &status);      
-      received_docking = received_docking + 1;
+      received_docking = received_docking + 1;      
       save_log_by_line(path_file_log,task_executed_by_rank);
 
       if (*doc_ref_root == *num_dock_dist){                

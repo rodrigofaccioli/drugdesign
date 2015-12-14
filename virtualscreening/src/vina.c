@@ -33,6 +33,7 @@ static char *opt_hydrogens = NULL;
 static inline int run_vina_program(const char *file, char *const argv[]){
   int out, err; /* file descriptors for stdout and stderr */
   int i = 0;
+  int aux_system;
   strcpy(command, argv[i]);
   strcat(command, " ");
   i++;
@@ -45,7 +46,7 @@ static inline int run_vina_program(const char *file, char *const argv[]){
   //Avoid output messages
   strcat(command, " > /dev/null 2> /dev/null ");
 
-  system(command);
+  aux_system = system(command);
 
   return 1;
 }

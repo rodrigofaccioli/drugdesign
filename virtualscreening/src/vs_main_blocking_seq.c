@@ -40,6 +40,7 @@ int main(int argc, char *argv[]) {
   FILE *f_dock=NULL;    
   char *line=NULL;
   docking_t *v_docking = NULL;  
+  char *aux_fgets = NULL; //used for getting return of fgets
 
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -69,10 +70,10 @@ int main(int argc, char *argv[]) {
   line = (char*)malloc(MAX_LINE_FILE);
   f_dock = open_file(argv[2], fREAD);
   //Ignoring first  line of file
-  fgets(line, MAX_LINE_FILE, f_dock);
+  aux_fgets = fgets(line, MAX_LINE_FILE, f_dock);
   //Obtaining docking that will be executed in root  
   for (num_line_ref = 0; num_line_ref < number_dock; num_line_ref++){
-      fgets(line, MAX_LINE_FILE, f_dock);
+      aux_fgets = fgets(line, MAX_LINE_FILE, f_dock);
       set_receptor_compound(v_docking[num_line_ref].receptor, 
         v_docking[num_line_ref].compound,
         &v_docking[num_line_ref].num_torsion_angle,
