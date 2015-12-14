@@ -23,6 +23,11 @@ def main():
 			config.get('DEFAULT', 'pdbqt_ligand_path'),
 			 config.get('VINA', 'pythonsh'),
 			 config.get('VINA', 'script_ligand4'))
+	
+	vina.prepare_ligand_pdb(config.get('DEFAULT', 'mol2_path'), 
+			config.get('DEFAULT', 'pdbqt_ligand_path'),
+			 config.get('VINA', 'pythonsh'),
+			 config.get('VINA', 'script_ligand4'))
 
 	database.prepare_for_creating_database(config.get('DEFAULT', 'ligand_database_path_file'), 
 		config.get('DEFAULT', 'pdbqt_ligand_path'))

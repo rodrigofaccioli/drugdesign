@@ -66,8 +66,8 @@ def get_files_mol2(mypath):
 
 def check_for_preparing_ligand(mol2_path, pdbqt_ligand_path, pythonsh, script_ligand4):
 
-	if len(get_files_mol2(mol2_path)) == 0:
-		raise EnvironmentError("mol2 of ligands not found ")
+	if len(get_files_mol2(mol2_path)) or len(get_files_pdb(mol2_path))== 0:
+		raise EnvironmentError("Either mol2 or pdb of ligands not found ")
 
 	if not os.path.exists(pdbqt_ligand_path):
 		os.makedirs(pdbqt_ligand_path)
@@ -119,7 +119,10 @@ def get_name_pdbqt(reference):
 """
 def get_name_ligand_pdbqt(reference):	
 	name =  os.path.basename(reference)
-	name = str(name).replace(".mol2", ".pdbqt")	
+	if str(name).find(".mol2") > 0:
+		name = str(name).replace(".pdb", ".pdbqt")	
+	if str(name).find(".pdb") > 0:
+		name = str(name).replace(".pdb", ".pdbqt")		
 	return name
 
 
@@ -136,6 +139,23 @@ def prepare_ligand(path_mol2, path_pdbqt, pythonsh, script_ligand4):
 		fpdbqt_filename = get_name_ligand_pdbqt(fmol2)
 		fpdbqt = os.path.join(path_pdbqt,fpdbqt_filename)
 		process = Popen([pythonsh, script_ligand4, '-l', fmol2, '-v', '-o', fpdbqt, '-U', 'nphs_lps', '-A', 'hydrogens'], stdout=PIPE, stderr=PIPE)		
+		stdout, stderr = process.communicate()	 	
+		#command = pythonsh + " " + script_ligand4 + " "+ '-l' + " "+ fmol2 + " "+ '-v' + " "+ '-o'+ " "+ fpdbqt + "\n"
+		#os.system(command)
+
+""" This function converts pdb ligand files 
+    to pdbqt files 
+"""
+def prepare_ligand_pdb(path_pdb, path_pdbqt, pythonsh, script_ligand4):
+
+	if not os.path.isdir(path_pdbqt):
+		os.mkdir(path_pdbqt)
+
+	pdb_files = get_files_pdb(path_pdb)
+	for fpdb in pdb_files:
+		fpdbqt_filename = get_name_ligand_pdbqt(fpdb)
+		fpdbqt = os.path.join(path_pdbqt,fpdbqt_filename)
+		process = Popen([pythonsh, script_ligand4, '-l', fpdb, '-v', '-o', fpdbqt, '-U', 'nphs_lps', '-A', 'hydrogens'], stdout=PIPE, stderr=PIPE)		
 		stdout, stderr = process.communicate()	 	
 		#command = pythonsh + " " + script_ligand4 + " "+ '-l' + " "+ fmol2 + " "+ '-v' + " "+ '-o'+ " "+ fpdbqt + "\n"
 		#os.system(command)
