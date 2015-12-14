@@ -66,7 +66,7 @@ def get_files_mol2(mypath):
 
 def check_for_preparing_ligand(mol2_path, pdbqt_ligand_path, pythonsh, script_ligand4):
 
-	if len(get_files_mol2(mol2_path)) or len(get_files_pdb(mol2_path))== 0:
+	if len(get_files_mol2(mol2_path)) == 0 or len(get_files_pdb(mol2_path)) == 0:
 		raise EnvironmentError("Either mol2 or pdb of ligands not found ")
 
 	if not os.path.exists(pdbqt_ligand_path):
@@ -119,10 +119,10 @@ def get_name_pdbqt(reference):
 """
 def get_name_ligand_pdbqt(reference):	
 	name =  os.path.basename(reference)
-	if str(name).find(".mol2") > 0:
-		name = str(name).replace(".pdb", ".pdbqt")	
 	if str(name).find(".pdb") > 0:
-		name = str(name).replace(".pdb", ".pdbqt")		
+		name = str(name).replace(".pdb", ".pdbqt")	
+	if str(name).find(".mol2") > 0:
+		name = str(name).replace(".mol2", ".pdbqt")	
 	return name
 
 
