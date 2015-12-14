@@ -13,7 +13,7 @@ find_package(MPI REQUIRED)
 # Set compiler flags
 SET( CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
 SET( CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
-SET( CMAKE_CXX_FLAGS "-lm -fopenmp")
+SET( CMAKE_CXX_FLAGS "-lm -fopenmp -fno-stack-protector")
 
 #Set CXX compiler for all files below
 set_source_files_properties(src/vs_main_blocking.c PROPERTIES LANGUAGE CXX )
