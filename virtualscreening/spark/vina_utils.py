@@ -1,6 +1,5 @@
 
 import os
-import time
 
 def get_files_mol2(mypath):
 	only_mol2_file = []
@@ -10,7 +9,4 @@ def get_files_mol2(mypath):
 				f_path = os.path.join(root,file)
 				only_mol2_file.append(f_path)			
 	return only_mol2_file
-
-def get_time():
-	return time.time()
 

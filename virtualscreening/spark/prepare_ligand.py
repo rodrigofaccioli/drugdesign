@@ -1,9 +1,12 @@
 from pyspark import SparkContext, SparkConf
 import ConfigParser as configparser
 from subprocess import Popen, PIPE
+from datetime import datetime
 import os
 import vina_utils
 
+""" This function gets the name of pdbqt files
+"""
 def get_name_ligand_pdbqt(reference):	
 	name =  os.path.basename(reference)
 	if str(name).find(".pdb") > 0:
@@ -33,7 +36,7 @@ def save_log(finish_time, start_time):
 	log_file.write(msg)
 	msg = 'Finishing ' + str(finish_time) +'\n'
 	log_file.write(msg)
-	msg = 'Total ' + str(diff_time) +'\n'
+	msg = 'Time Execution (seconds): ' + str(diff_time.total_seconds()) +'\n'
 	log_file.write(msg)
 
 
@@ -51,7 +54,7 @@ def main():
 	if not os.path.isdir(path_pdbqt):
 		os.mkdir(path_pdbqt)
 
-	start_time = vina_utils.get_time() 
+	start_time = datetime.now()
 
 	#preparando lista
 	list_obj_lig_vina = []
@@ -63,7 +66,7 @@ def main():
 	molRDD = sc.parallelize(list_obj_lig_vina)	
 	molRDD.foreach(prepare_ligand)
 
-	finish_time = vina_utils.get_time()
+	finish_time = datetime.now()
 
 	save_log(finish_time, start_time)
 
