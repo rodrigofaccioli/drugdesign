@@ -34,3 +34,15 @@ def get_files_pdbqt(mypath):
 				only_pdb_file.append(f_path)			
 	return only_pdb_file
 
+""" This function obtains all log files 
+    in mypath 
+"""
+def get_files_log(mypath):
+	only_pdb_file = []
+	for root, dirs, files in os.walk(mypath):
+		for file in files:
+			if file.endswith(".log"):
+				f_path = os.path.join(root,file)
+				only_pdb_file.append(f_path)			
+	return only_pdb_file
+
