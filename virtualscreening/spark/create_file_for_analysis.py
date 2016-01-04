@@ -43,7 +43,6 @@ def build_log_lines(log_file):
 def create_file_by_sorted_energy(path_analysis, sorted_dic_list):
 	text_file = os.path.join(path_analysis,get_file_name_sorted_energy())
 	f_file = open(text_file, "w")
-	f_file.write('Name'+"\t"+'Mode'+"\t"+'Energy'+"\n")
 
 	for l_item in sorted_dic_list:
 		aux = str(l_item[0]).split(get_separator_filename_mode())
