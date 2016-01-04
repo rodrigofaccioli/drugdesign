@@ -46,3 +46,10 @@ def get_files_log(mypath):
 				only_pdb_file.append(f_path)			
 	return only_pdb_file
 
+""" This function obtains the name of 
+sorted energy file 
+"""
+def get_file_name_sorted_energy():
+	return 'vs_energies_sorted.txt'
+
+

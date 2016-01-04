@@ -3,7 +3,7 @@ import os
 import operator
 import ConfigParser as configparser
 import ntpath
-import vina_utils
+from  vina_utils import get_file_name_sorted_energy, get_files_log
 
 def get_separator_filename_mode():
 	"""
@@ -51,7 +51,7 @@ def build_log_lines(log_file):
 	Create a text file which shows the energies sorted and returns the sorted dictionary
 """	
 def create_file_by_sorted_energy(path_analysis, sorted_dic_list):
-	text_file = os.path.join(path_analysis,'vs_energies_sorted.txt')
+	text_file = os.path.join(path_analysis,get_file_name_sorted_energy())
 	f_file = open(text_file, "w")
 	f_file.write('Name'+"\t"+'Mode'+"\t"+'Energy'+"\n")
 
@@ -97,7 +97,7 @@ def main():
 
 	#preparing log list
 	list_obj_log = []
-	log_files = vina_utils.get_files_log(path_save_log)
+	log_files = get_files_log(path_save_log)
 	for flog in log_files:
 		list_obj_log.append(flog)
 
