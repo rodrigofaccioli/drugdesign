@@ -3,17 +3,7 @@ import os
 import operator
 import ConfigParser as configparser
 import ntpath
-from  vina_utils import get_file_name_sorted_energy, get_files_log
-
-def get_separator_filename_mode():
-	"""
-	Returns the separator file mode. It means a way to separate receptor_ligand and mode
-    Example:
-        >>> get_separator_filename_mode()
-    @return: the separator file mode
-    @rtype: string        
-	"""		
-	return '+----+'
+from  vina_utils import get_file_name_sorted_energy, get_files_log, get_separator_filename_mode
 
 def get_log_file_name(myfile):
 	""" 
@@ -86,6 +76,10 @@ def main():
 	#Broadcast
 	path_analysis = config.get('DEFAULT', 'path_analysis')
 	path_save_log = config.get('DEFAULT', 'path_save_log')
+	path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
+
+	#Adding Python Source file
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
 
 
 	#Checking path_analysis

@@ -53,3 +53,12 @@ def get_file_name_sorted_energy():
 	return 'vs_energies_sorted.txt'
 
 
+def get_separator_filename_mode():
+	"""
+	Returns the separator file mode. It means a way to separate receptor_ligand and mode
+    Example:
+        >>> get_separator_filename_mode()
+    @return: the separator file mode
+    @rtype: string        
+	"""		
+	return '+----+'
