@@ -83,3 +83,24 @@ def get_structure_file_name(myfile):
 	path, filename = ntpath.split(myfile)
 	name =  str(filename.split(".")[0]) #remove .pdbqt
 	return name
+
+def get_name_model_pdb(myfile):
+	""" 
+	This function obtains the name of myfile without filename extension
+	"""	
+	path, filename = ntpath.split(myfile)
+	name =  str(filename.split(".")[0]) #remove .pdbqt
+	return name
+
+""" This function obtains the name of 
+path that saving pdbqt files for analysis 
+"""
+def get_directory_pdb_analysis(path_analysis):
+	path_analysis_pdb = os.path.join(path_analysis,"pdb_model")
+	#Checking path_analysis
+	if not os.path.exists(path_analysis_pdb):
+		os.makedirs(path_analysis_pdb)
+	else:
+		if len(os.listdir(path_analysis_pdb)) > 0:
+			raise EnvironmentError("Analysis directory for PDB contains files ")
+	return path_analysis_pdb
