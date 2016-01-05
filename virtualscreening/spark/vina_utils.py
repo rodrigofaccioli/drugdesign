@@ -1,5 +1,5 @@
-
 import os
+import ntpath
 
 def get_files_mol2(mypath):
 	only_mol2_file = []
@@ -62,3 +62,24 @@ def get_separator_filename_mode():
     @rtype: string        
 	"""		
 	return '+----+'
+
+""" This function obtains the name of 
+path that saving pdbqt files for analysis 
+"""
+def get_directory_pdbqt_analysis(path_analysis):
+	path_analysis_pdbqt = os.path.join(path_analysis,"pdbqt_model")
+	#Checking path_analysis
+	if not os.path.exists(path_analysis_pdbqt):
+		os.makedirs(path_analysis_pdbqt)
+	else:
+		if len(os.listdir(path_analysis_pdbqt)) > 0:
+			raise EnvironmentError("Analysis directory for PDBQT contains files ")
+	return path_analysis_pdbqt
+
+def get_structure_file_name(myfile):
+	""" 
+	This function obtains the name of myfile without filename extension
+	"""	
+	path, filename = ntpath.split(myfile)
+	name =  str(filename.split(".")[0]) #remove .pdbqt
+	return name
