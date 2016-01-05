@@ -7,6 +7,22 @@ import ntpath
 from vina_utils import get_file_name_sorted_energy, get_directory_pdbqt_analysis, get_files_pdbqt
 from summary_statistics import get_summary_statistics, save_txt_summary_statistics
 from pdbqt_io import split_pdbqt
+from datetime import datetime
+
+def save_analysis_log(finish_time, start_time):
+	log_file_name = 'vs_analysis.log'
+	current_path = os.getcwd()
+	path_file = os.path.join(current_path, log_file_name)
+	log_file = open(path_file, 'w')
+
+	diff_time = finish_time - start_time
+	msg = 'Starting ' + str(start_time) +'\n'
+	log_file.write(msg)
+	msg = 'Finishing ' + str(finish_time) +'\n'
+	log_file.write(msg)
+	msg = 'Time Execution (seconds): ' + str(diff_time.total_seconds()) +'\n'
+	log_file.write(msg)
+
 
 def main():
 
@@ -30,6 +46,7 @@ def main():
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"summary_statistics.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdbqt_io.py"))
 
+	start_time = datetime.now()
 
 	#File that contains sorted energies from all log file
 	energy_file_name = os.path.join(path_analysis,get_file_name_sorted_energy())
@@ -52,5 +69,9 @@ def main():
 	
 	pdbqtRDD = sc.parallelize(list_pdbqt_model)	
 	pdbqtRDD.foreach(split_pdbqt)
+
+	finish_time = datetime.now()
+
+	save_analysis_log(finish_time, start_time)
 
 main()
