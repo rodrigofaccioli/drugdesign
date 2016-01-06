@@ -139,20 +139,4 @@ def loading_pdb_2_list(pdb_path_file):
 	list_ret = (pdb_path_file, list_pdb)
 	return list_ret
 
-def save_model_receptor(list_receptor_model_file):
-	receptor_file = list_receptor_model_file[0]
-	model_file = list_receptor_model_file[1]
-	full_path_for_save_complex = list_receptor_model_file[2]
-
-	#Open file for writting the complex
-	f_compl = open(full_path_for_save_complex, "w")
-	#Insert lines of receptor
-	for item in  receptor_file:
-		f_compl.write(item)
-	#Insert lines of model
-	for item in model_file:
-		f_compl.write(item)
-	f_compl.close()
-
-
 

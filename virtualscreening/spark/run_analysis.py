@@ -4,7 +4,7 @@ import os
 import operator
 import ConfigParser as configparser
 import ntpath
-from vina_utils import get_file_name_sorted_energy, get_directory_pdbqt_analysis, get_files_pdbqt, get_directory_pdb_analysis, get_directory_complex_pdb_analysis, get_files_pdb, loading_pdb_2_list, get_name_receptor_pdb, save_model_receptor, get_name_model_pdb
+from vina_utils import get_file_name_sorted_energy, get_directory_pdbqt_analysis, get_files_pdbqt, get_directory_pdb_analysis, get_directory_complex_pdb_analysis, get_files_pdb, loading_pdb_2_list, get_name_receptor_pdb, get_name_model_pdb
 from summary_statistics import get_summary_statistics, save_txt_summary_statistics
 from pdbqt_io import split_pdbqt, pdbqt2pdb
 from datetime import datetime
@@ -44,6 +44,7 @@ def main():
 	path_analysis_pdb = get_directory_pdb_analysis(path_analysis)
 	#Path for saving complex pdb files of models and receptor
 	path_analysis_pdb_complex = get_directory_complex_pdb_analysis(path_analysis)
+	path_analysis_pdb_complex_b = sc.broadcast(path_analysis_pdb_complex)
 	#Path for drugdesign project
 	path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
 	#Runing MGLTools for pdbqt to pdb
@@ -106,17 +107,41 @@ def main():
 		#Getting receptor name by fully path
 		base_file_name_receptor = get_name_receptor_pdb(str(pdb_receptor_files[0]))
 		#PDB file loaded into memory is sent by broadcast
-		pdb_file_receptor = pdb_receptor_files[1]		
+		pdb_file_receptor = pdb_receptor_files[1]
+		pdb_file_receptor = sc.broadcast(pdb_file_receptor)		
 		#Filter all models based on name of receptor				
 		pdb_model_file_filter_recepRDD = all_model_filesRDD.filter(lambda x: str(x[0]).find(base_file_name_receptor) > -1 ).collect()
 		#Starting the paralelization of building complex
-		list_all_receptor_model_file = []
-		for model in pdb_model_file_filter_recepRDD:
-			base_name_model = get_name_model_pdb(model[0])
+		pdb_model_file_filter_recepRDD = sc.parallelize(pdb_model_file_filter_recepRDD)
+# ********** Starting function **********************************************************		
+		def build_list_model_for_complex(model):
+			full_path_model = model[0]
+			model_file = model[1]
+			path_pdb_complex = path_analysis_pdb_complex_b.value #Obtained from broadcast
+			#Building complex file based on model file name
+			base_name_model = get_name_model_pdb(full_path_model)
 			complex_name = "compl_"+base_name_model+".pdb"
 			full_path_for_save_complex = os.path.join(path_analysis_pdb_complex,complex_name)
-			list_all_receptor_model_file.append( (pdb_file_receptor, model[1], full_path_for_save_complex) )
-		pdb_model_file_filter_recepRDD = sc.parallelize(list_all_receptor_model_file)				
+			return (model_file, full_path_for_save_complex)
+# ********** Finish function **********************************************************					
+		pdb_model_file_filter_recepRDD = pdb_model_file_filter_recepRDD.map(build_list_model_for_complex).collect()
+
+		pdb_model_file_filter_recepRDD = sc.parallelize(pdb_model_file_filter_recepRDD)
+# ********** Starting function **********************************************************
+		def save_model_receptor(list_receptor_model_file):
+			receptor_file = pdb_file_receptor.value #Obtained from broadcast
+			model_file = list_receptor_model_file[0]			
+			full_path_for_save_complex = list_receptor_model_file[1]
+			#Open file for writting the complex
+			f_compl = open(full_path_for_save_complex, "w")
+			#Insert lines of receptor
+			for item in  receptor_file:
+				f_compl.write(item)
+			#Insert lines of model
+			for item in model_file:
+				f_compl.write(item)
+			f_compl.close()
+# ********** Finish function **********************************************************
 		pdb_model_file_filter_recepRDD.foreach(save_model_receptor)
 	
 	finish_time = datetime.now()
