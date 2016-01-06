@@ -181,6 +181,7 @@ def main():
 	#appling map and collect
 	pdbqtRDD = sc.parallelize(list_obj_pdbqt)
 	all_lines = pdbqtRDD.map(build_compound_database).collect()
+	
 
 	#creating database file
 	save_database(database_comp, all_lines)
