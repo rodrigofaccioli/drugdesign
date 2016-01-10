@@ -5,6 +5,7 @@ from datetime import datetime
 import ntpath
 import os
 import vina_utils
+from pdbqt_io import pdbqt2pdb
 
 """ This function obtains the name of ligand
 	based on file name
@@ -138,7 +139,6 @@ def save_log(finish_time, start_time):
 	msg = 'Time Execution (seconds): ' + str(diff_time.total_seconds()) +'\n'
 	log_file.write(msg)
 
-
 def main():
 	
 	sc = SparkContext()
@@ -150,10 +150,21 @@ def main():
 	pythonsh       = config.get('VINA', 'pythonsh')
 	script_ligand4 = config.get('VINA', 'script_ligand4')
 	database_comp  = config.get('DEFAULT', 'ligand_database_path_file')
+	pdb_ligand_path = config.get('DEFAULT', 'pdb_ligand_path')
+	script_pdbqt_to_pdb = config.get('VINA', 'script_pdbqt_to_pdb')
+	path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
+
+	#Adding Python Source file
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdbqt_io.py"))
 
 	#creating pdbqt path
 	if not os.path.isdir(path_pdbqt):
 		os.mkdir(path_pdbqt)
+
+	#creating PDB path
+	if not os.path.isdir(pdb_ligand_path):
+		os.mkdir(pdb_ligand_path)
 
 	start_time = datetime.now()
 
@@ -182,9 +193,16 @@ def main():
 	pdbqtRDD = sc.parallelize(list_obj_pdbqt)
 	all_lines = pdbqtRDD.map(build_compound_database).collect()
 	
-
 	#creating database file
 	save_database(database_comp, all_lines)
+
+	#converting ligand pdbqt to pdb
+	list_pdbqt_files_lig = []
+	all_pdbqt_files_lig = vina_utils.get_files_pdbqt(path_pdbqt)
+	for pdbqt_files_lig in all_pdbqt_files_lig:
+		list_pdbqt_files_lig.append( (pdbqt_files_lig, pdb_ligand_path, pythonsh, script_pdbqt_to_pdb) )
+	pdbqt_files_ligRDD = sc.parallelize(list_pdbqt_files_lig)
+	pdbqt_files_ligRDD.foreach(pdbqt2pdb)
 
 	finish_time = datetime.now()
 
