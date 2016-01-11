@@ -121,9 +121,6 @@ def get_directory_complex_pdb_analysis(path_analysis):
 	#Checking path_analysis
 	if not os.path.exists(path_analysis_pdb):
 		os.makedirs(path_analysis_pdb)
-	else:
-		if len(os.listdir(path_analysis_pdb)) > 0:
-			raise EnvironmentError("Analysis directory for Complex PDB contains files ")
 	return path_analysis_pdb
 
 """ This function loading pdb file to list.
