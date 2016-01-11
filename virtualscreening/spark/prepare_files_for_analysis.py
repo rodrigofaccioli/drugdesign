@@ -8,6 +8,7 @@ from vina_utils import get_file_name_sorted_energy, get_directory_pdbqt_analysis
 from summary_statistics import get_summary_statistics, save_txt_summary_statistics
 from pdbqt_io import split_pdbqt, pdbqt2pdb
 from datetime import datetime
+from pdb_io import replace_chain_atom_line
 
 def save_analysis_log(finish_time, start_time):
 	log_file_name = 'vs_analysis.log'
@@ -55,6 +56,7 @@ def main():
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"summary_statistics.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdbqt_io.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdb_io.py"))
 
 	start_time = datetime.now()
 
@@ -137,8 +139,9 @@ def main():
 			#Insert lines of receptor
 			for item in  receptor_file:
 				f_compl.write(item)
-			#Insert lines of model
+			#Insert lines of model and insert Z chain
 			for item in model_file:
+				item = replace_chain_atom_line(item,"d","Z")
 				f_compl.write(item)
 			f_compl.close()
 # ********** Finish function **********************************************************
