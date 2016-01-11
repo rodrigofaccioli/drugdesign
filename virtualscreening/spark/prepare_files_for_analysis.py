@@ -141,7 +141,7 @@ def main():
 				f_compl.write(item)
 			#Insert lines of model and insert Z chain
 			for item in model_file:
-				item = replace_chain_atom_line(item,"d","Z")
+				item = replace_chain_atom_line(item,"d","z")
 				f_compl.write(item)
 			f_compl.close()
 # ********** Finish function **********************************************************
