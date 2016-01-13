@@ -9,9 +9,11 @@ def save_ligand_efficiency(path_analysis, list_ligand_efficiency):
 	path_file_ligand_efficiency = os.path.join(path_analysis, "ligand_efficiency.txt")
 	f_ligand_efficiency = open(path_file_ligand_efficiency,"w")
 	for ligand_efficiency in list_ligand_efficiency:
-		ligand = ligand_efficiency[0]
-		lig_eff = ligand_efficiency[1]
-		line = ligand + "\t" + str(lig_eff) + "\n"		
+		receptor = ligand_efficiency[0]
+		ligand = ligand_efficiency[1]
+		mode = ligand_efficiency[2]
+		lig_eff = ligand_efficiency[3]
+		line = str(receptor) + "\t" + str(ligand) + "\t" + str(mode) + "\t"+ str(lig_eff) + "\n"
 		f_ligand_efficiency.write(line)
 	f_ligand_efficiency.close()
 
@@ -76,8 +78,8 @@ def main():
 #**************** Finish 
 	
 	#Computing ligand efficiency
-	ligand_efficiencyRDD = sqlCtx.sql("SELECT database.ligand, (vina.energy / database.heavyAtom) as lig_efficiency FROM database JOIN  vina ON vina.ligand = database.ligand ORDER BY lig_efficiency") 
-	ligand_efficiencyRDD = ligand_efficiencyRDD.map(lambda p: (p.ligand, p.lig_efficiency) ).collect()
+	ligand_efficiencyRDD = sqlCtx.sql("SELECT vina.receptor, vina.ligand, vina.mode, (vina.energy / database.heavyAtom) as lig_efficiency FROM database JOIN  vina ON vina.ligand = database.ligand ORDER BY lig_efficiency") 
+	ligand_efficiencyRDD = ligand_efficiencyRDD.map(lambda p: (p.receptor, p.ligand, p.mode, p.lig_efficiency) ).collect()
 
 	#Saving ligand efficiency file
 	save_ligand_efficiency(path_analysis, ligand_efficiencyRDD)
