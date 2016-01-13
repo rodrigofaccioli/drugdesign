@@ -67,7 +67,7 @@ def main():
 
 	#Spliting energy file by \t
 	rdd_vs_energies_sorted_split = text_file.map(lambda line: line.split("\t"))
-	rdd_vs_energies_sorted = rdd_vs_energies_sorted_split.map(lambda p: Row(name=str(p[0]), mode=int(p[1]), energy=float(p[2]) ))
+	rdd_vs_energies_sorted = rdd_vs_energies_sorted_split.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), mode=int(p[2]), energy=float(p[3]) ))
 
 	# Appling Summary and Descriptive Statistics in Energies
 	summary_statistics_out = get_summary_statistics(sc, rdd_vs_energies_sorted)

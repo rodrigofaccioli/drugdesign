@@ -46,10 +46,12 @@ def create_file_by_sorted_energy(path_analysis, sorted_dic_list):
 
 	for l_item in sorted_dic_list:
 		aux = str(l_item[0]).split(get_separator_filename_mode())
-		name = str(aux[0])		
+		splited_name = str(aux[0]).split("_-_")
+		receptor = str(splited_name[0])
+		ligand = str(splited_name[1])
 		mode = int(aux[1])
 		energy = float(l_item[1])
-		line = str(name)+"\t"+str(mode)+"\t"+str(energy)+"\n"
+		line = str(receptor)+"\t"+str(ligand)+"\t"+str(mode)+"\t"+str(energy)+"\n"
 		f_file.write(line)
 	f_file.close()	
 
