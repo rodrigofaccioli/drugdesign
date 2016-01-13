@@ -8,20 +8,20 @@ import os, sys
 from os_util import preparing_path
 from gromacs_utils import get_value_from_xvg_sasa
 
-def sorting_burried_area(sc, burried_areaRDD):
+def sorting_buried_area(sc, buried_areaRDD):
 	sqlCtx = SQLContext(sc)
-	burried_areaRDD = sc.parallelize(burried_areaRDD)
-	burried_areaRDD = burried_areaRDD.map(lambda p: Row(model=str(p[0]), sasa_lig_min=float(p[1]), sasa_lig_pose=float(p[2]), sasa_lig_complex=float(p[3]), buried_lig_rec_perc=float(p[4]), buried_lig_lig_perc=float(p[5]) ) )
-	burried_area_table = sqlCtx.createDataFrame(burried_areaRDD)	
-	burried_area_table.registerTempTable("burried_area")
+	buried_areaRDD = sc.parallelize(buried_areaRDD)
+	buried_areaRDD = buried_areaRDD.map(lambda p: Row(model=str(p[0]), sasa_lig_min=float(p[1]), sasa_lig_pose=float(p[2]), sasa_lig_complex=float(p[3]), buried_lig_rec_perc=float(p[4]), buried_lig_lig_perc=float(p[5]) ) )
+	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
+	buried_area_table.registerTempTable("buried_area")
 
-	burried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM burried_area ORDER BY buried_lig_rec_perc DESC") # _5
-	return burried_area_sorted_by_lig_rec_perc
+	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area ORDER BY buried_lig_rec_perc DESC") # _5
+	return buried_area_sorted_by_lig_rec_perc
 
-def save_burried_area(path_analysis, burried_area_sorted_by_lig_rec_perc):
-	path_file_burried_area = os.path.join(path_analysis, "burried_area.txt")
-	f_burried_area = open(path_file_burried_area,"w")
-	for area in burried_area_sorted_by_lig_rec_perc:
+def save_buried_area(path_analysis, buried_area_sorted_by_lig_rec_perc):
+	path_file_buried_area = os.path.join(path_analysis, "buried_area.txt")
+	f_buried_area = open(path_file_buried_area,"w")
+	for area in buried_area_sorted_by_lig_rec_perc:
 		splited_line = area[0].split("_-_")
 		aux_recep = splited_line[0]
 		aux_lig = str(splited_line[1])		
@@ -32,8 +32,8 @@ def save_burried_area(path_analysis, burried_area_sorted_by_lig_rec_perc):
 		ligand = splited_aux_lig[0]
 		model = splited_aux_lig[1]
 		line = receptor+"\t"+ligand+"\t"+model+"\t"+str(area[1])+"\t"+str(area[2])+"\t"+str(area[3])+"\t"+str(area[4])+"\t"+str(area[5])+"\n"
-		f_burried_area.write(line)	
-	f_burried_area.close()
+		f_buried_area.write(line)	
+	f_buried_area.close()
 
 def save_log(finish_time, start_time):
 	log_file_name = 'vs_buried_areas.log'
@@ -94,7 +94,7 @@ def main():
 	probe = sc.broadcast(probe)
 	ndots = sc.broadcast(ndots)
 # ********** Starting function **********************************************************			
-	def compute_burried_area(pdb_complex):
+	def compute_buried_area(pdb_complex):
 		chZ = "chZ"
 		buried_lig_rec_perc = -1
 		buried_lig_lig_perc = -1
@@ -126,7 +126,7 @@ def main():
 		sasa_lig_min = get_value_from_xvg_sasa(f_temp_lig_min)
 		sasa_lig_pose  = get_value_from_xvg_sasa(f_temp_lig_pose)
 		sasa_lig_complex  = get_value_from_xvg_sasa(f_temp_lig_complex)
-		#Computing burried areas
+		#Computing buried areas
 		buried_lig_rec_perc = (sasa_lig_pose - sasa_lig_complex) / sasa_lig_pose
 		buried_lig_lig_perc = (sasa_lig_min - sasa_lig_pose) / sasa_lig_min 
 		#Generating result - See column sorting because resultaed file will be created based on this sorting
@@ -140,12 +140,12 @@ def main():
 # ********** Finish function **********************************************************					
 
 	#Getting all values
-	burried_areaRDD = complexRDD.map(compute_burried_area).collect()
+	buried_areaRDD = complexRDD.map(compute_buried_area).collect()
 	#Sorting by buried_lig_rec_perc column
-	burried_area_sorted_by_lig_rec_perc = sorting_burried_area(sc, burried_areaRDD)
-	burried_area_sorted_by_lig_rec_perc = burried_area_sorted_by_lig_rec_perc.map(lambda p: (p.model, p.sasa_lig_min, p.sasa_lig_pose, p.sasa_lig_complex, p.buried_lig_rec_perc, p.buried_lig_lig_perc) ).collect()
-	#Saving burried area file
-	save_burried_area(path_analysis, burried_area_sorted_by_lig_rec_perc)	
+	buried_area_sorted_by_lig_rec_perc = sorting_buried_area(sc, buried_areaRDD)
+	buried_area_sorted_by_lig_rec_perc = buried_area_sorted_by_lig_rec_perc.map(lambda p: (p.model, p.sasa_lig_min, p.sasa_lig_pose, p.sasa_lig_complex, p.buried_lig_rec_perc, p.buried_lig_lig_perc) ).collect()
+	#Saving buried area file
+	save_buried_area(path_analysis, buried_area_sorted_by_lig_rec_perc)	
 
 	finish_time = datetime.now()
 
