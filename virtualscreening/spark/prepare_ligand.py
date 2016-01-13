@@ -53,6 +53,26 @@ def get_number_atom(pathfilename):
 	fpdbqt.close()
 	return number	
 
+"""
+	Returns the number of Heavy atoms 
+	
+	pathfilename contains path and file name in which
+	wants to know the number of atoms.
+	In pdbqt files, the number of heavy atom is obatined reading
+	all lines of files looking by ATOM and dont have H atoms. 
+"""
+def get_heavy_atom_number(pathfilename):
+	number = int(0)
+	fpdbqt = open(pathfilename, "r")
+	for line in fpdbqt:
+		if (line.find("ATOM") > -1):			
+			splited_line = str(line).split()
+			last_column = str(splited_line[-1])#Get the last column
+			if last_column.find("H") ==-1: #Not found H atom
+				number = number +1
+	fpdbqt.close()
+	return number	
+
 def prepare_for_creating_database(database_path_file, pdbqt_path_file):
 	if len(vina_utils.get_files_pdbqt(pdbqt_path_file)) == 0:
 		raise EnvironmentError("pdbqt files not found when tried to create ligand Database")
@@ -67,7 +87,8 @@ def build_compound_database(f_pdbqt):
 	ligand_name = get_name_ligand(f_pdbqt)
 	torsion_angle = int(get_number_torsion_angle(f_pdbqt))
 	atom_number = int(get_number_atom(f_pdbqt))
-	line = (ligand_name + str("\t")+ str(torsion_angle) + str("\t") + str(atom_number) + str("\n") )	
+	heavy_atom_number = int(get_heavy_atom_number(f_pdbqt))
+	line = (ligand_name + str("\t")+ str(torsion_angle) + str("\t") + str(atom_number) + str("\t") + str(heavy_atom_number) +str("\n") )
 	return line
 	
 """
@@ -77,7 +98,7 @@ def build_compound_database(f_pdbqt):
 def save_database(database_path_file, list_compound):
 	line = ""
 	f_database = open(database_path_file, 'w')
-	line = str(";Ligand\t") + str("Torsion\t") + str("Atoms\t") + str("\n")
+	line = str(";Ligand\t") + str("Torsion\t") + str("Atoms\t") + str("Heavy_Atoms\t") +str("\n")
 	f_database.write(line)
 	for line in list_compound:
 		f_database.write(line)
