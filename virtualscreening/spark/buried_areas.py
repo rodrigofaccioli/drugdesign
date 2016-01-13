@@ -15,7 +15,7 @@ def sorting_buried_area(sc, buried_areaRDD):
 	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
 	buried_area_table.registerTempTable("buried_area")
 
-	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area ORDER BY buried_lig_rec_perc DESC") # _5
+	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area ORDER BY buried_lig_lig_perc ") 
 	return buried_area_sorted_by_lig_rec_perc
 
 def save_buried_area(path_analysis, buried_area_sorted_by_lig_rec_perc):
