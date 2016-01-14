@@ -11,7 +11,7 @@ def save_vs_full_data(path_analysis, list_full_data):
 	header = ";receptor\tligand\t\tmode\ttorsion\tatom\theavyA\tafinity\tefficiency\tb_lig_rec_perc\tb_lig_lig_perc\n"
 	f_vs_full_data.write(header)	
 	for full_data in list_full_data:
-		line = str(full_data[0])+"\t"+str(full_data[1])+"\t"+str(full_data[2])+"\t"+str(full_data[3])+"\t"+str(full_data[4])+"\t"+str(full_data[5])+"\t"+str(full_data[6])+"\t"+str(full_data[7])+"\t"+str(full_data[8])+"\t"+str(full_data[9])+"\n"
+		line = str(full_data[0])+"\t"+str(full_data[1])+"\t"+str(full_data[2])+"\t"+str(full_data[3])+"\t"+str(full_data[4])+"\t"+str(full_data[5])+"\t"+str(full_data[6])+"\t"+str("{:.4f}".format(full_data[7]))+"\t"+str("{:.4f}".format(full_data[8]))+"\t"+str("{:.4f}".format(full_data[9]))+"\n"
 		f_vs_full_data.write(line)
 	f_vs_full_data.close()
 

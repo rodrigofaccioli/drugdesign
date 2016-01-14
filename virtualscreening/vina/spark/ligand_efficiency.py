@@ -12,7 +12,7 @@ def save_ligand_efficiency(path_analysis, list_ligand_efficiency):
 		receptor = ligand_efficiency[0]
 		ligand = ligand_efficiency[1]
 		mode = ligand_efficiency[2]
-		lig_eff = "{:10.4f}".format(ligand_efficiency[3])
+		lig_eff = "{:.4f}".format(ligand_efficiency[3])
 		line = str(receptor) + "\t" + str(ligand) + "\t" + str(mode) + "\t"+ str(lig_eff) + "\n"
 		f_ligand_efficiency.write(line)
 	f_ligand_efficiency.close()
