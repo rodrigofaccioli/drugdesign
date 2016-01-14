@@ -1,1 +1,3 @@
 *.pyc
+test/virtual_screening/vina/spark/analysis
+test/virtual_screening/vina/spark/*.log
