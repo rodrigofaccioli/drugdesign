@@ -8,10 +8,10 @@ from datetime import datetime
 def save_vs_full_data(path_analysis, list_full_data):
 	path_file_vs_full_data = os.path.join(path_analysis, "vs_full_data_analysis.txt")
 	f_vs_full_data = open(path_file_vs_full_data,"w")
-	header = ";receptor \t ligand \t mode \t torsion \t atom \t heavyAtom \t  energy \t sasa_lig_min \t sasa_lig_pose \t sasa_lig_complex \t buried_lig_rec_perc \t buried_lig_lig_perc \t lig_eff\n"
+	header = ";receptor\tligand\t\tmode\ttorsion\tatom\theavyA\tafinity\tefficiency\tb_lig_rec_perc\tb_lig_lig_perc\n"
 	f_vs_full_data.write(header)	
 	for full_data in list_full_data:
-		line = str(full_data[0])+"\t"+str(full_data[1])+"\t"+str(full_data[2])+"\t"+str(full_data[3])+"\t"+str(full_data[4])+"\t"+str(full_data[5])+"\t"+str(full_data[6])+"\t"+str(full_data[7])+"\t"+str(full_data[8])+"\t"+str(full_data[9])+"\t"+str(full_data[10])+"\t"+str(full_data[11])+"\t"+str(full_data[12])+"\n"
+		line = str(full_data[0])+"\t"+str(full_data[1])+"\t"+str(full_data[2])+"\t"+str(full_data[3])+"\t"+str(full_data[4])+"\t"+str(full_data[5])+"\t"+str(full_data[6])+"\t"+str(full_data[7])+"\t"+str(full_data[8])+"\t"+str(full_data[9])+"\n"
 		f_vs_full_data.write(line)
 	f_vs_full_data.close()
 
@@ -117,7 +117,7 @@ def main():
 
 	#Getting all data
 	full_dataRDD = sqlCtx.sql(sql) 
-	full_dataRDD = full_dataRDD.map(lambda p: (p.receptor, p.ligand, p.mode, p.torsion, p.atom, p.heavyAtom, p.energy, p.sasa_lig_min, p.sasa_lig_pose, p.sasa_lig_complex, p.buried_lig_rec_perc, p.buried_lig_lig_perc, p.lig_eff) ).collect()
+	full_dataRDD = full_dataRDD.map(lambda p: (p.receptor, p.ligand, p.mode, p.torsion, p.atom, p.heavyAtom, p.energy, p.lig_eff, p.buried_lig_rec_perc, p.buried_lig_lig_perc) ).collect()
 
 	#Saving file
 	save_vs_full_data(path_analysis, full_dataRDD)	
