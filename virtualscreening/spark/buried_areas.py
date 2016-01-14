@@ -31,7 +31,12 @@ def save_buried_area(path_analysis, buried_area_sorted_by_lig_rec_perc):
 		splited_aux_lig = str(aux_lig).split(get_separator_filename_mode())
 		ligand = splited_aux_lig[0]
 		model = splited_aux_lig[1]
-		line = receptor+"\t"+ligand+"\t"+model+"\t"+str(area[1])+"\t"+str(area[2])+"\t"+str(area[3])+"\t"+str(area[4])+"\t"+str(area[5])+"\n"
+		sasa_lig_min = "{:10.4f}".format(area[1])
+		sasa_lig_pose = "{:10.4f}".format(area[2])
+		sasa_lig_complex = "{:10.4f}".format(area[3])
+		buried_lig_rec_perc = "{:10.4f}".format(area[4])
+		buried_lig_lig_perc = "{:10.4f}".format(area[5])
+		line = receptor+"\t"+ligand+"\t"+model+"\t"+str(sasa_lig_min)+"\t"+str(sasa_lig_pose)+"\t"+str(sasa_lig_complex)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
 		f_buried_area.write(line)	
 	f_buried_area.close()
 
