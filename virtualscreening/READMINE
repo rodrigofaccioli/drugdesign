@@ -1,23 +1,6 @@
 virtualscreening
 ================
-in this directory contains scripts to perform 
-the virtual screening.
+In this directory for performing the virtual screening.
 
-* zinc_db.py
-this file decompose mol2 file into several mol2 files.
-
-* prepare_ligand.py
-this file prepares the mol2 files to pdbqt files.
-
-* prepare_receptor.py
-this file prepares the pdb files to pdbqt files.
-
-* vs_main.py
-it is main file to performe the virtual screening.
-
-* vina.py
-contains functions for working with Auto Vina program.
-
-* mol2.py
-contains functions to manipulate mol2 files.
+Nowadays, this project supports virtual screening based on Vina. Look for vina directory for more details about it.
 
