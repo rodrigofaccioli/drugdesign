@@ -1,0 +1,59 @@
+In this directory for performing the virtual screening using AutoDock Vina [1], MGLTools [2] and Apache Spark [3].
+
+They were designed for docking. Here, they are expanded for virtual screening in three ways in which is organized into three directory.
+
+1.mpi
+2.python
+3.spark
+
+***************************************************************************************************************************
+*			1.mpi
+***************************************************************************************************************************
+This project was designed for running parallel Vina. See mpi/READMINE for more details.
+
+***************************************************************************************************************************
+*			2.python
+***************************************************************************************************************************
+In this directory contains Python for manipulating Vina program and simple analysis of virtual screening. 
+See python/READMINE for more details.
+ 
+***************************************************************************************************************************
+*			3.spark
+***************************************************************************************************************************
+Apache Spark [3] is used for analysis the virtual screening. See spark/READMINE for more details.
+
+====================================================================================================================================
+					Instalation 
+====================================================================================================================================
+It is necessary to install the follow softwares
+1) AutoDock Vina - http://vina.scripps.edu/
+2) MGLTools-1.5.6 - http://mgltools.scripps.edu/downloads 
+3) python-matplotlib package - http://matplotlib.org/users/installing.html
+4) cmake - http://www.cmake.org/
+5) Massage Passing Interface (MPI) 
+6) Compile virtual screening
+6.1) mkdir mpi/build
+6.2) cd mpi/build
+6.3) cmake ../
+6.4) make
+
+============================================================================================================================
+				How to perform a Virtual Screening?
+============================================================================================================================
+After the installing process decribed in Instalation section (see above), 
+eight steps are necessary to run virtual screening.
+
+1) Download compounds from ZINC Database: http://zinc.docking.org/
+2) Preparing the config.ini file
+3) Extract the compounds from ZINC Database
+4) Preparing ligands
+5) Preparing receptors
+6) Preparing box of Auto Vina using Pymol
+7) Preparing input files
+8) Running the Virtual Screening MPI
+9) Analysing the Virtual Screening
+
+[1] http://vina.scripps.edu/
+[2] http://mgltools.scripps.edu/
+[3] http://spark.apache.org/
+
