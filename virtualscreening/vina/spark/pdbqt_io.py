@@ -45,3 +45,31 @@ def pdbqt2pdb(param):
 	fpdb = os.path.join(path_analysis_pdb,fpdb_filename)				
 	process = Popen([pythonsh, pdbqt_to_pdb, '-f', model, '-o', fpdb], stdout=PIPE, stderr=PIPE)		
 	stdout, stderr = process.communicate()
+
+""" This function obtains all atoms that are
+in input list. It returns a list of all atom
+"""
+def get_atom_section_from_atom_list(path_file_name, atom_list):
+	return_list = []
+	f_file = open(path_file_name, "r")
+	for line in f_file:
+		if (line.find("ATOM") > -1): #| (line.find("HETATM") > -1)
+			splited_line = line.split()
+			last_collum_from_line = str(splited_line[-1])#Get the last column
+			for atom in atom_list:
+				if last_collum_from_line.find(atom) > -1: #found atom
+					return_list.append(line.rstrip())				 
+	f_file.close()
+	return return_list
+
+""" This function save a text file from List
+"""
+def save_text_file_from_list(path_file_for_saving, list_of_tupla_ref):
+	f_file = open(path_file_for_saving,"w")
+	for item in list_of_tupla_ref:
+		line = ""
+		for i in item:
+			line += str(i) +" "
+		line += "\n" 
+		f_file.write(line)
+	f_file.close()
