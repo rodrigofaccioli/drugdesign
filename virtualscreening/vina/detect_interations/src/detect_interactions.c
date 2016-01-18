@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <ctype.h>
+
+#define MAX_PATH_FILE_NAME 500
 
 int main(int argc, char *argv[]){
 	
@@ -19,24 +22,37 @@ int main(int argc, char *argv[]){
 	int atm_lig_no, atm_lig_h, atm_rec_no, atm_rec_h;
 	int bonded_h;
 	float distance, distance_cutoff ;
-	char lig_filename[200], rec_filename[200];
-	
-	FILE *input_lig_no, *input_lig_h, *input_rec_no, *input_rec_h;
+	char *lig_filename, *rec_filename, *output_filename, *f_path_temporary_rec_no,
+	 *f_path_temporary_lig_no, *f_path_temporary_rec_h, *f_path_temporary_lig_h;
+
+	FILE *input_lig_no, *input_lig_h, *input_rec_no, *input_rec_h, *f_output_filename;
 	
 	atom *lig_no, *lig_h, *lig_h_acceptor, *lig_h_donor;
 	atom *rec_no, *rec_h, *rec_h_acceptor, *rec_h_donor;
 
-		
-	// reading parameters from input command line
-	sscanf( argv[1] , "%s", &rec_filename[0] );
-	sscanf( argv[2] , "%d", &total_rec_no );
-	sscanf( argv[3] , "%d", &total_rec_h );
-	sscanf( argv[4] , "%s", &lig_filename[0] );
-	sscanf( argv[5] , "%d", &total_lig_no );
-	sscanf( argv[6] , "%d", &total_lig_h );
-	sscanf( argv[7] , "%f", &distance_cutoff );
-	
-	
+	//Allocating file names
+	lig_filename = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	rec_filename = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	output_filename = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	f_path_temporary_rec_no = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	f_path_temporary_lig_no = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	f_path_temporary_rec_h = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	f_path_temporary_lig_h = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+
+	// reading parameters from input command line	
+	strcpy(rec_filename, argv[1]);	
+	total_rec_no = atoi(argv[2]);
+	total_rec_h = atoi(argv[3]);
+	strcpy(lig_filename, argv[4]);
+	total_lig_no =  atoi(argv[5]);
+	total_lig_h = atoi(argv[6]);
+	distance_cutoff = atof(argv[7]);
+	strcpy(output_filename, argv[8]);
+	strcpy(f_path_temporary_rec_no, argv[9] );
+	strcpy(f_path_temporary_lig_no, argv[10] );
+	strcpy(f_path_temporary_rec_h, argv[11] );
+	strcpy(f_path_temporary_lig_h, argv[12] );
+
 	// dynamic allocation
 	lig_no = (atom*) malloc( (total_lig_no+1) * sizeof(atom) );
 	lig_h = (atom*) malloc( (total_lig_h+1) * sizeof(atom) );
@@ -52,8 +68,8 @@ int main(int argc, char *argv[]){
 	rec_h_donor = (atom*) malloc( (total_rec_h+1) * sizeof(atom) );
 	
 	
-	// reading input files
-	input_rec_no = fopen( "temporary_rec_no" , "r" );
+	// reading input files	
+	input_rec_no = fopen( f_path_temporary_rec_no , "r" );
 	atm_rec_no = 1;
 	while( fscanf( input_rec_no , "%s %d %s %f %f %f %s",
 		&rec_no[atm_rec_no].res_name[0], 
@@ -66,7 +82,7 @@ int main(int argc, char *argv[]){
 	)!=EOF ) atm_rec_no++;
 	fclose(input_rec_no);
 	
-	input_lig_no = fopen( "temporary_lig_no" , "r" );
+	input_lig_no = fopen( f_path_temporary_lig_no , "r" );
 	atm_lig_no=1;
 	while( fscanf( input_lig_no , "%s %f %f %f %s", 
 		&lig_no[atm_lig_no].atm_name[0], 
@@ -76,10 +92,10 @@ int main(int argc, char *argv[]){
 		&lig_no[atm_lig_no].atm_type[0]
 	)!=EOF) atm_lig_no++;
 	fclose(input_lig_no);
-
-	input_rec_h = fopen( "temporary_rec_h" , "r" );
+	
+	input_rec_h = fopen( f_path_temporary_rec_h , "r" );
 	atm_rec_h = 1;
-	while( fscanf( input_rec_no , "%s %d %s %f %f %f %s", 
+	while( fscanf( input_rec_h , "%s %d %s %f %f %f %s", 
 		&rec_h[atm_rec_h].res_name[0], 
 		&rec_h[atm_rec_h].res_number, 
 		&rec_h[atm_rec_h].atm_name[0], 
@@ -90,7 +106,7 @@ int main(int argc, char *argv[]){
 	)!=EOF ) atm_rec_h++;
 	fclose(input_rec_h);
 	
-	input_lig_h = fopen( "temporary_lig_h" , "r" );
+	input_lig_h = fopen( f_path_temporary_lig_h , "r" );
 	atm_lig_h=1;
 	while( fscanf( input_lig_h , "%s %f %f %f %s", 
 		&lig_h[atm_lig_h].atm_name[0], 
@@ -200,6 +216,7 @@ int main(int argc, char *argv[]){
 	
 	
 	// Find the ligand-receptor h-bonds in which the ligand is accepting H
+	f_output_filename = fopen(output_filename,"w");
 	for( atm_lig_no=1 ; atm_lig_no<=total_lig_h_acceptor ; atm_lig_no++ ){
 		for( atm_rec_no=1 ; atm_rec_no<=total_rec_h_donor; atm_rec_no++ ){
 			
@@ -210,7 +227,7 @@ int main(int argc, char *argv[]){
 			);
 			
 			if( distance <= distance_cutoff ){
-				printf("LIG-%s\taccepts_from\t%s-%d\t%s\t%.2f\t%s %s\n", 
+				fprintf(f_output_filename, "LIG-%s\taccepts_from\t%s-%d\t%s\t%.2f\t%s %s\n", 
 					lig_h_acceptor[atm_lig_no].atm_name, 
 					rec_h_donor[atm_rec_no].res_name, 
 					rec_h_donor[atm_rec_no].res_number, 
@@ -222,8 +239,15 @@ int main(int argc, char *argv[]){
 			}	
 		}		
 	}
+	fclose(f_output_filename);
 	
-	
+	free(lig_filename);
+	free(rec_filename);
+	free(output_filename);
+	free(f_path_temporary_rec_no);
+	free(f_path_temporary_lig_no);
+	free(f_path_temporary_rec_h);
+	free(f_path_temporary_lig_h);
 	
 return 0;
 }
