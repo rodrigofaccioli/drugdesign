@@ -47,15 +47,18 @@ def loading_from_all_lists(sc, all_saving_filesRDD):
 	returnRDD = sqlCtx.sql("SELECT * FROM hbond ") 	
 	return returnRDD
 
-def remove_all_saving_files(mypath):
+def get_all_saving_file(mypath):
 	only_saving_file = []
 	for root, dirs, files in os.walk(mypath):
 		for file in files:
 			if file.endswith(".saving"):
 				f_path = os.path.join(root,file)
 				only_saving_file.append(f_path)
+	return only_saving_file
 
-	for f in only_saving_file:
+def remove_all_saving_files(mypath):
+	all_saving_file = get_all_saving_file(mypath)
+	for f in all_saving_file:
 		os.remove(f)
 
 """ This function obtains atom number, 3D position 
@@ -100,6 +103,19 @@ def save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD):
 	for item in all_saving_filesRDD_2_txt.collect():
 		f_hbond.write(item)
 	f_hbond.close()
+
+def save_all_no_bonds_file(path_analysis, path_saving_files, cutoff, sc):
+	f_file = "NOT_hbonds_"+str(cutoff)
+	f_file = os.path.join(path_analysis, f_file)
+	f_no_hbond = open(f_file,"w")
+	all_saving_file = get_all_saving_file(path_saving_files)
+
+	RDD = sc.parallelize(all_saving_file).flatMap(lambda f : get_name_model_pdbqt(f)+"\n").collect()
+
+	for line in  RDD:		
+		f_no_hbond.write(line)
+	f_no_hbond.close()
+
 
 def save_vs_hydrogen_bind_log(finish_time, start_time):
 	log_file_name = 'vs_hydrogen_bind.log'
@@ -227,11 +243,15 @@ def main():
 
 	#loading all values from list
 	all_saving_filesRDD = loading_from_all_lists(sc, all_saving_filesRDD)
-	#Removing remaing saving files (They no lines have)
-	remove_all_saving_files(path_analysis_pdbqt_model)
 
-	#Saving all_bonds_file	
+	#saving all_bonds_file	
 	save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD)
+
+	#saving models of ligands which no have hydrogen bind
+	save_all_no_bonds_file(path_analysis, path_analysis_pdbqt_model, cutoff, sc)
+
+	#removing remaing saving files (They no lines have)
+	remove_all_saving_files(path_analysis_pdbqt_model)	
 
 	finish_time = datetime.now()
 
