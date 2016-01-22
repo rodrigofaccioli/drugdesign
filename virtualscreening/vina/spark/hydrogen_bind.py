@@ -6,7 +6,7 @@ import sys
 from subprocess import Popen, PIPE
 from datetime import datetime
 from pdbqt_io import get_atom_section_from_atom_list, save_text_file_from_list
-from vina_utils import get_name_model_pdb, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt
+from vina_utils import get_name_model_pdb, get_name_model_pdbqt, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt
 import ntpath
 
 def get_line_number(input_file):
@@ -96,7 +96,7 @@ def save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD):
 	f_file = "hbonds_all_"+str(cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_hbond = open(f_file,"w")	
-	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str(p.hbondValue) +"\t"+ p.receptor +"\t"+ p.ligand+"\n" )	
+	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.hbondValue)) +"\t"+ get_name_receptor_pdbqt(p.receptor) +"\t"+ get_name_model_pdbqt(p.ligand)+"\n" )	
 	for item in all_saving_filesRDD_2_txt.collect():
 		f_hbond.write(item)
 	f_hbond.close()

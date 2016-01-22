@@ -89,6 +89,14 @@ def get_name_model_pdb(myfile):
 	name =  str(filename.split(".")[0]) #remove .pdb
 	return name
 
+def get_name_model_pdbqt(myfile):
+	""" 
+	This function obtains the name of myfile without filename extension
+	"""	
+	path, filename = ntpath.split(myfile)
+	name =  str(filename.split(".")[0]) #remove .pdbqt
+	return name
+
 def get_name_receptor_pdb(myfile):
 	""" 
 	This function obtains the name of myfile without filename extension
