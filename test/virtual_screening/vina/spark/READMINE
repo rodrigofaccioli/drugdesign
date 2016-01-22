@@ -45,3 +45,7 @@ It must be your second step for analysis.
 *************************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/spark/vs_full_data_analysis.py
 
+*************************************************************************************************************************************
+* 				Hydrogen Bind
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bind.py 4.0
