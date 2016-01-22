@@ -71,9 +71,6 @@ def get_directory_pdbqt_analysis(path_analysis):
 	#Checking path_analysis
 	if not os.path.exists(path_analysis_pdbqt):
 		os.makedirs(path_analysis_pdbqt)
-	else:
-		if len(os.listdir(path_analysis_pdbqt)) > 0:
-			raise EnvironmentError("Analysis directory for PDBQT contains files ")
 	return path_analysis_pdbqt
 
 def get_structure_file_name(myfile):
@@ -100,6 +97,15 @@ def get_name_receptor_pdb(myfile):
 	name =  str(filename.split(".")[0]) #remove .pdb
 	return name
 
+def get_name_receptor_pdbqt(myfile):
+	""" 
+	This function obtains the name of myfile without filename extension
+	"""	
+	path, filename = ntpath.split(myfile)
+	name =  str(filename.split(".")[0]) #remove .pdbqt
+	return name
+
+
 def get_ligand_from_receptor_ligand_model(receptor_ligand_model):
 	""" 
 	This function obtains the name of ligand based on receptor_ligand_model
@@ -122,9 +128,6 @@ def get_directory_pdb_analysis(path_analysis):
 	#Checking path_analysis
 	if not os.path.exists(path_analysis_pdb):
 		os.makedirs(path_analysis_pdb)
-	else:
-		if len(os.listdir(path_analysis_pdb)) > 0:
-			raise EnvironmentError("Analysis directory for PDB contains files ")
 	return path_analysis_pdb
 
 """ This function obtains the name of 
