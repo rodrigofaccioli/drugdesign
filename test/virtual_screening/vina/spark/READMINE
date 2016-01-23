@@ -48,4 +48,7 @@ It must be your second step for analysis.
 *************************************************************************************************************************************
 * 				Hydrogen Bind
 *************************************************************************************************************************************
+- Running NO constraints file
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bind.py 4.0
+- Running With constraints file
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bind.py 4.0 /home/faccioli/workspace/drugdesign/test/virtual_screening/vina/spark/constraints

@@ -35,11 +35,10 @@ def loading_from_files(my_file_saving):
 	os.remove(my_file_saving)	
 	return list_return
 
-def loading_from_all_lists(sc, all_saving_filesRDD):
-	sqlCtx = SQLContext(sc)
+def loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx):	
 	#Splited all_saving_filesRDD into list that each element is a column.
 	all_saving_filesRDD = sc.parallelize(all_saving_filesRDD)
-	all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]), atm=str(p[3]), hbondValue=float(p[4]), receptor=str(p[5]), ligand=str(p[6])))
+	all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]).strip(), atm=str(p[3]), hbondValue=float(p[4]), receptor=get_name_receptor_pdbqt(str(p[5])), ligand=get_name_model_pdbqt(str(p[6]))))
 		
 	hbond_table = sqlCtx.createDataFrame(all_saving_filesRDD)
 	hbond_table.registerTempTable("hbond")
@@ -99,7 +98,7 @@ def save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD):
 	f_file = "hbonds_all_"+str(cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_hbond = open(f_file,"w")	
-	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.hbondValue)) +"\t"+ get_name_receptor_pdbqt(p.receptor) +"\t"+ get_name_model_pdbqt(p.ligand)+"\n" )	
+	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.hbondValue)) +"\t"+ p.receptor +"\t"+ p.ligand+"\n" )	
 	for item in all_saving_filesRDD_2_txt.collect():
 		f_hbond.write(item)
 	f_hbond.close()
@@ -116,6 +115,28 @@ def save_all_no_bonds_file(path_analysis, path_saving_files, cutoff, sc):
 		f_no_hbond.write(line)
 	f_no_hbond.close()
 
+def get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_saving_filesRDD, sqlCtx):
+	if os.path.isfile(constraints_file):		 
+		f_constraints = sc.textFile(constraints_file)
+		residues_consRDD = f_constraints.map(lambda l : str(str(l).split(";")[0]).strip() ).map(lambda p : Row(res=p))
+		
+		residues_cons_table = sqlCtx.createDataFrame(residues_consRDD)
+		residues_cons_table.registerTempTable("residues_cons")
+
+		number_pose_cons = sqlCtx.sql('SELECT hbond.ligand, count(hbond.res) as numPose FROM hbond INNER JOIN residues_cons ON residues_cons.res = hbond.res GROUP BY hbond.ligand')	
+		return number_pose_cons
+	else:
+		mensage = "This file was NOT found: \n"+constraints_file
+		raise Exception(mensage)
+
+def save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD):
+	f_file = "hbonds_number_pose_constraints_"+str(cutoff)
+	f_file = os.path.join(path_analysis, f_file)
+	f_poses = open(f_file,"w")	
+	all_poses_2_txt = number_pose_consRDD.map(lambda p: p.ligand +"\t"+ str(p.numPose) +"\n")	
+	for item in all_poses_2_txt.collect():
+		f_poses.write(item)
+	f_poses.close()
 
 def save_vs_hydrogen_bind_log(finish_time, start_time):
 	log_file_name = 'vs_hydrogen_bind.log'
@@ -154,7 +175,13 @@ def main():
 	#Getting parameters
 	# cutoff for hydrogen bind
 	cutoff = float(sys.argv[1])
-	
+
+	# checking for constraints file
+	constraints_file = ""
+	if len(sys.argv) >= 3:
+		if sys.argv[2] != "":
+			constraints_file = str(sys.argv[2])
+
 	#Adding Python Source file
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdbqt_io.py"))
@@ -242,7 +269,8 @@ def main():
 	all_saving_filesRDD = all_saving_filesRDD.flatMap(loading_from_files).collect()
 
 	#loading all values from list
-	all_saving_filesRDD = loading_from_all_lists(sc, all_saving_filesRDD)
+	all_saving_filesRDD = loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx)
+	all_saving_filesRDD.cache()
 
 	#saving all_bonds_file	
 	save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD)
@@ -252,6 +280,11 @@ def main():
 
 	#removing remaing saving files (They no lines have)
 	remove_all_saving_files(path_analysis_pdbqt_model)	
+
+	#starting to work with constraints file
+	if constraints_file != "":
+		number_pose_consRDD = get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_saving_filesRDD, sqlCtx)
+		save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD)
 
 	finish_time = datetime.now()
 
