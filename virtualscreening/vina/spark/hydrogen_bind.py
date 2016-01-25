@@ -6,7 +6,7 @@ import sys
 from subprocess import Popen, PIPE
 from datetime import datetime
 from pdbqt_io import get_atom_section_from_atom_list, save_text_file_from_list
-from vina_utils import get_name_model_pdb, get_name_model_pdbqt, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt
+from vina_utils import get_name_model_pdb, get_name_model_pdbqt, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt, get_separator_filename_mode
 import ntpath
 
 def get_line_number(input_file):
@@ -137,6 +137,39 @@ def save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD):
 	for item in all_poses_2_txt.collect():
 		f_poses.write(item)
 	f_poses.close()
+
+def get_hbonds_number_pose(sqlCtx):
+	
+	number_pose = sqlCtx.sql('SELECT hbond.ligand, count(hbond.res) as numPose FROM hbond GROUP BY hbond.ligand')	
+	return number_pose
+
+def save_number_pose(path_analysis, cutoff, number_poseRDD):
+	f_file = "hbonds_number_pose_"+str(cutoff)
+	f_file = os.path.join(path_analysis, f_file)
+	f_poses = open(f_file,"w")	
+	all_poses_2_txt = number_poseRDD.map(lambda p: p.ligand +"\t"+ str(p.numPose) +"\n")	
+	for item in all_poses_2_txt.collect():
+		f_poses.write(item)
+	f_poses.close()
+
+def get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx):
+	only_ligandRDD = number_poseRDD.map(lambda p: Row(fullName=str(p[0]), numPose=int(p[1]), onlylig=str(str(str(p[0]).split("_-_")[1]).strip("',").split(get_separator_filename_mode())[0] ) ) )
+	
+	df = sqlCtx.createDataFrame(only_ligandRDD)
+	df.registerTempTable("onlyligand")	
+	
+	number_ligand = sqlCtx.sql('SELECT DISTINCT onlyligand.onlylig, MAX(onlyligand.fullName) as fullName, max(numPose) as num FROM onlyligand GROUP BY onlyligand.onlylig')	
+	return number_ligand	
+
+def save_number_ligand(path_analysis, cutoff, number_ligandRDD):
+	f_file = "hbonds_number_ligand_"+str(cutoff)
+	f_file = os.path.join(path_analysis, f_file)
+	f_ligand = open(f_file,"w")	
+	all_ligand_2_txt = number_ligandRDD.map(lambda p: p.fullName +"\t"+ str(p.num) +"\n")	
+	for item in all_ligand_2_txt.collect():
+		f_ligand.write(item)
+	f_ligand.close()
+
 
 def save_vs_hydrogen_bind_log(finish_time, start_time):
 	log_file_name = 'vs_hydrogen_bind.log'
@@ -281,10 +314,19 @@ def main():
 	#removing remaing saving files (They no lines have)
 	remove_all_saving_files(path_analysis_pdbqt_model)	
 
-	#starting to work with constraints file
+	#number hydrogen binds of poses by constraints
 	if constraints_file != "":
 		number_pose_consRDD = get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_saving_filesRDD, sqlCtx)
 		save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD)
+
+	#number hydrogen binds of poses
+	number_poseRDD = get_hbonds_number_pose(sqlCtx)
+	number_poseRDD.cache()
+	save_number_pose(path_analysis, cutoff, number_poseRDD)
+
+	#number hydrogen binds of ligands
+	number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
+	save_number_ligand(path_analysis, cutoff, number_ligandRDD)
 
 	finish_time = datetime.now()
 
