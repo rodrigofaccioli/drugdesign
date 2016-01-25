@@ -185,6 +185,12 @@ def save_vs_hydrogen_bind_log(finish_time, start_time):
 	msg = 'Time Execution (seconds): ' + str(diff_time.total_seconds()) +'\n'
 	log_file.write(msg)
 
+def save_all_bonds_file_with_mensage(path_analysis, cutoff):
+	f_file = "hbonds_all_"+str(cutoff)
+	f_file = os.path.join(path_analysis, f_file)
+	f_hbond = open(f_file,"w")	
+	f_hbond.write("NO hydrogen bind")
+	f_hbond.close()
 
 def main():
 
@@ -295,38 +301,46 @@ def main():
 		models_by_receptorRDD.foreach(get_hydrogen_bind)
 
 	#Getting all saving files that have lines > 0
-	all_saving_files = get_saving_files_with_lines(path_analysis_pdbqt_model)	
-	all_saving_filesRDD = sc.parallelize(all_saving_files)
+	all_saving_files = get_saving_files_with_lines(path_analysis_pdbqt_model)
 
-	#loading from files
-	all_saving_filesRDD = all_saving_filesRDD.flatMap(loading_from_files).collect()
+	if len(all_saving_files) > 0:
 
-	#loading all values from list
-	all_saving_filesRDD = loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx)
-	all_saving_filesRDD.cache()
+		all_saving_filesRDD = sc.parallelize(all_saving_files)
 
-	#saving all_bonds_file	
-	save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD)
+		#loading from files
+		all_saving_filesRDD = all_saving_filesRDD.flatMap(loading_from_files).collect()
 
-	#saving models of ligands which no have hydrogen bind
-	save_all_no_bonds_file(path_analysis, path_analysis_pdbqt_model, cutoff, sc)
+		#loading all values from list
+		all_saving_filesRDD = loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx)
+		all_saving_filesRDD.cache()
 
-	#removing remaing saving files (They no lines have)
-	remove_all_saving_files(path_analysis_pdbqt_model)	
+		#saving all_bonds_file	
+		save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD)
 
-	#number hydrogen binds of poses by constraints
-	if constraints_file != "":
-		number_pose_consRDD = get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_saving_filesRDD, sqlCtx)
-		save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD)
+		#saving models of ligands which no have hydrogen bind
+		save_all_no_bonds_file(path_analysis, path_analysis_pdbqt_model, cutoff, sc)
 
-	#number hydrogen binds of poses
-	number_poseRDD = get_hbonds_number_pose(sqlCtx)
-	number_poseRDD.cache()
-	save_number_pose(path_analysis, cutoff, number_poseRDD)
+		#removing remaing saving files (They no lines have)
+		remove_all_saving_files(path_analysis_pdbqt_model)	
 
-	#number hydrogen binds of ligands
-	number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
-	save_number_ligand(path_analysis, cutoff, number_ligandRDD)
+		#number hydrogen binds of poses by constraints
+		if constraints_file != "":
+			number_pose_consRDD = get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_saving_filesRDD, sqlCtx)
+			save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD)
+
+		#number hydrogen binds of poses
+		number_poseRDD = get_hbonds_number_pose(sqlCtx)
+		number_poseRDD.cache()
+		save_number_pose(path_analysis, cutoff, number_poseRDD)
+
+		#number hydrogen binds of ligands
+		number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
+		save_number_ligand(path_analysis, cutoff, number_ligandRDD)
+	else:
+		save_all_bonds_file_with_mensage(path_analysis, cutoff)
+		#removing remaing saving files (They no lines have)
+		remove_all_saving_files(path_analysis_pdbqt_model)	
+
 
 	finish_time = datetime.now()
 
