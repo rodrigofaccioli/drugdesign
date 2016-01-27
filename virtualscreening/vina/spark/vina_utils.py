@@ -22,6 +22,19 @@ def get_files_pdb(mypath):
 				only_pdb_file.append(f_path)			
 	return only_pdb_file
 
+""" This function obtains all pdb files 
+    in mypath filtered by reference
+"""
+def get_files_pdb_filter(mypath, reference):
+	only_pdb_file = []
+	for root, dirs, files in os.walk(mypath):
+		for file in files:
+			if file.endswith(".pdb"):
+				if file.find(reference) >  -1:
+					f_path = os.path.join(root,file)
+					only_pdb_file.append(f_path)			
+	return only_pdb_file
+
 """ This function obtains all pdbqt files 
     in mypath 
 """
@@ -160,5 +173,4 @@ def loading_pdb_2_list(pdb_path_file):
 	f_PDB.close()
 	list_ret = (pdb_path_file, list_pdb)
 	return list_ret
-
 

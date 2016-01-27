@@ -4,7 +4,7 @@ import os
 import operator
 import ConfigParser as configparser
 import ntpath
-from vina_utils import get_file_name_sorted_energy, get_directory_pdbqt_analysis, get_files_pdbqt, get_directory_pdb_analysis, get_directory_complex_pdb_analysis, get_files_pdb, loading_pdb_2_list, get_name_receptor_pdb, get_name_model_pdb
+from vina_utils import get_file_name_sorted_energy, get_directory_pdbqt_analysis, get_files_pdbqt, get_directory_pdb_analysis, get_directory_complex_pdb_analysis, get_files_pdb, loading_pdb_2_list, get_name_receptor_pdb, get_name_model_pdb, get_files_pdb_filter
 from summary_statistics import get_summary_statistics, save_txt_summary_statistics
 from pdbqt_io import split_pdbqt, pdbqt2pdb
 from datetime import datetime
@@ -99,22 +99,18 @@ def main():
 	for receptor in all_receptor_for_complex:
 		list_all_pdb_receptor_files_path.append(loading_pdb_2_list(receptor))
 
-	#Loading all PDB model files into memory
-	all_model_for_complex = get_files_pdb(path_analysis_pdb)
-	all_model_for_complexRDD = sc.parallelize(all_model_for_complex)
-	all_model_filesRDD = all_model_for_complexRDD.map(loading_pdb_2_list).collect()
-	all_model_filesRDD	= sc.parallelize(all_model_filesRDD)
-
-	for pdb_receptor_files in list_all_pdb_receptor_files_path:
+	for pdb_receptor_files in list_all_pdb_receptor_files_path:		
 		#Getting receptor name by fully path
 		base_file_name_receptor = get_name_receptor_pdb(str(pdb_receptor_files[0]))
 		#PDB file loaded into memory is sent by broadcast
 		pdb_file_receptor = pdb_receptor_files[1]
-		pdb_file_receptor = sc.broadcast(pdb_file_receptor)		
-		#Filter all models based on name of receptor				
-		pdb_model_file_filter_recepRDD = all_model_filesRDD.filter(lambda x: str(x[0]).find(base_file_name_receptor) > -1 ).collect()
-		#Starting the paralelization of building complex
-		pdb_model_file_filter_recepRDD = sc.parallelize(pdb_model_file_filter_recepRDD)
+		pdb_file_receptor = sc.broadcast(pdb_file_receptor)
+		
+		#Loading PDB model files based on receptor into memory
+		all_model_for_complex = get_files_pdb_filter(path_analysis_pdb,base_file_name_receptor)
+		all_model_for_complexRDD = sc.parallelize(all_model_for_complex)
+		all_model_filesRDD = all_model_for_complexRDD.map(loading_pdb_2_list).collect()
+		all_model_filesRDD	= sc.parallelize(all_model_filesRDD)
 # ********** Starting function **********************************************************		
 		def build_list_model_for_complex(model):
 			full_path_model = model[0]
@@ -126,9 +122,9 @@ def main():
 			full_path_for_save_complex = os.path.join(path_analysis_pdb_complex,complex_name)
 			return (model_file, full_path_for_save_complex)
 # ********** Finish function **********************************************************					
-		pdb_model_file_filter_recepRDD = pdb_model_file_filter_recepRDD.map(build_list_model_for_complex).collect()
+		all_model_filesRDD = all_model_filesRDD.map(build_list_model_for_complex).collect()
 
-		pdb_model_file_filter_recepRDD = sc.parallelize(pdb_model_file_filter_recepRDD)
+		all_model_filesRDD = sc.parallelize(all_model_filesRDD)
 # ********** Starting function **********************************************************
 		def save_model_receptor(list_receptor_model_file):
 			receptor_file = pdb_file_receptor.value #Obtained from broadcast
@@ -145,7 +141,7 @@ def main():
 				f_compl.write(item)
 			f_compl.close()
 # ********** Finish function **********************************************************
-		pdb_model_file_filter_recepRDD.foreach(save_model_receptor)
+		all_model_filesRDD.foreach(save_model_receptor)
 	
 	finish_time = datetime.now()
 
