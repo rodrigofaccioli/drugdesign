@@ -11,7 +11,7 @@ from datetime import datetime
 from pdb_io import replace_chain_atom_line
 
 def save_analysis_log(finish_time, start_time):
-	log_file_name = 'vs_prepare_files_for_analysis.log'
+	log_file_name = 'vs_prepare_complex_files_for_analysis.log'
 	current_path = os.getcwd()
 	path_file = os.path.join(current_path, log_file_name)
 	log_file = open(path_file, 'w')
