@@ -87,20 +87,6 @@ def main():
 		all_model_filesRDD = all_model_for_complexRDD.map(loading_pdb_2_list).collect()
 		all_model_filesRDD	= sc.parallelize(all_model_filesRDD)
 # ********** Starting function **********************************************************		
-		def build_list_model_for_complex(model):
-			full_path_model = model[0]
-			model_file = model[1]
-			path_pdb_complex = path_analysis_pdb_complex_b.value #Obtained from broadcast
-			#Building complex file based on model file name
-			base_name_model = get_name_model_pdb(full_path_model)
-			complex_name = "compl_"+base_name_model+".pdb"
-			full_path_for_save_complex = os.path.join(path_analysis_pdb_complex,complex_name)
-			return (model_file, full_path_for_save_complex)
-# ********** Finish function **********************************************************					
-		all_model_filesRDD = all_model_filesRDD.map(build_list_model_for_complex).collect()
-
-		all_model_filesRDD = sc.parallelize(all_model_filesRDD)
-# ********** Starting function **********************************************************
 		def save_model_receptor(list_receptor_model_file):
 			receptor_file = pdb_file_receptor.value #Obtained from broadcast
 			model_file = list_receptor_model_file[0]			
@@ -115,8 +101,22 @@ def main():
 				item = replace_chain_atom_line(item,"d","z")
 				f_compl.write(item)
 			f_compl.close()
-# ********** Finish function **********************************************************
-		all_model_filesRDD.foreach(save_model_receptor)
+# ********** Finish function **********************************************************					
+
+# ********** Starting function **********************************************************		
+		def build_list_model_for_complex(model):
+			full_path_model = model[0]
+			model_file = model[1]
+			path_pdb_complex = path_analysis_pdb_complex_b.value #Obtained from broadcast
+			#Building complex file based on model file name
+			base_name_model = get_name_model_pdb(full_path_model)
+			complex_name = "compl_"+base_name_model+".pdb"
+			full_path_for_save_complex = os.path.join(path_analysis_pdb_complex,complex_name)
+			list_receptor_model_file = (model_file, full_path_for_save_complex)			
+			save_model_receptor(list_receptor_model_file)
+			return model_file
+# ********** Finish function **********************************************************					
+		all_model_filesRDD = all_model_filesRDD.map(build_list_model_for_complex).collect()
 	
 	finish_time = datetime.now()
 
