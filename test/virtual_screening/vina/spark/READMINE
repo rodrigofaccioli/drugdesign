@@ -31,7 +31,7 @@ It must be your second step for analysis.
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_files_for_analysis.py
 
 *************************************************************************************************************************************
-* 				Prepare files for analysis  (Required for Burried area)
+* 				Prepare files for Burried area  (Obsolete)
 *************************************************************************************************************************************
 It must be executed before Burried area analysis.
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_complex_files_for_analysis.py
