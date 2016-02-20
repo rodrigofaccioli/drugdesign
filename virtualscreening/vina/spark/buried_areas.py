@@ -60,6 +60,15 @@ def loading_lines_from_area_files(line):
 	line_ret = ( str(line_splited[0]),str(line_splited[1]), int(line_splited[2]), float(line_splited[3]), float(line_splited[4]), float(line_splited[5]), float(line_splited[6]), float(line_splited[7]) )	
 	return line_ret
 
+def get_files_area(mypath):
+	only_mol2_file = []
+	for root, dirs, files in os.walk(mypath):
+		for file in files:
+			if file.endswith(".area"):
+				f_path = os.path.join(root,file)
+				only_mol2_file.append(f_path)			
+	return only_mol2_file
+
 def save_log(finish_time, start_time):
 	log_file_name = 'vs_buried_areas.log'
 	current_path = os.getcwd()
@@ -232,6 +241,11 @@ def main():
 	#Saving buried area file
 	path_file_buried_area = os.path.join(path_analysis, "buried_area.txt")
 	save_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc)	
+
+	#Removing all area files
+	all_area_files = get_files_area(path_analysis)
+	for area_file in all_area_files:
+		os.remove(area_file)
 
 	finish_time = datetime.now()
 
