@@ -148,7 +148,8 @@ def main():
 		pdb_file_receptor = pdb_receptor_files[1]
 		pdb_file_receptor = sc.broadcast(pdb_file_receptor)
 		#Loading PDB model files based on receptor into memory
-		all_model_for_complex = get_files_pdb_filter(path_analysis_pdb,base_file_name_receptor)
+		base_file_name_receptor_for_filter = base_file_name_receptor+"_-_"
+		all_model_for_complex = get_files_pdb_filter(path_analysis_pdb,base_file_name_receptor_for_filter)
 		all_model_for_complexRDD = sc.parallelize(all_model_for_complex)
 		all_model_filesRDD = all_model_for_complexRDD.map(loading_pdb_2_list).collect()
 # ********** Starting function **********************************************************			
