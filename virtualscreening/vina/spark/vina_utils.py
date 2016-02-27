@@ -141,6 +141,22 @@ def get_ligand_from_receptor_ligand_model(receptor_ligand_model):
 	ligand_name = str(s[0]) #geting name of ligand
 	return ligand_name
 
+def get_model_from_receptor_ligand_model(receptor_ligand_model):
+	""" 
+	This function obtains the model based on receptor_ligand_model
+	Example of input: compl_ns3pro_dm_0_-_NuBBE_485_obabel_3D+----+20
+	Return: 20
+	"""	
+	separator_model = get_separator_filename_mode()
+	separator_receptor = "_-_"
+	string_ref = receptor_ligand_model
+	
+	s = string_ref.split(separator_receptor) #Removing receptor
+	s = str(s[1]).split(separator_model) #Removing ligand name
+	model = int(s[1]) #geting model
+	return model
+
+
 """ This function obtains the name of 
 path that saving pdbqt files for analysis 
 """
