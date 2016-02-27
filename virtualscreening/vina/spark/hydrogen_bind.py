@@ -6,7 +6,7 @@ import sys
 from subprocess import Popen, PIPE
 from datetime import datetime
 from pdbqt_io import get_atom_section_from_atom_list, save_text_file_from_list
-from vina_utils import get_name_model_pdb, get_name_model_pdbqt, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt, get_separator_filename_mode
+from vina_utils import get_name_model_pdb, get_name_model_pdbqt, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt, get_separator_filename_mode, get_ligand_from_receptor_ligand_model, get_model_from_receptor_ligand_model
 import ntpath
 
 def get_line_number(input_file):
@@ -38,12 +38,13 @@ def loading_from_files(my_file_saving):
 def loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx):	
 	#Splited all_saving_filesRDD into list that each element is a column.
 	all_saving_filesRDD = sc.parallelize(all_saving_filesRDD)
-	all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]).strip(), atm=str(p[3]), hbondValue=float(p[4]), receptor=get_name_receptor_pdbqt(str(p[5])), ligand=get_name_model_pdbqt(str(p[6]))))
-		
+	all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]).strip(), atm=str(p[3]), hbondValue=float(p[4]), receptor=get_name_receptor_pdbqt(str(p[5])), ligand=get_ligand_from_receptor_ligand_model(str(p[6])), model=get_model_from_receptor_ligand_model( get_name_model_pdbqt(str(p[6]))) ))
+	
+			
 	hbond_table = sqlCtx.createDataFrame(all_saving_filesRDD)
 	hbond_table.registerTempTable("hbond")
 
-	returnRDD = sqlCtx.sql("SELECT * FROM hbond ") 	
+	returnRDD = sqlCtx.sql("SELECT * FROM hbond ")
 	return returnRDD
 
 def get_all_saving_file(mypath):
@@ -98,7 +99,7 @@ def save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD):
 	f_file = "hbonds_all_"+str(cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_hbond = open(f_file,"w")	
-	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.hbondValue)) +"\t"+ p.receptor +"\t"+ p.ligand+"\n" )	
+	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.receptor + "\t"+ p.ligand +"\t"+ str(p.model)+"\t" + p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.hbondValue)) +"\n")	
 	for item in all_saving_filesRDD_2_txt.collect():
 		f_hbond.write(item)
 	f_hbond.close()
@@ -123,7 +124,7 @@ def get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_
 		residues_cons_table = sqlCtx.createDataFrame(residues_consRDD)
 		residues_cons_table.registerTempTable("residues_cons")
 
-		number_pose_cons = sqlCtx.sql('SELECT hbond.ligand, count(hbond.res) as numPose FROM hbond INNER JOIN residues_cons ON residues_cons.res = hbond.res GROUP BY hbond.ligand')	
+		number_pose_cons = sqlCtx.sql('SELECT hbond.receptor, hbond.ligand, hbond.model, count(hbond.res) as numPose FROM hbond INNER JOIN residues_cons ON residues_cons.res = hbond.res GROUP BY hbond.receptor, hbond.ligand, hbond.model')
 		return number_pose_cons
 	else:
 		mensage = "This file was NOT found: \n"+constraints_file
@@ -133,39 +134,39 @@ def save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD):
 	f_file = "hbonds_number_pose_constraints_"+str(cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_poses = open(f_file,"w")	
-	all_poses_2_txt = number_pose_consRDD.map(lambda p: p.ligand +"\t"+ str(p.numPose) +"\n")	
+	all_poses_2_txt = number_pose_consRDD.map(lambda p: p.receptor +"\t"+ p.ligand +"\t"+ str(p.model) +"\t" + str(p.numPose) +"\n")	
 	for item in all_poses_2_txt.collect():
 		f_poses.write(item)
 	f_poses.close()
 
 def get_hbonds_number_pose(sqlCtx):
 	
-	number_pose = sqlCtx.sql('SELECT hbond.ligand, count(hbond.res) as numPose FROM hbond GROUP BY hbond.ligand')	
+	number_pose = sqlCtx.sql('SELECT hbond.receptor, hbond.ligand, hbond.model, count(hbond.res) as numPose FROM hbond GROUP BY hbond.receptor, hbond.ligand, hbond.model')	
 	return number_pose
 
 def save_number_pose(path_analysis, cutoff, number_poseRDD):
 	f_file = "hbonds_number_pose_"+str(cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_poses = open(f_file,"w")	
-	all_poses_2_txt = number_poseRDD.map(lambda p: p.ligand +"\t"+ str(p.numPose) +"\n")	
+	all_poses_2_txt = number_poseRDD.map(lambda p: p.receptor +"\t"+ p.ligand +"\t"+ str(p.model) +"\t"+str(p.numPose) +"\n")	
 	for item in all_poses_2_txt.collect():
 		f_poses.write(item)
 	f_poses.close()
 
 def get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx):
-	only_ligandRDD = number_poseRDD.map(lambda p: Row(fullName=str(p[0]), numPose=int(p[1]), onlylig=str(str(str(p[0]).split("_-_")[1]).strip("',").split(get_separator_filename_mode())[0] ) ) )
+	only_ligandRDD = number_poseRDD.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), model=int(p[2]), numLigH=int(p[3]) ) )
 	
 	df = sqlCtx.createDataFrame(only_ligandRDD)
 	df.registerTempTable("onlyligand")	
 	
-	number_ligand = sqlCtx.sql('SELECT DISTINCT onlyligand.onlylig, MAX(onlyligand.fullName) as fullName, max(numPose) as num FROM onlyligand GROUP BY onlyligand.onlylig')	
+	number_ligand = sqlCtx.sql('SELECT onlyligand.receptor, onlyligand.ligand, SUM(numLigH) as num FROM onlyligand GROUP BY onlyligand.receptor, onlyligand.ligand')
 	return number_ligand	
 
 def save_number_ligand(path_analysis, cutoff, number_ligandRDD):
 	f_file = "hbonds_number_ligand_"+str(cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_ligand = open(f_file,"w")	
-	all_ligand_2_txt = number_ligandRDD.map(lambda p: p.fullName +"\t"+ str(p.num) +"\n")	
+	all_ligand_2_txt = number_ligandRDD.map(lambda p: p.receptor +"\t"+ p.ligand +"\t"+ str(p.num) +"\n")
 	for item in all_ligand_2_txt.collect():
 		f_ligand.write(item)
 	f_ligand.close()
@@ -336,6 +337,7 @@ def main():
 		#number hydrogen binds of ligands
 		number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
 		save_number_ligand(path_analysis, cutoff, number_ligandRDD)
+
 	else:
 		save_all_bonds_file_with_mensage(path_analysis, cutoff)
 		#removing remaing saving files (They no lines have)
