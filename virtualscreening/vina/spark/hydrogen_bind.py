@@ -289,10 +289,10 @@ def main():
 			process = Popen( [detect_interactions_program_b.value, receptor_b.value, str(total_rec_no), str(total_rec_h), ligand_pdbqt, str(total_lig_no), str(total_lig_h), str(cutoff_b.value),path_file_for_saving,path_file_rec_no, path_file_lig_no, path_file_rec_h, path_file_lig_h ], stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()
 
-		#os.remove(path_file_rec_no)
-		#os.remove(path_file_lig_no)
-		#os.remove(path_file_rec_h)
-		#os.remove(path_file_lig_h)
+		os.remove(path_file_rec_no)
+		os.remove(path_file_lig_no)
+		os.remove(path_file_rec_h)
+		os.remove(path_file_lig_h)
 
 #******************* finish function ************************************************
 
