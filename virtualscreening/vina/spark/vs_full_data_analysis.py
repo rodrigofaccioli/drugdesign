@@ -5,8 +5,8 @@ import os
 from vina_utils import get_file_name_sorted_energy
 from datetime import datetime
 
-def save_vs_full_data(path_analysis, list_full_data):
-	path_file_vs_full_data = os.path.join(path_analysis, "vs_full_data_analysis.txt")
+def save_vs_full_data(path_analysis, list_full_data, full_data_file_name):	
+	path_file_vs_full_data = os.path.join(path_analysis, full_data_file_name)
 	f_vs_full_data = open(path_file_vs_full_data,"w")
 	header = ";receptor\tligand\t\tmode\ttorsion\tatom\theavyA\tafinity\tefficiency\tb_lig_rec_perc\tb_lig_lig_perc\n"
 	f_vs_full_data.write(header)	
@@ -48,6 +48,9 @@ def main():
 
 	#Adding Python Source file
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
+
+	#Sufix of completly data file
+	full_data_file_name = config.get('DRUGDESIGN', 'full_data_file_name')
 
 	start_time = datetime.now()
 
@@ -120,7 +123,7 @@ def main():
 	full_dataRDD = full_dataRDD.map(lambda p: (p.receptor, p.ligand, p.mode, p.torsion, p.atom, p.heavyAtom, p.energy, p.lig_eff, p.buried_lig_rec_perc, p.buried_lig_lig_perc) ).collect()
 
 	#Saving file
-	save_vs_full_data(path_analysis, full_dataRDD)	
+	save_vs_full_data(path_analysis, full_dataRDD, full_data_file_name)	
 
 	finish_time = datetime.now()
 
