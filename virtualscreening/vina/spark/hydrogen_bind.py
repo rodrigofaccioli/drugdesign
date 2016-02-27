@@ -69,9 +69,13 @@ def get_lig_values_from_atom_list_2_hydrogen_bind(str_atom_list_from_pdbqt):
 	for atom_line in str_atom_list_from_pdbqt:
 		splited_line = atom_line.split()
 		atom_num = splited_line[1]
-		p_x = splited_line[5]
-		p_y = splited_line[6]
-		p_z = splited_line[7]
+		if len(splited_line) == 13:
+			chain = 1
+		else:
+			chain = 0
+		p_x = splited_line[5+chain]
+		p_y = splited_line[6+chain]
+		p_z = splited_line[7+chain]
 		atomID = str(splited_line[-1])#Get the last column
 		item = (atom_num, p_x, p_y, p_z, atomID)
 		list_return.append(item)
@@ -84,12 +88,17 @@ def get_receptor_values_from_atom_list_2_hydrogen_bind(str_atom_list_from_pdbqt)
 	list_return = []
 	for atom_line in str_atom_list_from_pdbqt:
 		splited_line = atom_line.split()
+		if len(splited_line) == 13:
+			chain = 1
+		else:
+			chain = 0
 		res_name = splited_line[3]
-		res_num = splited_line[4]
-		atom_name = splited_line[2]		
-		p_x = splited_line[5]
-		p_y = splited_line[6]
-		p_z = splited_line[7]
+		res_num = splited_line[4+chain]
+		atom_name = splited_line[2]
+
+		p_x = splited_line[5+chain]
+		p_y = splited_line[6+chain]
+		p_z = splited_line[7+chain]
 		atomID = str(splited_line[-1])#Get the last column
 		item = (res_name, res_num, atom_name, p_x, p_y, p_z, atomID)
 		list_return.append(item)
@@ -280,10 +289,10 @@ def main():
 			process = Popen( [detect_interactions_program_b.value, receptor_b.value, str(total_rec_no), str(total_rec_h), ligand_pdbqt, str(total_lig_no), str(total_lig_h), str(cutoff_b.value),path_file_for_saving,path_file_rec_no, path_file_lig_no, path_file_rec_h, path_file_lig_h ], stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()
 
-		os.remove(path_file_rec_no)
-		os.remove(path_file_lig_no)
-		os.remove(path_file_rec_h)
-		os.remove(path_file_lig_h)
+		#os.remove(path_file_rec_no)
+		#os.remove(path_file_lig_no)
+		#os.remove(path_file_rec_h)
+		#os.remove(path_file_lig_h)
 
 #******************* finish function ************************************************
 
