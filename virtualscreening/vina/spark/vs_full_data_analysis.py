@@ -7,9 +7,9 @@ from datetime import datetime
 
 def format_Hydrogen_bind(num_hydrogen_bind):
 	if num_hydrogen_bind == None:
-		return "0.0000"
+		return "0"
 	else:
-		return str("{:.4f}".format(num_hydrogen_bind) )
+		return str(num_hydrogen_bind)
 
 def save_vs_full_data(path_analysis, list_full_data, full_data_file_name):	
 	path_file_vs_full_data = os.path.join(path_analysis, full_data_file_name)
@@ -114,7 +114,7 @@ def main():
 
 	#Spliting file by \t
 	rdd_hydrogen_bind_split = hydrogen_bind_num_pose_file.map(lambda line: line.split("\t"))
-	rdd_hydrogen_bind = rdd_hydrogen_bind_split.map(lambda p: Row(receptor=str(p[0]),ligand=str(p[1]), mode=int(p[2]), numHydroBind=float(p[3]) ) )
+	rdd_hydrogen_bind = rdd_hydrogen_bind_split.map(lambda p: Row(receptor=str(p[0]),ligand=str(p[1]), mode=int(p[2]), numHydroBind=int(p[3]) ) )
 	#Creating buried Dataframe
 	hydrogen_bind_table = sqlCtx.createDataFrame(rdd_hydrogen_bind)	
 	hydrogen_bind_table.registerTempTable("hydrogenbind")
