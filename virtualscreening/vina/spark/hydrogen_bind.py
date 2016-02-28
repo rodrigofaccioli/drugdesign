@@ -306,6 +306,7 @@ def main():
 	for receptor in all_receptores:
 		receptor_b = sc.broadcast(receptor)
 		base_name_receptor = get_name_receptor_pdbqt(receptor)
+		base_name_receptor = base_name_receptor+"_-_"		
 		models_by_receptorRDD = all_pdbqt_modelsRDD.filter(lambda m : base_name_receptor in m).collect()
 		models_by_receptorRDD = sc.parallelize(models_by_receptorRDD)
 		models_by_receptorRDD.foreach(get_hydrogen_bind)
