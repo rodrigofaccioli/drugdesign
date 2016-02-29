@@ -9,20 +9,24 @@ from pdbqt_io import get_atom_section_from_atom_list, save_text_file_from_list
 from vina_utils import get_name_model_pdb, get_name_model_pdbqt, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt, get_separator_filename_mode, get_ligand_from_receptor_ligand_model, get_model_from_receptor_ligand_model
 import ntpath
 
+#Used for creating hydrogen bind by receptor
+filename_extension = ".hydrogen_bind"
+
 def get_line_number(input_file):
 	with open(input_file) as foo:
 		lines_num = len( foo.readlines() )
 	foo.close()
 	return lines_num
 
-def get_saving_files_with_lines(mypath):
+def get_saving_files_with_lines(mypath, prefix):
 	only_saving_file = []
 	for root, dirs, files in os.walk(mypath):
 		for file in files:
 			if file.endswith(".saving"):
-				f_path = os.path.join(root,file)
-				if get_line_number(f_path) > 0:
-					only_saving_file.append(f_path)			
+				if file.find(prefix) > -1:
+					f_path = os.path.join(root,file)
+					if get_line_number(f_path) > 0:
+						only_saving_file.append(f_path)			
 	return only_saving_file	
 
 """ This function puts all lines of saving file
@@ -62,6 +66,12 @@ def remove_all_saving_files(mypath):
 	all_saving_file = get_all_saving_file(mypath)
 	for f in all_saving_file:
 		os.remove(f)
+
+def remove_all_saving_files_prefix(mypath, prefix):
+	all_saving_file = get_all_saving_file(mypath)
+	for f in all_saving_file:
+		if f.find(prefix) > -1:
+			os.remove(f)		
 
 """ This function obtains atom number, 3D position 
 and atom ID (last column of pdbqt file) from atom list.
@@ -204,6 +214,32 @@ def save_all_bonds_file_with_mensage(path_analysis, cutoff):
 	f_hbond.write("NO hydrogen bind")
 	f_hbond.close()
 
+def create_file_receptor_all_saving_files(all_saving_files_by_receptor,base_name_receptor, path_analysis):
+	aux_f_receptor = str(base_name_receptor).replace("_-_",filename_extension)
+	path_f_receptor = os.path.join(path_analysis, aux_f_receptor)
+	f_receptor = open(path_f_receptor,"w")
+	for path_f_saving in all_saving_files_by_receptor:
+		f_saving = open(path_f_saving,"r")
+		for line in f_saving:
+			if line != "":			
+				f_receptor.write(line)		
+		f_saving.close()
+		os.remove(path_f_saving)
+	f_receptor.close()
+
+def get_hydrogen_bind_files(mypath):
+	only_hydrogen_bind_file = []
+	for root, dirs, files in os.walk(mypath):
+		for file in files:
+			if file.endswith(filename_extension):
+				f_path = os.path.join(root,file)
+				only_hydrogen_bind_file.append(f_path)			
+	return only_hydrogen_bind_file
+
+def remove_all_hydrogen_files(all_hydrogen_bind):
+	for f in all_hydrogen_bind:
+		os.remove(f)
+
 def main():
 
 	sc = SparkContext()
@@ -313,32 +349,34 @@ def main():
 		models_by_receptorRDD = sc.parallelize(models_by_receptorRDD)
 		models_by_receptorRDD.foreach(get_hydrogen_bind)
 
-	#Getting all saving files that have lines > 0
-	all_saving_files = get_saving_files_with_lines(path_analysis_pdbqt_model)
+		#Getting all saving files that have lines > 0
+		all_saving_files_by_receptor = get_saving_files_with_lines(path_analysis_pdbqt_model, base_name_receptor)
+		#Creating file based on all saving files
+		create_file_receptor_all_saving_files(all_saving_files_by_receptor,base_name_receptor,path_analysis)
 
-	if len(all_saving_files) > 0:
+	#Starting the final analysis
+	all_hydrogen_bind = get_hydrogen_bind_files(path_analysis)
 
-		all_saving_filesRDD = sc.parallelize(all_saving_files)
+	if len(all_hydrogen_bind) > 0:
+
+		all_hydrogen_bindRDD = sc.parallelize(all_hydrogen_bind)
 
 		#loading from files
-		all_saving_filesRDD = all_saving_filesRDD.flatMap(loading_from_files).collect()
+		all_hydrogen_bindRDD = all_hydrogen_bindRDD.flatMap(loading_from_files).collect()
 
 		#loading all values from list
-		all_saving_filesRDD = loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx)
-		all_saving_filesRDD.cache()
+		all_hydrogen_bindRDD = loading_from_all_lists(sc, all_hydrogen_bindRDD, sqlCtx)
+		all_hydrogen_bindRDD.cache()
 
 		#saving all_bonds_file	
-		save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD)
+		save_all_bonds_file(path_analysis, cutoff, all_hydrogen_bindRDD)
 
 		#saving models of ligands which no have hydrogen bind
 		save_all_no_bonds_file(path_analysis, path_analysis_pdbqt_model, cutoff, sc)
 
-		#removing remaing saving files (They no lines have)
-		remove_all_saving_files(path_analysis_pdbqt_model)	
-
 		#number hydrogen binds of poses by constraints
 		if constraints_file != "":
-			number_pose_consRDD = get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_saving_filesRDD, sqlCtx)
+			number_pose_consRDD = get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_hydrogen_bindRDD, sqlCtx)
 			save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD)
 
 		#number hydrogen binds of poses
@@ -350,11 +388,10 @@ def main():
 		number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
 		save_number_ligand(path_analysis, cutoff, number_ligandRDD)
 
+		#Removing all hydrogen bind files
+		#remove_all_hydrogen_files(all_hydrogen_bind)
 	else:
 		save_all_bonds_file_with_mensage(path_analysis, cutoff)
-		#removing remaing saving files (They no lines have)
-		remove_all_saving_files(path_analysis_pdbqt_model)	
-
 
 	finish_time = datetime.now()
 
