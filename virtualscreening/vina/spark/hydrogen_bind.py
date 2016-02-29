@@ -12,6 +12,7 @@ import ntpath
 def get_line_number(input_file):
 	with open(input_file) as foo:
 		lines_num = len( foo.readlines() )
+	foo.close()
 	return lines_num
 
 def get_saving_files_with_lines(mypath):
@@ -31,7 +32,8 @@ def loading_from_files(my_file_saving):
 	list_return = []
 	f_file = open(my_file_saving,"r")
 	for line in f_file:		
-		list_return.append( line ) 
+		list_return.append( line )
+	f_file.close() 
 	os.remove(my_file_saving)	
 	return list_return
 
