@@ -86,6 +86,17 @@ def get_directory_pdbqt_analysis(path_analysis):
 		os.makedirs(path_analysis_pdbqt)
 	return path_analysis_pdbqt
 
+""" This function obtains the name of 
+path that saving pdbqt files for analysis 
+"""
+def get_directory_temp_analysis(path_analysis):
+	path_analysis_temp = os.path.join(path_analysis,"temp")
+	#Checking path_analysis
+	if not os.path.exists(path_analysis_temp):
+		os.makedirs(path_analysis_temp)
+	return path_analysis_temp
+
+
 def get_structure_file_name(myfile):
 	""" 
 	This function obtains the name of myfile without filename extension
