@@ -6,8 +6,9 @@ import sys
 from subprocess import Popen, PIPE
 from datetime import datetime
 from pdbqt_io import get_atom_section_from_atom_list, save_text_file_from_list
-from vina_utils import get_name_model_pdb, get_name_model_pdbqt, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt, get_separator_filename_mode, get_ligand_from_receptor_ligand_model, get_model_from_receptor_ligand_model
+from vina_utils import get_name_model_pdb, get_name_model_pdbqt, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt, get_separator_filename_mode, get_ligand_from_receptor_ligand_model, get_model_from_receptor_ligand_model, get_directory_temp_analysis
 import ntpath
+import shutil
 
 #Used for creating hydrogen bind by receptor
 filename_extension = ".hydrogen_bind"
@@ -240,6 +241,10 @@ def remove_all_hydrogen_files(all_hydrogen_bind):
 	for f in all_hydrogen_bind:
 		os.remove(f)
 
+def check_temp_directory(path_analysis_temp):
+	if not os.path.exists(path_analysis_temp):
+		os.makedirs(path_analysis_temp)
+	
 def main():
 
 	sc = SparkContext()
@@ -258,6 +263,8 @@ def main():
 	path_analysis = config.get('DEFAULT', 'path_analysis') 
 	#Path of pdbqt model
 	path_analysis_pdbqt_model = get_directory_pdbqt_analysis(path_analysis)
+	#Path analysis temp
+	path_analysis_temp = get_directory_temp_analysis(path_analysis)
 
 	#Getting parameters
 	# cutoff for hydrogen bind
@@ -276,7 +283,7 @@ def main():
 	start_time = datetime.now()
 
 	#broadcast
-	path_analysis_pdbqt_model_b = sc.broadcast(path_analysis_pdbqt_model)
+	path_analysis_temp_b = sc.broadcast(path_analysis_temp)
 	detect_interactions_program_b = sc.broadcast(detect_interactions_program)
 	cutoff_b = sc.broadcast(cutoff)
 #******************* start function ************************************************
@@ -289,7 +296,7 @@ def main():
 		list_param = ["O", "N"]
 		list_atom_pdbqt = get_atom_section_from_atom_list(ligand_pdbqt, list_param)	
 		list_ref = get_lig_values_from_atom_list_2_hydrogen_bind(list_atom_pdbqt)
-		path_file_lig_no = os.path.join(path_analysis_pdbqt_model_b.value, temporary_lig_no)
+		path_file_lig_no = os.path.join(path_analysis_temp_b.value, temporary_lig_no)
 		save_text_file_from_list(path_file_lig_no, list_ref)
 		total_lig_no = int(get_line_number(path_file_lig_no)) 
 
@@ -298,7 +305,7 @@ def main():
 		list_param = ["HD", "HS"]
 		list_atom_pdbqt = get_atom_section_from_atom_list(ligand_pdbqt, list_param)	
 		list_ref = get_lig_values_from_atom_list_2_hydrogen_bind(list_atom_pdbqt)
-		path_file_lig_h = os.path.join(path_analysis_pdbqt_model_b.value, temporary_lig_h)
+		path_file_lig_h = os.path.join(path_analysis_temp_b.value, temporary_lig_h)
 		save_text_file_from_list(path_file_lig_h, list_ref)
 		total_lig_h = int(get_line_number(path_file_lig_h)) 
 
@@ -307,7 +314,7 @@ def main():
 		list_param = ["O", "N"]
 		list_atom_pdbqt = get_atom_section_from_atom_list(receptor_b.value, list_param)	
 		list_ref = get_receptor_values_from_atom_list_2_hydrogen_bind(list_atom_pdbqt)
-		path_file_rec_no = os.path.join(path_analysis_pdbqt_model_b.value, temporary_rec_no)
+		path_file_rec_no = os.path.join(path_analysis_temp_b.value, temporary_rec_no)
 		save_text_file_from_list(path_file_rec_no, list_ref)
 		total_rec_no = int(get_line_number(path_file_rec_no)) 
 
@@ -316,13 +323,13 @@ def main():
 		list_param = ["HD", "HS"]
 		list_atom_pdbqt = get_atom_section_from_atom_list(receptor_b.value, list_param)	
 		list_ref = get_receptor_values_from_atom_list_2_hydrogen_bind(list_atom_pdbqt)
-		path_file_rec_h = os.path.join(path_analysis_pdbqt_model_b.value, temporary_rec_h)
+		path_file_rec_h = os.path.join(path_analysis_temp_b.value, temporary_rec_h)
 		save_text_file_from_list(path_file_rec_h, list_ref)
 		total_rec_h = int(get_line_number(path_file_rec_h)) 
 		
 		#preparing file for saving	
 		file_for_saving = base_name+".saving"
-		path_file_for_saving = os.path.join(path_analysis_pdbqt_model_b.value, file_for_saving)		
+		path_file_for_saving = os.path.join(path_analysis_temp_b.value, file_for_saving)		
 		if total_lig_h > 0 and total_lig_no > 0:		
 			process = Popen( [detect_interactions_program_b.value, receptor_b.value, str(total_rec_no), str(total_rec_h), ligand_pdbqt, str(total_lig_no), str(total_lig_h), str(cutoff_b.value),path_file_for_saving,path_file_rec_no, path_file_lig_no, path_file_rec_h, path_file_lig_h ], stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()
@@ -342,6 +349,7 @@ def main():
 	all_pdbqt_modelsRDD = sc.parallelize(all_pdbqt_models)
 
 	for receptor in all_receptores:
+		check_temp_directory(path_analysis_temp)
 		receptor_b = sc.broadcast(receptor)
 		base_name_receptor = get_name_receptor_pdbqt(receptor)
 		base_name_receptor = base_name_receptor+"_-_"		
@@ -350,9 +358,12 @@ def main():
 		models_by_receptorRDD.foreach(get_hydrogen_bind)
 
 		#Getting all saving files that have lines > 0
-		all_saving_files_by_receptor = get_saving_files_with_lines(path_analysis_pdbqt_model, base_name_receptor)
+		all_saving_files_by_receptor = get_saving_files_with_lines(path_analysis_temp, base_name_receptor)
 		#Creating file based on all saving files
 		create_file_receptor_all_saving_files(all_saving_files_by_receptor,base_name_receptor,path_analysis)
+		#Removing temp directory
+		shutil.rmtree(path_analysis_temp)
+
 
 	#Starting the final analysis
 	all_hydrogen_bind = get_hydrogen_bind_files(path_analysis)
