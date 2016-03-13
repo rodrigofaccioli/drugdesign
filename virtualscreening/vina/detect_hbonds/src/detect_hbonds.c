@@ -3,6 +3,8 @@
 #include <math.h>
 #include <string.h>
 
+#define MAX_PATH_FILE_NAME 500
+
 int main(int argc, char *argv[]){
 	
 	typedef struct{
@@ -20,25 +22,45 @@ int main(int argc, char *argv[]){
 	float distance, distance_cutoff, angle_cutoff;
 	float dist_prev_donor, dist_donor_h, dist_h_acceptor, dist_prev_h, dist_prev_acceptor, dist_donor_acceptor;
 	float angle_prev_donor_h, angle_prev_donor_acceptor, angle_h_donor_acceptor;
-	char lig_filename[100], rec_filename[100];
+	//char lig_filename[100], rec_filename[100];
 	int total_atm_lig, total_atm_rec, atm_rec, atm_lig, atm;
 	int total_lig_h_donor, total_lig_h_acceptor, total_rec_h_donor, total_rec_h_acceptor;
 	int bonded_h, h_index ;
-	FILE *input_lig, *input_rec;
+
+	char *lig_filename, *rec_filename, *output_filename, *f_path_temporary_rec_no,	
+	     *f_path_temporary_lig_no, *f_path_temporary_rec_h, *f_path_temporary_lig_h;
+
+	FILE *input_lig, *input_rec, *f_output_filename;
 
 	atom *lig, *rec;
 	atom *lig_h_donor, *lig_h_acceptor, *rec_h_donor, *rec_h_acceptor;
 
+	//Allocating file names
+	lig_filename = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	rec_filename = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	output_filename = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	f_path_temporary_rec_no = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	f_path_temporary_lig_no = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	f_path_temporary_rec_h = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+	f_path_temporary_lig_h = (char*) malloc( MAX_PATH_FILE_NAME * sizeof(char) );
+
 		
-	// reading parameters from input command line
-	sscanf( argv[1] , "%s", &rec_filename[0] );
-	sscanf( argv[2] , "%d", &total_atm_rec );
-	sscanf( argv[3] , "%s", &lig_filename[0] );
-	sscanf( argv[4] , "%d", &total_atm_lig );
-	sscanf( argv[5] , "%f", &distance_cutoff );
-	sscanf( argv[6] , "%f", &angle_cutoff );
+	// reading parameters from input command line	
+	strcpy(rec_filename, argv[1]);	
+	total_atm_rec = atoi(argv[2]);	
+	strcpy(lig_filename, argv[3]);
+	total_atm_lig =  atoi(argv[4]);	
+	distance_cutoff = atof(argv[5]);
+	angle_cutoff = atof(argv[6]);
+	strcpy(output_filename, argv[7]);
+	strcpy(f_path_temporary_rec_no, argv[8] );
+	strcpy(f_path_temporary_lig_no, argv[9] );
+	strcpy(f_path_temporary_rec_h, argv[10] );
+	strcpy(f_path_temporary_lig_h, argv[11] );	
 	
-	
+	// Setting output filename
+	f_output_filename = fopen(output_filename,"w");
+
 	// dynamic allocation
 	lig = (atom*) malloc( (total_atm_lig+1) * sizeof(atom) );
 	
@@ -51,9 +73,8 @@ int main(int argc, char *argv[]){
 	rec_h_donor = (atom*) malloc( (total_atm_rec+1) * sizeof(atom) );
 	
 	
-	
 	// reading input files
-	input_rec = fopen( "temporary_rec" , "r" );
+	input_rec = fopen( f_path_temporary_rec_no , "r" );
 	atm_rec = 1;
 	while( fscanf( input_rec, "%s %d %s %f %f %f %s",
 		&rec[atm_rec].res_name[0], 
@@ -66,7 +87,7 @@ int main(int argc, char *argv[]){
 	)!=EOF ) atm_rec++ ;
 	fclose(input_rec);
 	
-	input_lig = fopen( "temporary_lig" , "r" );
+	input_lig = fopen( f_path_temporary_lig_no , "r" );
 	atm_lig = 1;
 	while( fscanf( input_lig , "%s %f %f %f %s", 
 		&lig[atm_lig].atm_name[0], 
@@ -339,7 +360,7 @@ OS Acceptor S Spherical Oxygen
 			
 			
 			if( (dist_donor_acceptor <= distance_cutoff) && (angle_h_donor_acceptor <= angle_cutoff) ){
-				printf("LIG-%s\tdonates_to\t%s-%d %s\t%.1f\t%.1f\t%s %s\n", 
+				fprintf(f_output_filename,"LIG-%s\tdonates_to\t%s-%d %s\t%.1f\t%.1f\t%s %s\n", 
 					lig_h_donor[atm_lig].atm_name, 
 					rec_h_acceptor[atm_rec].res_name, 
 					rec_h_acceptor[atm_rec].res_number,
@@ -429,7 +450,7 @@ OS Acceptor S Spherical Oxygen
 			
 			
 			if( (dist_donor_acceptor <= distance_cutoff) && (angle_h_donor_acceptor <= angle_cutoff) ){
-				printf("LIG-%s\taccepts_from\t%s-%d %s\t%.1f\t%.1f\t%s %s\n", 
+				fprintf(f_output_filename, "LIG-%s\taccepts_from\t%s-%d %s\t%.1f\t%.1f\t%s %s\n", 
 					lig_h_acceptor[atm_lig].atm_name, 
 					rec_h_donor[atm_rec].res_name, 
 					rec_h_donor[atm_rec].res_number,
@@ -443,7 +464,15 @@ OS Acceptor S Spherical Oxygen
 		}		
 	}
 	
+	fclose(f_output_filename);
 	
-	
-return 0;
+	free(lig_filename);
+	free(rec_filename);
+	free(output_filename);
+	free(f_path_temporary_rec_no);
+	free(f_path_temporary_lig_no);
+	free(f_path_temporary_rec_h);
+	free(f_path_temporary_lig_h);
+
+	return 0;
 }
