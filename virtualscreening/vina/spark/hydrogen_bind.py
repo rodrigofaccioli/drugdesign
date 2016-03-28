@@ -45,7 +45,7 @@ def loading_from_files(my_file_saving):
 def loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx):	
 	#Splited all_saving_filesRDD into list that each element is a column.
 	all_saving_filesRDD = sc.parallelize(all_saving_filesRDD)
-	all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]).strip(), atm=str(p[3]), hbondValue=float(p[4]), receptor=get_name_receptor_pdbqt(str(p[5])), ligand=get_ligand_from_receptor_ligand_model(str(p[6])), model=get_model_from_receptor_ligand_model( get_name_model_pdbqt(str(p[6]))) ))
+	all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]).strip(), atm=str(p[3]), distValue=float(p[4]), angleValue=float(p[5]), receptor=get_name_receptor_pdbqt(str(p[6])), ligand=get_ligand_from_receptor_ligand_model(str(p[7])), model=get_model_from_receptor_ligand_model( get_name_model_pdbqt(str(p[7]))) ))
 	
 			
 	hbond_table = sqlCtx.createDataFrame(all_saving_filesRDD)
@@ -80,8 +80,8 @@ and atom ID (last column of pdbqt file) from atom list.
 def get_lig_values_from_atom_list_2_hydrogen_bind(str_atom_list_from_pdbqt):
 	list_return = []
 	for atom_line in str_atom_list_from_pdbqt:
-		splited_line = atom_line.split()
-		atom_num = splited_line[1]
+		splited_line = atom_line.split()		
+		atom_name = splited_line[2]
 		if len(splited_line) == 13:
 			chain = 1
 		else:
@@ -90,7 +90,7 @@ def get_lig_values_from_atom_list_2_hydrogen_bind(str_atom_list_from_pdbqt):
 		p_y = splited_line[6+chain]
 		p_z = splited_line[7+chain]
 		atomID = str(splited_line[-1])#Get the last column
-		item = (atom_num, p_x, p_y, p_z, atomID)
+		item = (atom_name, p_x, p_y, p_z, atomID)
 		list_return.append(item)
 	return list_return
 
@@ -117,11 +117,11 @@ def get_receptor_values_from_atom_list_2_hydrogen_bind(str_atom_list_from_pdbqt)
 		list_return.append(item)
 	return list_return
 
-def save_all_bonds_file(path_analysis, cutoff, all_saving_filesRDD):	
-	f_file = "hbonds_all_"+str(cutoff)
+def save_all_bonds_file(path_analysis, distance_cutoff, angle_cutoff, all_saving_filesRDD):	
+	f_file = "hbonds_all_"+str(distance_cutoff)+"_"+str(angle_cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_hbond = open(f_file,"w")	
-	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.receptor + "\t"+ p.ligand +"\t"+ str(p.model)+"\t" + p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.hbondValue)) +"\n")	
+	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.receptor + "\t"+ p.ligand +"\t"+ str(p.model)+"\t" + p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.distValue)) + "\t"+str("{:.2f}".format(p.angleValue))+"\n")	
 	for item in all_saving_filesRDD_2_txt.collect():
 		f_hbond.write(item)
 	f_hbond.close()
@@ -166,8 +166,8 @@ def get_hbonds_number_pose(sqlCtx):
 	number_pose = sqlCtx.sql('SELECT hbond.receptor, hbond.ligand, hbond.model, count(hbond.res) as numPose FROM hbond GROUP BY hbond.receptor, hbond.ligand, hbond.model')	
 	return number_pose
 
-def save_number_pose(path_analysis, cutoff, number_poseRDD):
-	f_file = "hbonds_number_pose_"+str(cutoff)
+def save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD):
+	f_file = "hbonds_number_pose_"+str(distance_cutoff)+"_"+str(angle_cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_poses = open(f_file,"w")	
 	all_poses_2_txt = number_poseRDD.map(lambda p: p.receptor +"\t"+ p.ligand +"\t"+ str(p.model) +"\t"+str(p.numPose) +"\n")	
@@ -184,8 +184,8 @@ def get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx):
 	number_ligand = sqlCtx.sql('SELECT onlyligand.receptor, onlyligand.ligand, SUM(numLigH) as num FROM onlyligand GROUP BY onlyligand.receptor, onlyligand.ligand')
 	return number_ligand	
 
-def save_number_ligand(path_analysis, cutoff, number_ligandRDD):
-	f_file = "hbonds_number_ligand_"+str(cutoff)
+def save_number_ligand(path_analysis, distance_cutoff, angle_cutoff, number_ligandRDD):
+	f_file = "hbonds_number_ligand_"+str(distance_cutoff)+"_"+str(angle_cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_ligand = open(f_file,"w")	
 	all_ligand_2_txt = number_ligandRDD.map(lambda p: p.receptor +"\t"+ p.ligand +"\t"+ str(p.num) +"\n")
@@ -239,7 +239,8 @@ def get_hydrogen_bind_files(mypath):
 
 def remove_all_hydrogen_files(all_hydrogen_bind):
 	for f in all_hydrogen_bind:
-		os.remove(f)
+		if os.path.exists(f):
+			os.remove(f)
 
 def check_temp_directory(path_analysis_temp):
 	if not os.path.exists(path_analysis_temp):
@@ -256,7 +257,7 @@ def main():
 	#Path for drugdesign project
 	path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
 	#Detect interactions program
-	detect_interactions_program = config.get('DRUGDESIGN', 'detect_interactions_program') 	
+	detect_hbonds_program = config.get('DRUGDESIGN', 'detect_hbonds_program') 	
 	#Path where all pdb receptor are
 	path_receptor_pdbqt = config.get('DEFAULT', 'pdbqt_receptor_path')
 	#Path that contains all files for analysis
@@ -268,13 +269,8 @@ def main():
 
 	#Getting parameters
 	# cutoff for hydrogen bind
-	cutoff = float(sys.argv[1])
-
-	# checking for constraints file
-	constraints_file = ""
-	if len(sys.argv) >= 3:
-		if sys.argv[2] != "":
-			constraints_file = str(sys.argv[2])
+	distance_cutoff = float(sys.argv[1])
+	angle_cutoff = float(sys.argv[2])
 
 	#Adding Python Source file
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
@@ -284,30 +280,23 @@ def main():
 
 	#broadcast
 	path_analysis_temp_b = sc.broadcast(path_analysis_temp)
-	detect_interactions_program_b = sc.broadcast(detect_interactions_program)
-	cutoff_b = sc.broadcast(cutoff)
+	detect_hbonds_program_b = sc.broadcast(detect_hbonds_program)
+	distance_cutoff_b = sc.broadcast(distance_cutoff)
+	angle_cutoff_b = sc.broadcast(angle_cutoff)
 #******************* start function ************************************************
 	def get_hydrogen_bind(ligand_pdbqt):
 
 		#getting base name
 		base_name = get_name_model_pdb(ligand_pdbqt)
+
 		#temporary_lig_no
 		temporary_lig_no = base_name+"_temporary_lig_no"
-		list_param = ["O", "N"]
+		list_param = ["O", "N", "HD", "HS"]
 		list_atom_pdbqt = get_atom_section_from_atom_list(ligand_pdbqt, list_param)	
 		list_ref = get_lig_values_from_atom_list_2_hydrogen_bind(list_atom_pdbqt)
 		path_file_lig_no = os.path.join(path_analysis_temp_b.value, temporary_lig_no)
 		save_text_file_from_list(path_file_lig_no, list_ref)
 		total_lig_no = int(get_line_number(path_file_lig_no)) 
-
-		#temporary_lig_h
-		temporary_lig_h = base_name+"_temporary_lig_h"
-		list_param = ["HD", "HS"]
-		list_atom_pdbqt = get_atom_section_from_atom_list(ligand_pdbqt, list_param)	
-		list_ref = get_lig_values_from_atom_list_2_hydrogen_bind(list_atom_pdbqt)
-		path_file_lig_h = os.path.join(path_analysis_temp_b.value, temporary_lig_h)
-		save_text_file_from_list(path_file_lig_h, list_ref)
-		total_lig_h = int(get_line_number(path_file_lig_h)) 
 
 		#temporary_rec_no
 		temporary_rec_no = base_name+"_temporary_rec_no"
@@ -330,14 +319,14 @@ def main():
 		#preparing file for saving	
 		file_for_saving = base_name+".saving"
 		path_file_for_saving = os.path.join(path_analysis_temp_b.value, file_for_saving)		
-		if total_lig_h > 0 and total_lig_no > 0:		
-			process = Popen( [detect_interactions_program_b.value, receptor_b.value, str(total_rec_no), str(total_rec_h), ligand_pdbqt, str(total_lig_no), str(total_lig_h), str(cutoff_b.value),path_file_for_saving,path_file_rec_no, path_file_lig_no, path_file_rec_h, path_file_lig_h ], stdout=PIPE, stderr=PIPE)
+		if total_lig_no > 0:		
+			#print detect_hbonds_program_b.value+" "+ receptor_b.value+" "+ str(total_rec_no)+" "+ ligand_pdbqt+" "+ str(total_lig_no)+" "+ str(distance_cutoff_b.value)+" "+ str(angle_cutoff_b.value)+" "+ path_file_for_saving+" "+ path_file_rec_no+" "+ path_file_lig_no+" "+ path_file_rec_h+" "+ path_file_rec_no			
+			process = Popen( [detect_hbonds_program_b.value, receptor_b.value, str(total_rec_no), ligand_pdbqt, str(total_lig_no), str(distance_cutoff_b.value), str(angle_cutoff_b.value), path_file_for_saving, path_file_rec_no, path_file_lig_no, path_file_rec_h, path_file_rec_no ], stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()
 
 		os.remove(path_file_rec_no)
 		os.remove(path_file_lig_no)
 		os.remove(path_file_rec_h)
-		os.remove(path_file_lig_h)
 
 #******************* finish function ************************************************
 
@@ -360,10 +349,9 @@ def main():
 		#Getting all saving files that have lines > 0
 		all_saving_files_by_receptor = get_saving_files_with_lines(path_analysis_temp, base_name_receptor)
 		#Creating file based on all saving files
-		create_file_receptor_all_saving_files(all_saving_files_by_receptor,base_name_receptor,path_analysis)
+		create_file_receptor_all_saving_files(all_saving_files_by_receptor,base_name_receptor,path_analysis)		
 		#Removing temp directory
 		shutil.rmtree(path_analysis_temp)
-
 
 	#Starting the final analysis
 	all_hydrogen_bind = get_hydrogen_bind_files(path_analysis)
@@ -380,32 +368,26 @@ def main():
 		all_hydrogen_bindRDD.cache()
 
 		#saving all_bonds_file	
-		save_all_bonds_file(path_analysis, cutoff, all_hydrogen_bindRDD)
-
-		#saving models of ligands which no have hydrogen bind
-		save_all_no_bonds_file(path_analysis, path_analysis_pdbqt_model, cutoff, sc)
-
-		#number hydrogen binds of poses by constraints
-		if constraints_file != "":
-			number_pose_consRDD = get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_hydrogen_bindRDD, sqlCtx)
-			save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD)
+		save_all_bonds_file(path_analysis, distance_cutoff, angle_cutoff, all_hydrogen_bindRDD)
 
 		#number hydrogen binds of poses
 		number_poseRDD = get_hbonds_number_pose(sqlCtx)
 		number_poseRDD.cache()
-		save_number_pose(path_analysis, cutoff, number_poseRDD)
+		save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD)
 
 		#number hydrogen binds of ligands
 		number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
-		save_number_ligand(path_analysis, cutoff, number_ligandRDD)
+		save_number_ligand(path_analysis, distance_cutoff, angle_cutoff, number_ligandRDD)
 
 		#Removing all hydrogen bind files
-		#remove_all_hydrogen_files(all_hydrogen_bind)
+		remove_all_hydrogen_files(all_hydrogen_bind)
+
 	else:
 		save_all_bonds_file_with_mensage(path_analysis, cutoff)
 
 	finish_time = datetime.now()
 
 	save_vs_hydrogen_bind_log(finish_time, start_time)
+
 
 main()
