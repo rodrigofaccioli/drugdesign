@@ -109,7 +109,7 @@ def main():
 #**************** Finish	
 
 #**************** Loading Hydrogen Bind 
-	hydrogen_bind_num_pose_file_name = os.path.join(path_analysis,"hbonds_number_pose_4.0")
+	hydrogen_bind_num_pose_file_name = os.path.join(path_analysis,"hbonds_number_pose_4.0_30.0")
 	hydrogen_bind_num_pose_file = sc.textFile(hydrogen_bind_num_pose_file_name)
 
 	#Spliting file by \t
