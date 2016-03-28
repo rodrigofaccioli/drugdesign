@@ -1,0 +1,21 @@
+MODEL 8
+REMARK VINA RESULT:      -3.7      2.939      3.677
+REMARK  1 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+REMARK    1  A    between atoms: C3_4  and  O2_9 
+ROOT
+ATOM      1  C1  <0> d   1      71.437  69.042  39.334  0.00  0.00     0.152 C 
+ATOM      2  N1  <0> d   1      72.428  70.035  39.756  0.00  0.00    -0.354 N 
+ATOM      3  C2  <0> d   1      72.997  69.908  41.092  0.00  0.00     0.157 C 
+ATOM      4  C3  <0> d   1      74.304  70.693  41.194  0.00  0.00     0.136 C 
+ATOM      5  C4  <0> d   1      74.064  72.118  40.681  0.00  0.00     0.043 C 
+ATOM      6  C5  <0> d   1      73.788  72.049  39.177  0.00  0.00     0.105 C 
+ATOM      7  C6  <0> d   1      72.758  70.996  38.892  0.00  0.00     0.219 C 
+ATOM      8  O1  <0> d   1      72.191  71.022  37.819  0.00  0.00    -0.273 OA
+ENDROOT
+BRANCH   4   9
+ATOM      9  O2  <0> d   1      74.732  70.738  42.558  0.00  0.00    -0.394 OA
+ATOM     10  H11 <0> d   1      74.110  71.179  43.151  0.00  0.00     0.210 HD
+ENDBRANCH   4   9
+TORSDOF 1
+ENDMDL
