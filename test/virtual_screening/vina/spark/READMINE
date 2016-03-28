@@ -44,7 +44,7 @@ It must be executed before Burried area analysis.
 *************************************************************************************************************************************
 * 				Ligand Efficiency
 *************************************************************************************************************************************
-/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/ligand efficiency.py
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/ligand_efficiency.py
 
 *************************************************************************************************************************************
 * 				Hydrogen Bind
