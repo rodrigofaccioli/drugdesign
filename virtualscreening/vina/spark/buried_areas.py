@@ -12,11 +12,11 @@ from pdb_io import replace_chain_atom_line
 def sorting_buried_area(sc, buried_areaRDD):
 	sqlCtx = SQLContext(sc)
 	buried_areaRDD = sc.parallelize(buried_areaRDD)
-	buried_areaRDD = buried_areaRDD.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), model=int(p[2]),sasa_lig_min=float(p[3]), sasa_lig_pose=float(p[4]), sasa_lig_complex=float(p[5]), buried_lig_rec_perc=float(p[6]), buried_lig_lig_perc=float(p[7]) ) )
+	buried_areaRDD = buried_areaRDD.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), model=int(p[2]), buried_lig_rec=float(p[3]),  buried_lig_rec_perc=float(p[4]), buried_lig_lig_perc=float(p[5]) ) )
 	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
 	buried_area_table.registerTempTable("buried_area")
 
-	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area ORDER BY buried_lig_lig_perc ") 
+	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area ORDER BY buried_lig_rec")  #buried_lig_lig_perc 
 	return buried_area_sorted_by_lig_rec_perc
 
 def save_receptor_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc):	
@@ -31,12 +31,10 @@ def save_receptor_buried_area(path_file_buried_area, buried_area_sorted_by_lig_r
 		splited_aux_lig = str(aux_lig).split(get_separator_filename_mode())
 		ligand = splited_aux_lig[0]
 		model = splited_aux_lig[1]
-		sasa_lig_min = "{:.4f}".format(area[1])
-		sasa_lig_pose = "{:.4f}".format(area[2])
-		sasa_lig_complex = "{:.4f}".format(area[3])
-		buried_lig_rec_perc = "{:.4f}".format(area[4])
-		buried_lig_lig_perc = "{:.4f}".format(area[5])
-		line = receptor+"\t"+ligand+"\t"+model+"\t"+str(sasa_lig_min)+"\t"+str(sasa_lig_pose)+"\t"+str(sasa_lig_complex)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
+		buried_lig_rec = "{:.4f}".format(area[1])
+		buried_lig_rec_perc = "{:.4f}".format(area[2])
+		buried_lig_lig_perc = "{:.4f}".format(area[3])
+		line = receptor+"\t"+ligand+"\t"+model+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
 		f_buried_area.write(line)	
 	f_buried_area.close()
 
@@ -46,18 +44,16 @@ def save_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc):
 		receptor = area[0]
 		ligand = area[1]
 		model = area[2]
-		sasa_lig_min = "{:.4f}".format(area[3])
-		sasa_lig_pose = "{:.4f}".format(area[4])
-		sasa_lig_complex = "{:.4f}".format(area[5])
-		buried_lig_rec_perc = "{:.4f}".format(area[6])
-		buried_lig_lig_perc = "{:.4f}".format(area[7])
-		line = receptor+"\t"+ligand+"\t"+str(model)+"\t"+str(sasa_lig_min)+"\t"+str(sasa_lig_pose)+"\t"+str(sasa_lig_complex)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
+		buried_lig_rec = "{:.4f}".format(area[3])
+		buried_lig_rec_perc = "{:.4f}".format(area[4])
+		buried_lig_lig_perc = "{:.4f}".format(area[5])
+		line = receptor+"\t"+ligand+"\t"+str(model)+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
 		f_buried_area.write(line)	
 	f_buried_area.close()
 
 def loading_lines_from_area_files(line):
 	line_splited = str(line).split()
-	line_ret = ( str(line_splited[0]),str(line_splited[1]), int(line_splited[2]), float(line_splited[3]), float(line_splited[4]), float(line_splited[5]), float(line_splited[6]), float(line_splited[7]) )	
+	line_ret = ( str(line_splited[0]), str(line_splited[1]), int(line_splited[2]), float(line_splited[3]), float(line_splited[4]), float(line_splited[5]) )	
 	return line_ret
 
 def get_files_area(mypath):
@@ -186,10 +182,16 @@ def main():
 			sasa_lig_pose  = get_value_from_xvg_sasa(f_temp_lig_pose)
 			sasa_lig_complex  = get_value_from_xvg_sasa(f_temp_lig_complex)
 			#Computing buried areas
-			buried_lig_rec_perc = (sasa_lig_pose - sasa_lig_complex) / sasa_lig_pose
-			buried_lig_lig_perc = (sasa_lig_min - sasa_lig_pose) / sasa_lig_min 
+			# Area of the ligand which is buried in the receptor
+			buried_lig_rec = sasa_lig_pose - sasa_lig_complex 
+			# percenrage of the ligand area which is buried in the receptor
+			buried_lig_rec_perc = buried_lig_rec / sasa_lig_pose
+			# Area of the ligand in the pose conformation which is buried in itself when compared to the energy-minimized conformation
+			buried_lig_lig = sasa_lig_min - sasa_lig_pose
+			# percenrage of the area of the ligand in the pose conformation which is buried in itself when compared to the energy-minimized conformation			
+			buried_lig_lig_perc = buried_lig_lig / sasa_lig_min 
 			#Generating result - See column sorting because resultaed file will be created based on this sorting
-			returned_list = (base_name, sasa_lig_min, sasa_lig_pose, sasa_lig_complex, buried_lig_rec_perc, buried_lig_lig_perc)
+			returned_list = (base_name, buried_lig_rec, buried_lig_rec_perc, buried_lig_lig_perc)
 			#Deleting files
 			os.remove(f_ndx)
 			os.remove(f_temp_lig_complex)
@@ -243,10 +245,10 @@ def main():
 
 	#Sorting by buried_lig_rec_perc column
 	buried_area_sorted_by_lig_rec_perc = sorting_buried_area(sc, buried_areaRDD)
-	buried_area_sorted_by_lig_rec_perc = buried_area_sorted_by_lig_rec_perc.map(lambda p: (p.receptor, p.ligand, p.model, p.sasa_lig_min, p.sasa_lig_pose, p.sasa_lig_complex, p.buried_lig_rec_perc, p.buried_lig_lig_perc) ).collect()
+	buried_area_sorted_by_lig_rec_perc = buried_area_sorted_by_lig_rec_perc.map(lambda p: (p.receptor, p.ligand, p.model, p.buried_lig_rec, p.buried_lig_rec_perc, p.buried_lig_lig_perc) ).collect()
 
 	#Saving buried area file
-	path_file_buried_area = os.path.join(path_analysis, "buried_area.txt")
+	path_file_buried_area = os.path.join(path_analysis, "summary_buried_area_ligand.dat")
 	save_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc)	
 
 	#Removing all area files

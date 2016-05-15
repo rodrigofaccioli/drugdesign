@@ -14,10 +14,10 @@ def format_Hydrogen_bind(num_hydrogen_bind):
 def save_vs_full_data(path_analysis, list_full_data, full_data_file_name):	
 	path_file_vs_full_data = os.path.join(path_analysis, full_data_file_name)
 	f_vs_full_data = open(path_file_vs_full_data,"w")
-	header = ";receptor\tligand\t\tmode\ttorsion\tatom\theavyA\tafinity\tefficiency\tb_lig_rec_perc\tb_lig_lig_perc\tnum_Hydrogen_Bind\n"
+	header = ";receptor\tligand\t\tmode\ttorsion\tatom\theavyA\tafinity\tefficiency\tb_lig_rec[nm2]\tb_lig_rec_perc[%]\tb_lig_lig_perc[%]\tnum_Hydrogen_Bind\n"
 	f_vs_full_data.write(header)	
 	for full_data in list_full_data:
-		line = str(full_data[0])+"\t"+str(full_data[1])+"\t"+str(full_data[2])+"\t"+str(full_data[3])+"\t"+str(full_data[4])+"\t"+str(full_data[5])+"\t"+str(full_data[6])+"\t"+str("{:.4f}".format(full_data[7]))+"\t"+str("{:.4f}".format(full_data[8]))+"\t"+str("{:.4f}".format(full_data[9]))+"\t"+ format_Hydrogen_bind(full_data[10]) +"\n"
+		line = str(full_data[0])+"\t"+str(full_data[1])+"\t"+str(full_data[2])+"\t"+str(full_data[3])+"\t"+str(full_data[4])+"\t"+str(full_data[5])+"\t"+str(full_data[6])+"\t"+str("{:.4f}".format(full_data[7]))+"\t"+str("{:.4f}".format(full_data[8]))+"\t"+str("{:.4f}".format(full_data[9]))+"\t"+str("{:.4f}".format(full_data[10]))+"\t"+ format_Hydrogen_bind(full_data[11]) +"\n"
 		f_vs_full_data.write(line)
 	f_vs_full_data.close()
 
@@ -85,12 +85,12 @@ def main():
 #**************** Finish 
 
 #**************** Loading Buried Area file
-	buried_area_file_name = os.path.join(path_analysis,"buried_area.txt")
+	buried_area_file_name = os.path.join(path_analysis,"summary_buried_area_ligand.dat")
 	buried_area_file = sc.textFile(buried_area_file_name)
 
 	#Spliting file by \t
 	rdd_buried_area_split = buried_area_file.map(lambda line: line.split("\t"))
-	rdd_buried_area = rdd_buried_area_split.map(lambda p: Row( receptor=str(p[0]), ligand=str(p[1]), mode=int(p[2]), sasa_lig_min=float(p[3]), sasa_lig_pose=float(p[4]), sasa_lig_complex=float(p[5]), buried_lig_rec_perc=float(p[6]), buried_lig_lig_perc=float(p[7]) ))
+	rdd_buried_area = rdd_buried_area_split.map(lambda p: Row( receptor=str(p[0]), ligand=str(p[1]), mode=int(p[2]), buried_lig_rec=float(p[3]), buried_lig_rec_perc=float(p[4]), buried_lig_lig_perc=float(p[5]) ))
 	#Creating buried Dataframe
 	buried_table = sqlCtx.createDataFrame(rdd_buried_area)	
 	buried_table.registerTempTable("buriedArea")
@@ -124,7 +124,7 @@ def main():
 	sql = ""
 	sql = "SELECT database.ligand, database.torsion, database.atom, database.heavyAtom"
 	sql +=" ,vina.receptor, vina.mode, vina.energy"
-	sql +=" ,buriedArea.sasa_lig_min, buriedArea.sasa_lig_pose, buriedArea.sasa_lig_complex, buriedArea.buried_lig_rec_perc, buriedArea.buried_lig_lig_perc"
+	sql +=" ,buriedArea.buried_lig_rec, buriedArea.buried_lig_rec_perc, buriedArea.buried_lig_lig_perc"
 	sql +=" ,ligandEfficiency.lig_eff "
 	sql +=" ,hydrogenbind.numHydroBind "
 	sql +=" FROM database"
@@ -143,7 +143,7 @@ def main():
 
 	#Getting all data
 	full_dataRDD = sqlCtx.sql(sql) 
-	full_dataRDD = full_dataRDD.map(lambda p: (p.receptor, p.ligand, p.mode, p.torsion, p.atom, p.heavyAtom, p.energy, p.lig_eff, p.buried_lig_rec_perc, p.buried_lig_lig_perc, p.numHydroBind) ).collect()
+	full_dataRDD = full_dataRDD.map(lambda p: (p.receptor, p.ligand, p.mode, p.torsion, p.atom, p.heavyAtom, p.energy, p.lig_eff, p.buried_lig_rec, p.buried_lig_rec_perc, p.buried_lig_lig_perc, p.numHydroBind) ).collect()
 
 	#Saving file
 	save_vs_full_data(path_analysis, full_dataRDD, full_data_file_name)	
