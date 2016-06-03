@@ -10,6 +10,30 @@ from gromacs_utils import get_value_from_xvg_sasa
 from pdb_io import replace_chain_atom_line
 import shutil
 
+def sorting_buried_area_recep(sc, buried_areaRDD):
+	sqlCtx = SQLContext(sc)
+	buried_areaRDD = sc.parallelize(buried_areaRDD)
+	buried_areaRDD = buried_areaRDD.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), model=int(p[2]), res=str(p[3]), res_buried_area=float(p[4]), res_buried_area_perc=float(p[5]) ) )
+	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
+	buried_area_table.registerTempTable("buried_area_recep")
+
+	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area_recep ORDER BY receptor,ligand,model, res_buried_area ") 
+	return buried_area_sorted_by_lig_rec_perc
+
+def save_buried_area_recep(path_file_buried_area, buried_area_sorted_by_res_buried_area_perc):	
+	f_buried_area = open(path_file_buried_area,"w")
+	for area in buried_area_sorted_by_res_buried_area_perc:
+		receptor = area[0]
+		ligand = area[1]
+		model = area[2]
+		res = area[3]		
+		res_buried_area = "{:.4f}".format(area[4])
+		res_buried_area_perc = "{:.4f}".format(area[5])
+		line = receptor+"\t"+ligand+"\t"+str(model)+"\t"+str(res)+"\t"+str(res_buried_area)+"\t"+str(res_buried_area_perc)+"\n"
+		f_buried_area.write(line)	
+	f_buried_area.close()
+
+
 def save_receptor_buried_area_receptor(path_file_buried_area, buried_area):	
 	f_buried_area = open(path_file_buried_area,"w")
 	for area in buried_area:		
@@ -30,6 +54,21 @@ def save_receptor_buried_area_receptor(path_file_buried_area, buried_area):
 			f_buried_area.write(line)
 	f_buried_area.close()
 
+def loading_lines_from_recepArea_files(line):
+	line_splited = str(line).split()
+	line_ret = ( str(line_splited[0]), str(line_splited[1]), int(line_splited[2]), str(line_splited[3]), float(line_splited[4]), float(line_splited[5]) )	
+	return line_ret
+
+def get_files_recepArea(mypath):
+	only_mol2_file = []
+	for root, dirs, files in os.walk(mypath):
+		for file in files:
+			if file.endswith(".recepArea"):
+				f_path = os.path.join(root,file)
+				only_mol2_file.append(f_path)			
+	return only_mol2_file
+
+
 def get_residues_receptor_from_ndx_files(f_name_ndx):
 	list_res = []	
 	f_ndx = open(f_name_ndx,"r")
@@ -45,7 +84,7 @@ def get_residues_receptor_from_ndx_files(f_name_ndx):
 	return list_res
 
 def save_log(finish_time, start_time):
-	log_file_name = 'vs_buried_areas.log'
+	log_file_name = 'vs_buried_areas_receptor.log'
 	current_path = os.getcwd()
 	path_file = os.path.join(current_path, log_file_name)
 	log_file = open(path_file, 'w')
@@ -231,5 +270,27 @@ def main():
 		#Saving buried area of residue receptor
 		full_area_file  = os.path.join(path_analysis,base_file_name_receptor+".recepArea")
 		save_receptor_buried_area_receptor(full_area_file, all_model_filesRDD)
+
+	#Loading all area file 
+	all_area_file = os.path.join(path_analysis,"*.recepArea")		
+	buried_areaRDD = sc.textFile(all_area_file).map(loading_lines_from_recepArea_files).collect()
+
+	#Sorting by res_buried_area_perc column
+	buried_area_sorted_by_res_buried_area_perc = sorting_buried_area_recep(sc, buried_areaRDD)
+	buried_area_sorted_by_res_buried_area_perc = buried_area_sorted_by_res_buried_area_perc.map(lambda p: (p.receptor, p.ligand, p.model, p.res, p.res_buried_area, p.res_buried_area_perc) ).collect()
+
+	#Saving buried area file
+	path_file_buried_area = os.path.join(path_analysis, "summary_buried_area_receptor.dat")
+	save_buried_area_recep(path_file_buried_area, buried_area_sorted_by_res_buried_area_perc)	
+
+	#Removing all area files
+	all_area_files = get_files_recepArea(path_analysis)
+	for area_file in all_area_files:
+		os.remove(area_file)
+
+	finish_time = datetime.now()
+
+	save_log(finish_time, start_time)
+
 
 main()
