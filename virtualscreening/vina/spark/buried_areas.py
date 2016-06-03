@@ -248,7 +248,7 @@ def main():
 	buried_area_sorted_by_lig_rec_perc = buried_area_sorted_by_lig_rec_perc.map(lambda p: (p.receptor, p.ligand, p.model, p.buried_lig_rec, p.buried_lig_rec_perc, p.buried_lig_lig_perc) ).collect()
 
 	#Saving buried area file
-	path_file_buried_area = os.path.join(path_analysis, "summary_buried_area_ligand.dat")
+	path_file_buried_area = os.path.join(path_analysis, "summary_buried_area_total.dat")
 	save_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc)	
 
 	#Removing all area files
