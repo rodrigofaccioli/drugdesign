@@ -137,6 +137,18 @@ def get_name_receptor_pdbqt(myfile):
 	name =  str(filename.split(".")[0]) #remove .pdbqt
 	return name
 
+def get_receptor_from_receptor_ligand_model(receptor_ligand_model):
+	""" 
+	This function obtains the name of receptor based on receptor_ligand_model
+	Example of input: compl_ns3pro_dm_0_-_NuBBE_485_obabel_3D+----+20
+	"""	
+	separator_model = get_separator_filename_mode()
+	separator_receptor = "_-_"
+	string_ref = receptor_ligand_model
+	
+	receptor_name = string_ref.split(separator_receptor)[0] #Removing all, except receptor name
+	return receptor_name
+
 
 def get_ligand_from_receptor_ligand_model(receptor_ligand_model):
 	""" 
