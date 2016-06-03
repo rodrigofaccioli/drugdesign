@@ -42,6 +42,11 @@ It must be executed before Burried area analysis.
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_areas.py 0.14 24
 
 *************************************************************************************************************************************
+* 				Computing Burried area of receptor
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_receptor.py 0.14 24
+
+*************************************************************************************************************************************
 * 				Ligand Efficiency
 *************************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/ligand_efficiency.py
