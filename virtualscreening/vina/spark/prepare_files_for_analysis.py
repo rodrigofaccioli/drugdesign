@@ -63,8 +63,10 @@ def main():
 	text_file = sc.textFile(energy_file_name)
 
 	#Spliting energy file by \t
-	rdd_vs_energies_sorted_split = text_file.map(lambda line: line.split("\t"))
-	rdd_vs_energies_sorted = rdd_vs_energies_sorted_split.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), mode=int(p[2]), energy=float(p[3]) ))
+	header = text_file.first() #extract header
+	rdd_vs_energies_sorted_split = text_file.filter(lambda x:x !=header)    #filter out header
+	rdd_vs_energies_sorted_split = rdd_vs_energies_sorted_split.map(lambda line: line.split("\t"))
+	rdd_vs_energies_sorted = rdd_vs_energies_sorted_split.map(lambda p: Row(energy=float(p[0]), pose=str(p[1]) ))
 
 	# Appling Summary and Descriptive Statistics in Energies
 	summary_statistics_out = get_summary_statistics(sc, rdd_vs_energies_sorted)
