@@ -2,18 +2,23 @@ from pyspark import SparkContext, SparkConf
 from pyspark.sql import SQLContext, Row	
 import ConfigParser as configparser
 import os
-from vina_utils import get_file_name_sorted_energy
+from vina_utils import get_file_name_sorted_energy, get_ligand_from_receptor_ligand_model
 from datetime import datetime
 
 def save_ligand_efficiency(path_analysis, list_ligand_efficiency):
-	path_file_ligand_efficiency = os.path.join(path_analysis, "ligand_efficiency.txt")
+	path_file_ligand_efficiency = os.path.join(path_analysis, "summary_energies.dat")
 	f_ligand_efficiency = open(path_file_ligand_efficiency,"w")
+	line = "# affinity[kcal/mol]\tligand_efficiency[kcal/mol.ha]\tpose"+"\n"
+	f_ligand_efficiency.write(line)
 	for ligand_efficiency in list_ligand_efficiency:
-		receptor = ligand_efficiency[0]
-		ligand = ligand_efficiency[1]
-		mode = ligand_efficiency[2]
-		lig_eff = "{:.4f}".format(ligand_efficiency[3])
-		line = str(receptor) + "\t" + str(ligand) + "\t" + str(mode) + "\t"+ str(lig_eff) + "\n"
+		#receptor = ligand_efficiency[0]
+		#ligand = ligand_efficiency[1]
+		#mode = ligand_efficiency[2]
+		pose = ligand_efficiency[0]
+		affinity = ligand_efficiency[1]
+		lig_eff = "{:.4f}".format(ligand_efficiency[2])
+		#line = str(receptor) + "\t" + str(ligand) + "\t" + str(mode) + "\t"+ str(lig_eff) + "\n"
+		line = str(affinity) + "\t" + str(lig_eff) + "\t"+ str(pose) + "\n"
 		f_ligand_efficiency.write(line)
 	f_ligand_efficiency.close()
 
@@ -58,8 +63,10 @@ def main():
 	text_file = sc.textFile(score_file_name)
 
 	#Spliting score file by \t
-	rdd_vs_score_sorted_split = text_file.map(lambda line: line.split("\t"))
-	rdd_vs_score_sorted = rdd_vs_score_sorted_split.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), mode=int(p[2]), energy=float(p[3]) ))
+	header = text_file.first() #extract header
+	rdd_vs_score_sorted_split = text_file.filter(lambda x:x !=header)    #filter out header
+	rdd_vs_score_sorted_split = rdd_vs_score_sorted_split.map(lambda line: line.split("\t"))
+	rdd_vs_score_sorted = rdd_vs_score_sorted_split.map(lambda p: Row(energy=float(p[0]), pose=str(p[1]), ligand=get_ligand_from_receptor_ligand_model(p[1]) ))
 	#Creating Vina Datafrase based on score file
 	vina_table = sqlCtx.createDataFrame(rdd_vs_score_sorted)	
 	vina_table.registerTempTable("vina")
@@ -78,8 +85,8 @@ def main():
 #**************** Finish 
 	
 	#Computing ligand efficiency
-	ligand_efficiencyRDD = sqlCtx.sql("SELECT vina.receptor, vina.ligand, vina.mode, (vina.energy / database.heavyAtom) as lig_efficiency FROM database JOIN  vina ON vina.ligand = database.ligand ORDER BY lig_efficiency") 
-	ligand_efficiencyRDD = ligand_efficiencyRDD.map(lambda p: (p.receptor, p.ligand, p.mode, p.lig_efficiency) ).collect()
+	ligand_efficiencyRDD = sqlCtx.sql("SELECT vina.pose, vina.energy as affinity, (vina.energy / database.heavyAtom) as lig_efficiency FROM database JOIN  vina ON vina.ligand = database.ligand ORDER BY lig_efficiency") 
+	ligand_efficiencyRDD = ligand_efficiencyRDD.map(lambda p: (p.pose, p.affinity, p.lig_efficiency) ).collect()
 
 	#Saving ligand efficiency file
 	save_ligand_efficiency(path_analysis, ligand_efficiencyRDD)
