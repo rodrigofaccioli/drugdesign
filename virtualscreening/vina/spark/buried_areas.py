@@ -12,7 +12,8 @@ from pdb_io import replace_chain_atom_line
 def sorting_buried_area(sc, buried_areaRDD):
 	sqlCtx = SQLContext(sc)
 	buried_areaRDD = sc.parallelize(buried_areaRDD)
-	buried_areaRDD = buried_areaRDD.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), model=int(p[2]), buried_lig_rec=float(p[3]),  buried_lig_rec_perc=float(p[4]), buried_lig_lig_perc=float(p[5]) ) )
+	#buried_areaRDD = buried_areaRDD.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), model=int(p[2]), buried_lig_rec=float(p[3]),  buried_lig_rec_perc=float(p[4]), buried_lig_lig_perc=float(p[5]) ) )
+	buried_areaRDD = buried_areaRDD.map(lambda p: Row(pose=str(p[0]), buried_lig_rec=float(p[1]) ) )	
 	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
 	buried_area_table.registerTempTable("buried_area")
 
@@ -22,38 +23,45 @@ def sorting_buried_area(sc, buried_areaRDD):
 def save_receptor_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc):	
 	f_buried_area = open(path_file_buried_area,"w")
 	for area in buried_area_sorted_by_lig_rec_perc:		
-		splited_line = area[0].split("_-_")
-		aux_recep = splited_line[0]
-		aux_lig = str(splited_line[1])		
+		#splited_line = area[0].split("_-_")
+		#aux_recep = splited_line[0]
+		#aux_lig = str(splited_line[1])		
 		#preparing receptor
-		receptor = str(str(aux_recep).replace("compl_", " ")).strip()
+		#receptor = str(str(aux_recep).replace("compl_", " ")).strip()
 		#preparing ligand
-		splited_aux_lig = str(aux_lig).split(get_separator_filename_mode())
-		ligand = splited_aux_lig[0]
-		model = splited_aux_lig[1]
+		#splited_aux_lig = str(aux_lig).split(get_separator_filename_mode())
+		#ligand = splited_aux_lig[0]
+		#model = splited_aux_lig[1]
+		pose = area[0]
 		buried_lig_rec = "{:.4f}".format(area[1])
 		buried_lig_rec_perc = "{:.4f}".format(area[2])
 		buried_lig_lig_perc = "{:.4f}".format(area[3])
-		line = receptor+"\t"+ligand+"\t"+model+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
+		#line = receptor+"\t"+ligand+"\t"+model+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
+		line = pose+"\t"+str(buried_lig_rec)+"\n"
 		f_buried_area.write(line)	
 	f_buried_area.close()
 
 def save_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc):	
 	f_buried_area = open(path_file_buried_area,"w")
+	line = "# buried_area_total[nm2]\tpose"+"\n"
+	f_buried_area.write(line)	
 	for area in buried_area_sorted_by_lig_rec_perc:
-		receptor = area[0]
-		ligand = area[1]
-		model = area[2]
-		buried_lig_rec = "{:.4f}".format(area[3])
-		buried_lig_rec_perc = "{:.4f}".format(area[4])
-		buried_lig_lig_perc = "{:.4f}".format(area[5])
-		line = receptor+"\t"+ligand+"\t"+str(model)+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
+		#receptor = area[0]
+		#ligand = area[1]
+		#model = area[2]
+		pose = str(str(area[0]).replace("compl_", " ")).strip()
+		buried_lig_rec = "{:.4f}".format(area[1])
+		#buried_lig_rec_perc = "{:.4f}".format(area[4])
+		#buried_lig_lig_perc = "{:.4f}".format(area[5])
+		#line = receptor+"\t"+ligand+"\t"+str(model)+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
+		line = str(buried_lig_rec)+"\t"+str(pose)+"\n"		
 		f_buried_area.write(line)	
 	f_buried_area.close()
 
 def loading_lines_from_area_files(line):
 	line_splited = str(line).split()
-	line_ret = ( str(line_splited[0]), str(line_splited[1]), int(line_splited[2]), float(line_splited[3]), float(line_splited[4]), float(line_splited[5]) )	
+	#line_ret = ( str(line_splited[0]), str(line_splited[1]), int(line_splited[2]), float(line_splited[3]), float(line_splited[4]), float(line_splited[5]) )	
+	line_ret = ( str(line_splited[0]), float(line_splited[1]) )		
 	return line_ret
 
 def get_files_area(mypath):
@@ -245,7 +253,8 @@ def main():
 
 	#Sorting by buried_lig_rec_perc column
 	buried_area_sorted_by_lig_rec_perc = sorting_buried_area(sc, buried_areaRDD)
-	buried_area_sorted_by_lig_rec_perc = buried_area_sorted_by_lig_rec_perc.map(lambda p: (p.receptor, p.ligand, p.model, p.buried_lig_rec, p.buried_lig_rec_perc, p.buried_lig_lig_perc) ).collect()
+	buried_area_sorted_by_lig_rec_perc = buried_area_sorted_by_lig_rec_perc.map(lambda p: (p.pose, p.buried_lig_rec) ).collect() #p.receptor, p.ligand, p.model, p.buried_lig_rec_perc, p.buried_lig_lig_perc
+
 
 	#Saving buried area file
 	path_file_buried_area = os.path.join(path_analysis, "summary_buried_area_total.dat")
