@@ -43,15 +43,17 @@ def build_log_lines(log_file):
 def create_file_by_sorted_energy(path_analysis, sorted_dic_list):
 	text_file = os.path.join(path_analysis,get_file_name_sorted_energy())
 	f_file = open(text_file, "w")
-
+	line = "# affinity[kcal/mol]"+"\t"+"pose"+"\n"
+	f_file.write(line)
 	for l_item in sorted_dic_list:
-		aux = str(l_item[0]).split(get_separator_filename_mode())
-		splited_name = str(aux[0]).split("_-_")
-		receptor = str(splited_name[0])
-		ligand = str(splited_name[1])
-		mode = int(aux[1])
+		#aux = str(l_item[0]).split(get_separator_filename_mode())
+		#splited_name = str(aux[0]).split("_-_")
+		#receptor = str(splited_name[0])
+		#ligand = str(splited_name[1])
+		#mode = int(aux[1])
 		energy = float(l_item[1])
-		line = str(receptor)+"\t"+str(ligand)+"\t"+str(mode)+"\t"+str(energy)+"\n"
+		#line = str(receptor)+"\t"+str(ligand)+"\t"+str(mode)+"\t"+str(energy)+"\n"
+		line = str(energy)+"\t"+str(l_item[0])+"\n"
 		f_file.write(line)
 	f_file.close()	
 

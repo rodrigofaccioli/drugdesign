@@ -63,7 +63,7 @@ def get_files_log(mypath):
 sorted energy file 
 """
 def get_file_name_sorted_energy():
-	return 'vs_energies_sorted.txt'
+	return 'vs_sorted_energies_vina.dat'
 
 
 def get_separator_filename_mode():
