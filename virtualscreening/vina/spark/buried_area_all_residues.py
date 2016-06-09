@@ -52,7 +52,7 @@ def save_receptor_buried_area_receptor(path_file_buried_area, buried_area):
 			#splited_aux_lig = str(aux_lig).split(get_separator_filename_mode())
 			#ligand = splited_aux_lig[0]
 			#model = splited_aux_lig[1]
-			pose = t[0]		 
+			pose = str(str(t[0]).replace("compl_", " ")).strip()		 
 			res = t[1]		
 			res_buried_area = "{:.4f}".format(t[2])		
 			res_buried_area_perc = "{:.4f}".format(t[3])		
@@ -143,16 +143,16 @@ def main():
 
 	#Parameters form command line
 	#Indicates probe. Example: 0.14
-	probe = float(sys.argv[1])
+	#probe = float(sys.argv[1])
 	#Indicates ndots. Example: 24
-	ndots = int(sys.argv[2])
+	#ndots = int(sys.argv[2])
 
 	#Broadcast
 	path_analysis_pdb_complex_b = sc.broadcast(path_analysis_pdb)
 	gromacs_path = sc.broadcast(gromacs_path)	 
 	pdb_ligand_path = sc.broadcast(pdb_ligand_path)
-	probe = sc.broadcast(probe)
-	ndots = sc.broadcast(ndots)
+	#probe = sc.broadcast(probe)
+	#ndots = sc.broadcast(ndots)
 
 	start_time = datetime.now()
 
