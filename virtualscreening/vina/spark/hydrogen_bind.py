@@ -45,7 +45,8 @@ def loading_from_files(my_file_saving):
 def loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx):	
 	#Splited all_saving_filesRDD into list that each element is a column.
 	all_saving_filesRDD = sc.parallelize(all_saving_filesRDD)
-	all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]).strip(), atm=str(p[3]), distValue=float(p[4]), angleValue=float(p[5]), receptor=get_name_receptor_pdbqt(str(p[6])), ligand=get_ligand_from_receptor_ligand_model(str(p[7])), model=get_model_from_receptor_ligand_model( get_name_model_pdbqt(str(p[7]))) ))
+	#all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]).strip(), atm=str(p[3]), distValue=float(p[4]), angleValue=float(p[5]), receptor=get_name_receptor_pdbqt(str(p[6])), ligand=get_ligand_from_receptor_ligand_model(str(p[7])), model=get_model_from_receptor_ligand_model( get_name_model_pdbqt(str(p[7]))) ))
+	all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]).strip(), atm=str(p[3]), distValue=float(p[4]), angleValue=float(p[5]), receptor=get_name_receptor_pdbqt(str(p[6])), pose=get_name_model_pdb(str(p[7])) ))	
 	
 			
 	hbond_table = sqlCtx.createDataFrame(all_saving_filesRDD)
@@ -118,10 +119,13 @@ def get_receptor_values_from_atom_list_2_hydrogen_bind(str_atom_list_from_pdbqt)
 	return list_return
 
 def save_all_bonds_file(path_analysis, distance_cutoff, angle_cutoff, all_saving_filesRDD):	
-	f_file = "hbonds_all_"+str(distance_cutoff)+"_"+str(angle_cutoff)
+	f_file = "all-residue_hbonds_"+str(distance_cutoff)+"_"+str(angle_cutoff)+".dat"
 	f_file = os.path.join(path_analysis, f_file)
 	f_hbond = open(f_file,"w")	
-	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.receptor + "\t"+ p.ligand +"\t"+ str(p.model)+"\t" + p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.distValue)) + "\t"+str("{:.2f}".format(p.angleValue))+"\n")	
+	line = "# ligand_atom\taccept_or_donate\treceptor_residue\treceptor_atom\tdistance[A]\tangle[deg]\tpose"+"\n"
+	f_hbond.write(line)
+	#all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.receptor + "\t"+ p.ligand +"\t"+ str(p.model)+"\t" + p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.distValue)) + "\t"+str("{:.2f}".format(p.angleValue))+"\n")	
+	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.distValue)) + "\t"+str("{:.2f}".format(p.angleValue)) + "\t"+ p.pose+"\n")
 	for item in all_saving_filesRDD_2_txt.collect():
 		f_hbond.write(item)
 	f_hbond.close()
@@ -146,7 +150,8 @@ def get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_
 		residues_cons_table = sqlCtx.createDataFrame(residues_consRDD)
 		residues_cons_table.registerTempTable("residues_cons")
 
-		number_pose_cons = sqlCtx.sql('SELECT hbond.receptor, hbond.ligand, hbond.model, count(hbond.res) as numPose FROM hbond INNER JOIN residues_cons ON residues_cons.res = hbond.res GROUP BY hbond.receptor, hbond.ligand, hbond.model')
+		#number_pose_cons = sqlCtx.sql('SELECT hbond.receptor, hbond.ligand, hbond.model, count(hbond.res) as numPose FROM hbond INNER JOIN residues_cons ON residues_cons.res = hbond.res GROUP BY hbond.receptor, hbond.ligand, hbond.model')
+		number_pose_cons = sqlCtx.sql('SELECT hbond.pose, count(hbond.res) as numPose FROM hbond INNER JOIN residues_cons ON residues_cons.res = hbond.res GROUP BY hbond.pose ')		
 		return number_pose_cons
 	else:
 		mensage = "This file was NOT found: \n"+constraints_file
@@ -163,14 +168,18 @@ def save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD):
 
 def get_hbonds_number_pose(sqlCtx):
 	
-	number_pose = sqlCtx.sql('SELECT hbond.receptor, hbond.ligand, hbond.model, count(hbond.res) as numPose FROM hbond GROUP BY hbond.receptor, hbond.ligand, hbond.model')	
+	#number_pose = sqlCtx.sql('SELECT hbond.receptor, hbond.ligand, hbond.model, count(hbond.res) as numPose FROM hbond GROUP BY hbond.receptor, hbond.ligand, hbond.model')	
+	number_pose = sqlCtx.sql('SELECT hbond.pose, count(hbond.res) as numPose FROM hbond GROUP BY hbond.pose')		
 	return number_pose
 
 def save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD):
-	f_file = "hbonds_number_pose_"+str(distance_cutoff)+"_"+str(angle_cutoff)
+	f_file = "summary_hbonds_"+str(distance_cutoff)+"_"+str(angle_cutoff)
 	f_file = os.path.join(path_analysis, f_file)
 	f_poses = open(f_file,"w")	
-	all_poses_2_txt = number_poseRDD.map(lambda p: p.receptor +"\t"+ p.ligand +"\t"+ str(p.model) +"\t"+str(p.numPose) +"\n")	
+	line = "# number_hbonds	pose\n"
+	f_poses.write(line)
+	#all_poses_2_txt = number_poseRDD.map(lambda p: p.receptor +"\t"+ p.ligand +"\t"+ str(p.model) +"\t"+str(p.numPose) +"\n")	
+	all_poses_2_txt = number_poseRDD.map(lambda p: str(p.numPose)+"\t"+ str(p.pose) +"\n")		
 	for item in all_poses_2_txt.collect():
 		f_poses.write(item)
 	f_poses.close()
@@ -376,8 +385,8 @@ def main():
 		save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD)
 
 		#number hydrogen binds of ligands
-		number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
-		save_number_ligand(path_analysis, distance_cutoff, angle_cutoff, number_ligandRDD)
+#		number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
+#		save_number_ligand(path_analysis, distance_cutoff, angle_cutoff, number_ligandRDD)
 
 		#Removing all hydrogen bind files
 		remove_all_hydrogen_files(all_hydrogen_bind)
