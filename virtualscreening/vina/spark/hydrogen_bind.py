@@ -173,7 +173,7 @@ def get_hbonds_number_pose(sqlCtx):
 	return number_pose
 
 def save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD):
-	f_file = "summary_hbonds_"+str(distance_cutoff)+"_"+str(angle_cutoff)
+	f_file = "summary_hbonds_"+str(distance_cutoff)+"_"+str(angle_cutoff)+".dat"
 	f_file = os.path.join(path_analysis, f_file)
 	f_poses = open(f_file,"w")	
 	line = "# number_hbonds	pose\n"
