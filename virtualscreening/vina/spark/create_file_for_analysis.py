@@ -10,7 +10,7 @@ def get_log_file_name(myfile):
 	This function obtains the name of file without filename extension
 	"""	
 	path, filename = ntpath.split(myfile)
-	name =  str(filename.split(".")[0]) #remove .log
+	name =  str(filename.split(".log")[0]) #remove .log
 	return name
 
 
