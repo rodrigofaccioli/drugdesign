@@ -231,7 +231,7 @@ def main():
 			model_file = model[1]
 			path_pdb_complex = path_analysis_pdb_complex_b.value #Obtained from broadcast
 			#Building complex file based on model file name
-			base_name_model = get_name_model_pdb(full_path_model)
+			base_name_model = get_name_model_pdb(full_path_model)			
 			complex_name = "compl_"+base_name_model+".pdb"
 			full_path_for_save_complex = os.path.join(path_pdb_complex,complex_name)
 			list_receptor_model_file = (model_file, full_path_for_save_complex)			

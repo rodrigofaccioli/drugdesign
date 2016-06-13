@@ -102,7 +102,7 @@ def get_structure_file_name(myfile):
 	This function obtains the name of myfile without filename extension
 	"""	
 	path, filename = ntpath.split(myfile)
-	name =  str(filename.split(".")[0]) #remove .pdbqt
+	name =  str(filename.split(".pdbqt")[0]) #remove .pdbqt
 	return name
 
 def get_name_model_pdb(myfile):
@@ -110,7 +110,7 @@ def get_name_model_pdb(myfile):
 	This function obtains the name of myfile without filename extension
 	"""	
 	path, filename = ntpath.split(myfile)
-	name =  str(filename.split(".")[0]) #remove .pdb
+	name =  str(filename.split(".pdb")[0]) #remove .pdb
 	return name
 
 def get_name_model_pdbqt(myfile):
@@ -118,7 +118,7 @@ def get_name_model_pdbqt(myfile):
 	This function obtains the name of myfile without filename extension
 	"""	
 	path, filename = ntpath.split(myfile)
-	name =  str(filename.split(".")[0]) #remove .pdbqt
+	name =  str(filename.split(".pdbqt")[0]) #remove .pdbqt
 	return name
 
 def get_name_receptor_pdb(myfile):
@@ -126,7 +126,7 @@ def get_name_receptor_pdb(myfile):
 	This function obtains the name of myfile without filename extension
 	"""	
 	path, filename = ntpath.split(myfile)
-	name =  str(filename.split(".")[0]) #remove .pdb
+	name =  str(filename.split(".pdb")[0]) #remove .pdb
 	return name
 
 def get_name_receptor_pdbqt(myfile):
@@ -134,7 +134,7 @@ def get_name_receptor_pdbqt(myfile):
 	This function obtains the name of myfile without filename extension
 	"""	
 	path, filename = ntpath.split(myfile)
-	name =  str(filename.split(".")[0]) #remove .pdbqt
+	name =  str(filename.split(".pdbqt")[0]) #remove .pdbqt
 	return name
 
 def get_receptor_from_receptor_ligand_model(receptor_ligand_model):
@@ -161,7 +161,11 @@ def get_ligand_from_receptor_ligand_model(receptor_ligand_model):
 	
 	s = string_ref.split(separator_receptor) #Removing receptor
 	s = str(s[1]).split(separator_model) #Removing model
-	ligand_name = str(s[0]) #geting name of ligand
+	ligand_name = str(s[0]) #getting name of ligand
+
+	#Removing . in ligand name
+	if str(ligand_name).find(".") > -1:		
+		ligand_name = str(ligand_name).split(".")[0]	
 	return ligand_name
 
 def get_model_from_receptor_ligand_model(receptor_ligand_model):

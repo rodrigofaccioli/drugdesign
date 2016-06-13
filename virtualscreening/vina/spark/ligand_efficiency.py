@@ -66,10 +66,10 @@ def main():
 	header = text_file.first() #extract header
 	rdd_vs_score_sorted_split = text_file.filter(lambda x:x !=header)    #filter out header
 	rdd_vs_score_sorted_split = rdd_vs_score_sorted_split.map(lambda line: line.split("\t"))
-	rdd_vs_score_sorted = rdd_vs_score_sorted_split.map(lambda p: Row(energy=float(p[0]), pose=str(p[1]), ligand=get_name_model_pdb(p[1]) )) #get_ligand_from_receptor_ligand_model
+	rdd_vs_score_sorted = rdd_vs_score_sorted_split.map(lambda p: Row(energy=float(p[0]), pose=str(p[1]), ligand=get_ligand_from_receptor_ligand_model(p[1]) )) 
 	#Creating Vina Datafrase based on score file
 	vina_table = sqlCtx.createDataFrame(rdd_vs_score_sorted)	
-	vina_table.registerTempTable("vina")
+	vina_table.registerTempTable("vina")	
 #**************** Finish 
 
 #**************** Loading Ligand Database
