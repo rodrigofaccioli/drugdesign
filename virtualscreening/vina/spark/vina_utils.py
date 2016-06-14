@@ -74,7 +74,8 @@ def get_separator_filename_mode():
     @return: the separator file mode
     @rtype: string        
 	"""		
-	return '+----+'
+	#return '+----+'
+	return ''
 
 """ This function obtains the name of 
 path that saving pdbqt files for analysis 
