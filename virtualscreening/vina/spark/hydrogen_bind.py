@@ -120,7 +120,7 @@ def get_receptor_values_from_atom_list_2_hydrogen_bind(str_atom_list_from_pdbqt)
 	return list_return
 
 def save_all_bonds_file(path_analysis, distance_cutoff, angle_cutoff, all_saving_filesRDD):	
-	f_file = "all-residue_hbonds_"+str(distance_cutoff)+"_"+str(angle_cutoff)+".dat"
+	f_file = "all-residue_hbonds_"+str(distance_cutoff)+"A"+"_"+str(angle_cutoff)+"deg"+".dat"
 	f_file = os.path.join(path_analysis, f_file)
 	f_hbond = open(f_file,"w")	
 	line = "# ligand_atom\taccept_or_donate\treceptor_residue\treceptor_atom\tdistance[A]\tangle[deg]\tpose"+"\n"
@@ -177,7 +177,7 @@ def get_hbonds_number_pose(sqlCtx):
 	return number_pose
 
 def save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD):
-	f_file = "summary_hbonds_"+str(distance_cutoff)+"_"+str(angle_cutoff)+".dat"
+	f_file = "summary_hbonds_"+str(distance_cutoff)+"A"+"_"+str(angle_cutoff)+"deg"+".dat"
 	f_file = os.path.join(path_analysis, f_file)
 	f_poses = open(f_file,"w")	
 	line = "# number_hbonds	pose\n"
