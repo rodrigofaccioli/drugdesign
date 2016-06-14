@@ -171,7 +171,7 @@ def prepare_receptor(path_pdb, path_pdbqt, pythonsh, script_receptor4):
 	for fpdb in pdb_files:
 		fpdbqt_filename = get_name_pdbqt(fpdb)
 		fpdbqt = os.path.join(path_pdbqt,fpdbqt_filename)
-		process = Popen([pythonsh, script_receptor4, '-r', fpdb, '-o', fpdbqt, '-v', '-U', 'nphs_lps', '-A', 'hydrogens'], stdout=PIPE, stderr=PIPE)		
+		process = Popen([pythonsh, script_receptor4, '-r', fpdb, '-o', fpdbqt, '-v', '-U', 'nphs_lps', '-A', 'none'], stdout=PIPE, stderr=PIPE)		
 		stdout, stderr = process.communicate()	 	
 
 """ This function obtains the name of receptor
