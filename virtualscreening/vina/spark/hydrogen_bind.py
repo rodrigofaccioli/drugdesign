@@ -1,5 +1,6 @@
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SQLContext, Row	
+from pyspark.sql.functions import col
 import ConfigParser as configparser
 import os
 import sys
@@ -151,7 +152,8 @@ def get_hbonds_number_pose_constraints(constraints_file, path_analysis, sc, all_
 		residues_cons_table.registerTempTable("residues_cons")
 
 		#number_pose_cons = sqlCtx.sql('SELECT hbond.receptor, hbond.ligand, hbond.model, count(hbond.res) as numPose FROM hbond INNER JOIN residues_cons ON residues_cons.res = hbond.res GROUP BY hbond.receptor, hbond.ligand, hbond.model')
-		number_pose_cons = sqlCtx.sql('SELECT hbond.pose, count(hbond.res) as numPose FROM hbond INNER JOIN residues_cons ON residues_cons.res = hbond.res GROUP BY hbond.pose ')		
+		number_pose_cons = sqlCtx.sql('SELECT hbond.pose, count(hbond.res) as numPose FROM hbond INNER JOIN residues_cons ON residues_cons.res = hbond.res GROUP BY hbond.pose ')
+
 		return number_pose_cons
 	else:
 		mensage = "This file was NOT found: \n"+constraints_file
@@ -300,7 +302,7 @@ def main():
 
 		#temporary_lig_no
 		temporary_lig_no = base_name+"_temporary_lig_no"
-		list_param = ["O", "N", "HD", "HS"]
+		list_param = ["C", "O", "N", "HD", "HS"]
 		list_atom_pdbqt = get_atom_section_from_atom_list(ligand_pdbqt, list_param)	
 		list_ref = get_lig_values_from_atom_list_2_hydrogen_bind(list_atom_pdbqt)
 		path_file_lig_no = os.path.join(path_analysis_temp_b.value, temporary_lig_no)
@@ -309,7 +311,7 @@ def main():
 
 		#temporary_rec_no
 		temporary_rec_no = base_name+"_temporary_rec_no"
-		list_param = ["O", "N"]
+		list_param = ["C", "OA", "N", "HD", "HS", "SA", "A"]
 		list_atom_pdbqt = get_atom_section_from_atom_list(receptor_b.value, list_param)	
 		list_ref = get_receptor_values_from_atom_list_2_hydrogen_bind(list_atom_pdbqt)
 		path_file_rec_no = os.path.join(path_analysis_temp_b.value, temporary_rec_no)
@@ -365,7 +367,7 @@ def main():
 	#Starting the final analysis
 	all_hydrogen_bind = get_hydrogen_bind_files(path_analysis)
 
-	if len(all_hydrogen_bind) > 0:
+	if len(all_hydrogen_bind) > 0:		
 
 		all_hydrogen_bindRDD = sc.parallelize(all_hydrogen_bind)
 

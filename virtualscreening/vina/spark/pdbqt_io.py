@@ -54,11 +54,12 @@ def get_atom_section_from_atom_list(path_file_name, atom_list):
 	f_file = open(path_file_name, "r")
 	for line in f_file:
 		if (line.find("ATOM") > -1): #| (line.find("HETATM") > -1)
-			splited_line = line.split()
-			last_collum_from_line = str(splited_line[-1])#Get the last column
-			for atom in atom_list:
-				if last_collum_from_line.find(atom) > -1: #found atom
-					return_list.append(line.rstrip())				 
+			return_list.append(line.rstrip())
+#			splited_line = line.split()
+#			last_collum_from_line = str(splited_line[-1])#Get the last column
+#			for atom in atom_list:
+#				if last_collum_from_line.find(atom) > -1: #found atom
+#					return_list.append(line.rstrip())				 
 	f_file.close()
 	return return_list
 
