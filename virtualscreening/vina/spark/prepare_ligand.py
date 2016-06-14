@@ -143,7 +143,7 @@ def get_name_ligand_pdbqt(reference):
 def prepare_ligand(lig_vina):
 		fpdbqt_filename = get_name_ligand_pdbqt(lig_vina[3])
 		fpdbqt = os.path.join(lig_vina[0],fpdbqt_filename)				
-		process = Popen([lig_vina[1], lig_vina[2], '-l', lig_vina[3], '-v', '-o', fpdbqt, '-U', 'nphs_lps', '-A', 'hydrogens'], stdout=PIPE, stderr=PIPE)		
+		process = Popen([lig_vina[1], lig_vina[2], '-l', lig_vina[3], '-v', '-o', fpdbqt, '-U', 'nphs_lps', '-A', 'none'], stdout=PIPE, stderr=PIPE)		
 		stdout, stderr = process.communicate()	 	
 
 def save_log(finish_time, start_time):
