@@ -130,7 +130,7 @@ def main():
 #**************** Finish	
 
 #**************** Loading Hydrogen Bind 
-	hydrogen_bind_num_pose_file_name = os.path.join(path_analysis,"summary_hbonds_4.0_30.0.dat")
+	hydrogen_bind_num_pose_file_name = os.path.join(path_analysis,"summary_hbonds_4.0A_30.0deg.dat")
 	hydrogen_bind_num_pose_file = sc.textFile(hydrogen_bind_num_pose_file_name)
 	header = hydrogen_bind_num_pose_file.first() #extract header	
 
