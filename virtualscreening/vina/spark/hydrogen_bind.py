@@ -171,7 +171,9 @@ def save_number_pose_constraints(path_analysis, cutoff, number_pose_consRDD):
 def get_hbonds_number_pose(sqlCtx):
 	
 	#number_pose = sqlCtx.sql('SELECT hbond.receptor, hbond.ligand, hbond.model, count(hbond.res) as numPose FROM hbond GROUP BY hbond.receptor, hbond.ligand, hbond.model')	
-	number_pose = sqlCtx.sql('SELECT hbond.pose, count(hbond.res) as numPose FROM hbond GROUP BY hbond.pose')		
+	number_pose = sqlCtx.sql('SELECT hbond.pose, count(hbond.res) as numPose FROM hbond GROUP BY hbond.pose')	
+	number_pose.registerTempTable("number_pose_table")
+	number_pose = sqlCtx.sql('SELECT number_pose_table.pose, number_pose_table.numPose FROM number_pose_table ORDER BY number_pose_table.numPose DESC')
 	return number_pose
 
 def save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD):
