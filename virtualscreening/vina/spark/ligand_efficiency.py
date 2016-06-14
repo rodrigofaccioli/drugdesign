@@ -85,7 +85,7 @@ def main():
 #**************** Finish 
 	
 	#Computing ligand efficiency
-	ligand_efficiencyRDD = sqlCtx.sql("SELECT vina.pose, vina.energy as affinity, (vina.energy / database.heavyAtom) as lig_efficiency FROM database JOIN  vina ON vina.ligand = database.ligand ORDER BY lig_efficiency") 
+	ligand_efficiencyRDD = sqlCtx.sql("SELECT vina.pose, vina.energy as affinity, (vina.energy / database.heavyAtom) as lig_efficiency FROM database JOIN  vina ON vina.ligand = database.ligand ORDER BY vina.energy") 
 	ligand_efficiencyRDD = ligand_efficiencyRDD.map(lambda p: (p.pose, p.affinity, p.lig_efficiency) ).collect()
 
 	#Saving ligand efficiency file
