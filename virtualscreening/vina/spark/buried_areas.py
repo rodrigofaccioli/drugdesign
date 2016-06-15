@@ -260,7 +260,7 @@ def main():
 
 
 	#Saving buried area file
-	path_file_buried_area = os.path.join(path_analysis, "summary_buried_area_total.dat")
+	path_file_buried_area = os.path.join(path_analysis, "summary_buried_areas_total.dat")
 	save_buried_area(path_file_buried_area, buried_area_sorted_by_buried_total)	
 
 	#Removing all area files

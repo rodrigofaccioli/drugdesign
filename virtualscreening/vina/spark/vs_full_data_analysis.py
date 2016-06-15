@@ -87,7 +87,7 @@ def main():
 #**************** Finish 
 
 #**************** Loading Buried Area total
-	buried_area_file_name = os.path.join(path_analysis,"summary_buried_area_total.dat")
+	buried_area_file_name = os.path.join(path_analysis,"summary_buried_areas_total.dat")
 	buried_area_file = sc.textFile(buried_area_file_name)
 
 	#Spliting file by \t
