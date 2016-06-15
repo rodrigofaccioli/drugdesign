@@ -13,12 +13,12 @@ def sorting_buried_area(sc, buried_areaRDD):
 	sqlCtx = SQLContext(sc)
 	buried_areaRDD = sc.parallelize(buried_areaRDD)
 	#buried_areaRDD = buried_areaRDD.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), model=int(p[2]), buried_lig_rec=float(p[3]),  buried_lig_rec_perc=float(p[4]), buried_lig_lig_perc=float(p[5]) ) )
-	buried_areaRDD = buried_areaRDD.map(lambda p: Row(pose=str(p[0]), buried_lig_rec=float(p[1]) ) )	
+	buried_areaRDD = buried_areaRDD.map(lambda p: Row(pose=str(p[0]), buried_total=float(p[1]) ) )	
 	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
 	buried_area_table.registerTempTable("buried_area")
 
-	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area ORDER BY buried_lig_rec")  #buried_lig_lig_perc 
-	return buried_area_sorted_by_lig_rec_perc
+	buried_area_sorted_by_buried_total = sqlCtx.sql("SELECT * FROM buried_area ORDER BY buried_total DESC")  #buried_lig_lig_perc 
+	return buried_area_sorted_by_buried_total
 
 def save_receptor_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc):	
 	f_buried_area = open(path_file_buried_area,"w")
@@ -33,11 +33,9 @@ def save_receptor_buried_area(path_file_buried_area, buried_area_sorted_by_lig_r
 		#ligand = splited_aux_lig[0]
 		#model = splited_aux_lig[1]
 		pose = area[0]
-		buried_lig_rec = "{:.4f}".format(area[1])
-		buried_lig_rec_perc = "{:.4f}".format(area[2])
-		buried_lig_lig_perc = "{:.4f}".format(area[3])
+		buried_total = "{:.4f}".format(area[1])
 		#line = receptor+"\t"+ligand+"\t"+model+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
-		line = pose+"\t"+str(buried_lig_rec)+"\n"
+		line = pose+"\t"+str(buried_total)+"\n"
 		f_buried_area.write(line)	
 	f_buried_area.close()
 
@@ -50,11 +48,11 @@ def save_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc):
 		#ligand = area[1]
 		#model = area[2]
 		pose = str(str(area[0]).replace("compl_", " ")).strip()
-		buried_lig_rec = "{:.4f}".format(area[1])
+		buried_total  = "{:.4f}".format(area[1])
 		#buried_lig_rec_perc = "{:.4f}".format(area[4])
 		#buried_lig_lig_perc = "{:.4f}".format(area[5])
 		#line = receptor+"\t"+ligand+"\t"+str(model)+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\n"
-		line = str(buried_lig_rec)+"\t"+str(pose)+"\n"		
+		line = str(buried_total)+"\t"+str(pose)+"\n"		
 		f_buried_area.write(line)	
 	f_buried_area.close()
 
@@ -119,7 +117,8 @@ def main():
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdb_io.py"))
 
 	#Adding bash scripts
-	sc.addFile(os.path.join(path_spark_drugdesign,"make_ndx.sh"))
+	sc.addFile(os.path.join(path_spark_drugdesign,"make_ndx_buried_area_total.sh"))
+	sc.addFile(os.path.join(path_spark_drugdesign,"make_sasa_rec_buried_area_total.sh"))
 
 	#Parameters form command line
 	#Indicates probe. Example: 0.14
@@ -159,53 +158,57 @@ def main():
 # ********** Starting function **********************************************************			
 		def compute_buried_area(pdb_complex):
 			chZ = "chZ"
-			buried_lig_rec_perc = -1
-			buried_lig_lig_perc = -1
+			
+			sasa_complex = -1.0
+			sasa_rec = -1.0
+			sasa_lig = -1.0
+			buried_total = -1.0
+
 			base_name = get_name_model_pdb(pdb_complex)		
 			ligand_name = get_ligand_from_receptor_ligand_model(base_name)
 			f_pdb_ligand_no_docking = os.path.join(pdb_ligand_path.value,ligand_name+".pdb")		
 			f_ndx = os.path.join(path_analysis_pdb_complex_b.value,base_name+".ndx")
-			f_temp_lig_pose = os.path.join(path_analysis_pdb_complex_b.value,"lig_pose_"+base_name+".xvg")
-			f_temp_lig_complex = os.path.join(path_analysis_pdb_complex_b.value,"lig_compl_"+base_name+".xvg")
-			f_temp_lig_min = os.path.join(path_analysis_pdb_complex_b.value,"lig_min_"+base_name+".xvg")
+			
+			f_temp_sasa_complex = os.path.join(path_analysis_pdb_complex_b.value,base_name+"_sasa_complex.xvg")
+			f_temp_sasa_rec = os.path.join(path_analysis_pdb_complex_b.value,base_name+"_sasa_rec.xvg")			
+			f_temp_sasa_lig = os.path.join(path_analysis_pdb_complex_b.value,base_name+"_sasa_lig.xvg")						
+						
 			# Makes the index file with the ligand (chain z) and the rest (non chain z)
-			script_make_ndx = SparkFiles.get("make_ndx.sh") #Getting bash script that was copied by addFile command
+			script_make_ndx = SparkFiles.get("make_ndx_buried_area_total.sh") #Getting bash script that was copied by addFile command
 			command = script_make_ndx + " " + gromacs_path.value + " "+ pdb_complex + " "+ f_ndx	
 			process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()	
-			# SASA of the isolated ligand in the pose conformation		
-			command = gromacs_path.value +"gmx sasa -f "+pdb_complex+" -s "+pdb_complex+" -n "+f_ndx+" -o "+f_temp_lig_pose+" -surface "+ chZ +" -output " + chZ +" -nopbc -noprot -probe "+ str(probe.value) +" -ndots "+ str(ndots.value)+" -xvg none "
+					
+			command = gromacs_path.value +"gmx sasa -f " + pdb_complex + " -s " + pdb_complex + " -nopbc " + " -n " + f_ndx + " -surface System " + " -output System "+ " -xvg none " + " -o " + f_temp_sasa_complex
 			process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()
-			# SASA of the complexed ligand in the pose conformation
-			command = gromacs_path.value +"gmx sasa -f "+pdb_complex+" -s "+pdb_complex+" -n "+f_ndx+" -o "+f_temp_lig_complex+" -surface "+ "System" +" -output " + chZ +" -nopbc -noprot -probe "+ str(probe.value) +" -ndots "+ str(ndots.value)+" -xvg none "
+
+			# Makes f_temp_sasa_rec file 
+			script_make_sasa_rec = SparkFiles.get("make_sasa_rec_buried_area_total.sh") #Getting bash script that was copied by addFile command
+			command = script_make_sasa_rec + " " + gromacs_path.value + " "+ pdb_complex + " "+ f_ndx + " " + f_temp_sasa_rec
 			process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
-			stdout, stderr = process.communicate()			
-			# SASA of the isolated ligand in its energy-minimized conformation
-			command = gromacs_path.value +"gmx sasa -f "+f_pdb_ligand_no_docking+" -s "+f_pdb_ligand_no_docking+" -o "+f_temp_lig_min+" -surface "+ "System" +" -output " + "System" +" -nopbc -noprot -probe "+ str(probe.value) +" -ndots "+ str(ndots.value)+" -xvg none "
+			stdout, stderr = process.communicate()	
+
+			command = gromacs_path.value +"gmx sasa -f " + pdb_complex + " -s " + pdb_complex + " -nopbc " + " -n " + f_ndx + " -surface chZ " + " -output chZ "+ " -xvg none " + " -o " +  f_temp_sasa_lig
 			process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()
-			#Getting values from xvg files
-			sasa_lig_min = get_value_from_xvg_sasa(f_temp_lig_min)
-			sasa_lig_pose  = get_value_from_xvg_sasa(f_temp_lig_pose)
-			sasa_lig_complex  = get_value_from_xvg_sasa(f_temp_lig_complex)
-			#Computing buried areas
-			# Area of the ligand which is buried in the receptor
-			buried_lig_rec = sasa_lig_pose - sasa_lig_complex 
-			# percenrage of the ligand area which is buried in the receptor
-			buried_lig_rec_perc = buried_lig_rec / sasa_lig_pose
-			# Area of the ligand in the pose conformation which is buried in itself when compared to the energy-minimized conformation
-			buried_lig_lig = sasa_lig_min - sasa_lig_pose
-			# percenrage of the area of the ligand in the pose conformation which is buried in itself when compared to the energy-minimized conformation			
-			buried_lig_lig_perc = buried_lig_lig / sasa_lig_min 
+
+			sasa_complex = get_value_from_xvg_sasa(f_temp_sasa_complex)
+			sasa_rec = get_value_from_xvg_sasa(f_temp_sasa_rec)
+			sasa_lig = get_value_from_xvg_sasa(f_temp_sasa_lig)
+
+			buried_total = sasa_rec + sasa_lig - sasa_complex
+
 			#Generating result - See column sorting because resultaed file will be created based on this sorting
-			returned_list = (base_name, buried_lig_rec, buried_lig_rec_perc, buried_lig_lig_perc)
+			returned_list = (base_name, buried_total)
+
 			#Deleting files
 			os.remove(f_ndx)
-			os.remove(f_temp_lig_complex)
-			os.remove(f_temp_lig_pose)
-			os.remove(f_temp_lig_min)
-			return returned_list
+			os.remove(f_temp_sasa_complex)
+			os.remove(f_temp_sasa_rec)
+			os.remove(f_temp_sasa_lig)			
+
+			return returned_list			
 # ********** Finish function **********************************************************					
 
 # ********** Starting function **********************************************************		
@@ -242,7 +245,7 @@ def main():
 # ********** Finish function **********************************************************					
 		
 		all_model_filesRDD = sc.parallelize(all_model_filesRDD)
-		all_model_filesRDD = all_model_filesRDD.map(build_list_model_for_complex).collect()		
+		all_model_filesRDD = all_model_filesRDD.map(build_list_model_for_complex).collect()
 		#Saving buried area of receptor
 		full_area_file  = os.path.join(path_analysis,base_file_name_receptor+".area")		
 		save_receptor_buried_area(full_area_file, all_model_filesRDD)
@@ -251,14 +254,14 @@ def main():
 	all_area_file = os.path.join(path_analysis,"*.area")		
 	buried_areaRDD = sc.textFile(all_area_file).map(loading_lines_from_area_files).collect()
 
-	#Sorting by buried_lig_rec_perc column
-	buried_area_sorted_by_lig_rec_perc = sorting_buried_area(sc, buried_areaRDD)
-	buried_area_sorted_by_lig_rec_perc = buried_area_sorted_by_lig_rec_perc.map(lambda p: (p.pose, p.buried_lig_rec) ).collect() #p.receptor, p.ligand, p.model, p.buried_lig_rec_perc, p.buried_lig_lig_perc
+	#Sorting by buried_total column
+	buried_area_sorted_by_buried_total = sorting_buried_area(sc, buried_areaRDD)
+	buried_area_sorted_by_buried_total = buried_area_sorted_by_buried_total.map(lambda p: (p.pose, p.buried_total) ).collect()
 
 
 	#Saving buried area file
 	path_file_buried_area = os.path.join(path_analysis, "summary_buried_area_total.dat")
-	save_buried_area(path_file_buried_area, buried_area_sorted_by_lig_rec_perc)	
+	save_buried_area(path_file_buried_area, buried_area_sorted_by_buried_total)	
 
 	#Removing all area files
 	all_area_files = get_files_area(path_analysis)
