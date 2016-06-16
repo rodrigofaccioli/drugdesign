@@ -18,7 +18,7 @@ def sorting_buried_area_ligand(sc, buried_areaRDD):
 	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
 	buried_area_table.registerTempTable("buried_area_ligand")
 
-	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area_ligand ORDER BY buried_lig_lig ") 
+	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area_ligand ORDER BY buried_lig_rec ") 
 	return buried_area_sorted_by_lig_rec_perc
 
 def save_buried_area_ligand(path_file_buried_area, buried_area_sorted_by_res_buried_area_perc):	
