@@ -48,14 +48,14 @@ It must be executed before Burried area analysis.
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_areas.py 0.14 24
 
 *************************************************************************************************************************************
-* 				Computing Burried area of Receptor and All Residues
+* 				Computing Burried area of All Residues
 *************************************************************************************************************************************
-/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_receptor.py
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_all_residues.py
 
 *************************************************************************************************************************************
-* 				Computing Burried area of ligand
+* 				Computing Burried area of ligand and receptor
 *************************************************************************************************************************************
-/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_ligand.py  0.14 24
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_ligand_receptor.py  0.14 24
 
 *************************************************************************************************************************************
 * 				Hydrogen Bind
