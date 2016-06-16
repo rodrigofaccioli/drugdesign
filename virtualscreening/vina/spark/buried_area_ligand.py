@@ -138,8 +138,7 @@ def main():
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"gromacs_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdb_io.py"))
 
-	#Adding bash scripts
-	sc.addFile(os.path.join(path_spark_drugdesign,"make_ndx.sh"))
+	#Adding bash scripts	
 	sc.addFile(os.path.join(path_spark_drugdesign,"make_ndx_buried_area_ligand.sh"))	
 
 	#Parameters form command line
@@ -267,11 +266,6 @@ def main():
 	#Saving buried area ligand file
 	path_file_buried_area = os.path.join(path_analysis, "summary_buried_area_ligand.dat")
 	save_buried_area_ligand_sort(path_file_buried_area, buried_area_sorted_by_buried_lig_lig_perc)	
-
-	#Sorting by buried_lig_rec column
-	buried_area_sorted_by_buried_recep_perc = sorting_buried_area_receptor(sc, buried_areaRDD)
-	buried_area_sorted_by_buried_recep_perc = buried_area_sorted_by_buried_recep_perc.map(lambda p: (p.pose, p.buried_lig_rec) ).collect()
-
 
 	#Removing all area files
 	all_area_files = get_files_ligandArea(path_analysis)
