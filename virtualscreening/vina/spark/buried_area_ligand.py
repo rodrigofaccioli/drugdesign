@@ -58,7 +58,7 @@ def save_buried_area_ligand_sort(path_file_buried_area, buried_area):
 		buried_lig_lig = "{:.4f}".format(area[3])
 		buried_lig_lig_perc = "{:.4f}".format(area[4])
 		#line = receptor+"\t"+ligand+"\t"+str(model)+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig)+"\t"+str(buried_lig_lig_perc)+"\n"
-		line = str(buried_lig_lig)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\t"+str(pose)+"\n"
+		line = str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig_perc)+"\t"+str(pose)+"\n"
 		f_buried_area.write(line)			
 
 	f_buried_area.close()
@@ -196,10 +196,10 @@ def main():
 # ********** Starting function **********************************************************		
 		def compute_buried_area_ligand(pdb_complex):
 			chZ = "chZ"
-			buried_lig_rec_perc = -1
-			buried_lig_rec = -1
-			buried_lig_lig = -1
-			buried_lig_lig_perc = -1
+			buried_lig_rec_perc = -1.0
+			buried_lig_rec = -1.0
+			buried_lig_lig = -1.0
+			buried_lig_lig_perc = -1.0
 			base_name = get_name_model_pdb(pdb_complex)		
 			ligand_name = get_ligand_from_receptor_ligand_model(base_name)
 			receptor_name = get_receptor_from_receptor_ligand_model(base_name)
@@ -229,6 +229,13 @@ def main():
 			buried_lig_lig = sasa_lig_min - sasa_lig_pose
 			buried_lig_lig_perc = buried_lig_lig / sasa_lig_min
 			returned_list = (base_name, buried_lig_rec, buried_lig_rec_perc, buried_lig_lig, buried_lig_lig_perc)
+
+			#Deleting files
+			os.remove(f_ndx)			
+			os.remove(xvg_temp_sasa_lig_pose)
+			os.remove(xvg_temp_sasa_lig_complex)
+			os.remove(xvg_temp_sasa_lig_min)
+
 			return returned_list
 			
 # ********** Finish function **********************************************************					
