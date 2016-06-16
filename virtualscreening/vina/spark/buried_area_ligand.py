@@ -11,16 +11,6 @@ from pdb_io import replace_chain_atom_line
 
 
 
-def sorting_buried_area_receptor(sc, buried_areaRDD):
-	sqlCtx = SQLContext(sc)
-	buried_areaRDD = sc.parallelize(buried_areaRDD)
-	buried_areaRDD = buried_areaRDD.map(lambda p: Row(pose=str(p[0]), buried_lig_rec=float(p[1]) ) )
-	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
-	buried_area_table.registerTempTable("buried_area_receptor")
-
-	buried_area_sorted_by_recep = sqlCtx.sql("SELECT * FROM buried_area_receptor ORDER BY buried_lig_rec ") 
-	return buried_area_sorted_by_recep
-
 def sorting_buried_area_ligand(sc, buried_areaRDD):
 	sqlCtx = SQLContext(sc)
 	buried_areaRDD = sc.parallelize(buried_areaRDD)
@@ -50,18 +40,6 @@ def save_buried_area_ligand(path_file_buried_area, buried_area_sorted_by_res_bur
 		buried_lig_lig_perc = "{:.4f}".format(area[4]) 
 		#line = receptor+"\t"+ligand+"\t"+model+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig)+"\t"+str(buried_lig_lig_perc)+"\n"
 		line = str(pose)+"\t"+str(buried_lig_rec)+"\t"+str(buried_lig_rec_perc)+"\t"+str(buried_lig_lig)+"\t"+str(buried_lig_lig_perc)+"\n"
-		f_buried_area.write(line)			
-	f_buried_area.close()
-
-
-def save_buried_area_receptor_sort(path_file_buried_area, buried_area):	
-	f_buried_area = open(path_file_buried_area,"w")
-	line = "# buried_area_receptor[nm2]\tpose"+"\n"
-	f_buried_area.write(line)	
-	for area in buried_area:
-		pose = str(str(area[0]).replace("compl_", " ")).strip()
-		buried_lig_rec = "{:.4f}".format(area[1])
-		line = str(buried_lig_rec)+"\t"+str(pose)+"\n"
 		f_buried_area.write(line)			
 	f_buried_area.close()
 
@@ -294,10 +272,7 @@ def main():
 	buried_area_sorted_by_buried_recep_perc = sorting_buried_area_receptor(sc, buried_areaRDD)
 	buried_area_sorted_by_buried_recep_perc = buried_area_sorted_by_buried_recep_perc.map(lambda p: (p.pose, p.buried_lig_rec) ).collect()
 
-	#Saving buried area receptor file
-	path_file_buried_area = os.path.join(path_analysis, "summary_buried_areas_receptor.dat")
-	save_buried_area_receptor_sort(path_file_buried_area, buried_area_sorted_by_buried_recep_perc)	
-	
+
 	#Removing all area files
 	all_area_files = get_files_ligandArea(path_analysis)
 	for area_file in all_area_files:
