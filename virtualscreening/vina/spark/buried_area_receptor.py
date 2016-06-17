@@ -308,17 +308,28 @@ def main():
 			process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()			
 
-			sasa_rec_lig = get_value_from_xvg_sasa(f_xvg_temporary_sasa_rec_lig)
-			sasa_rec = get_value_from_xvg_sasa(f_xvg_temporary_sasa_rec)
+			if os.path.exists(f_xvg_temporary_sasa_rec_lig):
+				sasa_rec_lig = get_value_from_xvg_sasa(f_xvg_temporary_sasa_rec_lig)	
+			else:
+				sasa_rec_lig = 0
+
+			if os.path.exists(f_xvg_temporary_sasa_rec):				
+				sasa_rec = get_value_from_xvg_sasa(f_xvg_temporary_sasa_rec)
+			else:
+				sasa_rec = 0
+
 			receptor_area = sasa_rec - sasa_rec_lig
+
 			#Saving result file
 			output_receptor_buried_area = open(f_output_receptor_buried_area, "w")
 			output_receptor_buried_area.write(str(base_name)+" "+str(receptor_area) +"\n")
 			output_receptor_buried_area.close()
 
 			#Deleting all files
-			os.remove(f_xvg_temporary_sasa_rec_lig)
-			os.remove(f_xvg_temporary_sasa_rec)
+			if os.path.exists(f_xvg_temporary_sasa_rec_lig):
+				os.remove(f_xvg_temporary_sasa_rec_lig)
+			if os.path.exists(f_xvg_temporary_sasa_rec):
+				os.remove(f_xvg_temporary_sasa_rec)
 			os.remove(f_ndx_temporary)
 			os.remove(f_ndx_temporary_sasa)
 			os.remove(f_ndx_temporary_index_z)
