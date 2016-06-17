@@ -31,6 +31,17 @@ def get_saving_files_with_lines(mypath, prefix):
 						only_saving_file.append(f_path)			
 	return only_saving_file	
 
+def get_saving_files_no_lines(mypath, prefix):
+	only_saving_file = []
+	for root, dirs, files in os.walk(mypath):
+		for file in files:
+			if file.endswith(".saving"):
+				if file.find(prefix) > -1:
+					f_path = os.path.join(root,file)
+					if get_line_number(f_path) == 0:
+						only_saving_file.append(f_path)			
+	return only_saving_file	
+
 """ This function puts all lines of saving file
 into list
 """
@@ -41,6 +52,15 @@ def loading_from_files(my_file_saving):
 		list_return.append( line )
 	f_file.close() 
 	os.remove(my_file_saving)	
+	return list_return
+
+def loading_from_files_NOT_hydrogen_bind(my_NOT_hydrogen_bind):
+	list_return = []
+	f_file = open(my_NOT_hydrogen_bind,"r")
+	for line in f_file:		
+		list_return.append( str(line).strip() )
+	f_file.close() 
+	os.remove(my_NOT_hydrogen_bind)	
 	return list_return
 
 def loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx):	
@@ -54,6 +74,18 @@ def loading_from_all_lists(sc, all_saving_filesRDD, sqlCtx):
 	hbond_table.registerTempTable("hbond")
 
 	returnRDD = sqlCtx.sql("SELECT * FROM hbond ")
+	return returnRDD
+
+def loading_from_all_lists_NOT_hydrogen_bind(sc, all_NOT_hydrogen_bind, sqlCtx):	
+	#Splited all_saving_filesRDD into list that each element is a column.
+	all_NOT_hydrogen_bind = sc.parallelize(all_NOT_hydrogen_bind)
+	#all_saving_filesRDD = all_saving_filesRDD.map(lambda s : str(s).split()).map(lambda p : Row(lig=str(p[0]), acpDon=str(p[1]), res=str(p[2]).strip(), atm=str(p[3]), distValue=float(p[4]), angleValue=float(p[5]), receptor=get_name_receptor_pdbqt(str(p[6])), ligand=get_ligand_from_receptor_ligand_model(str(p[7])), model=get_model_from_receptor_ligand_model( get_name_model_pdbqt(str(p[7]))) ))
+	all_NOT_hydrogen_bind = all_NOT_hydrogen_bind.map(lambda p : Row(pose=str(p) ))	
+				
+	hbond_table_NOT = sqlCtx.createDataFrame(all_NOT_hydrogen_bind)
+	hbond_table_NOT.registerTempTable("hbond_NOT")
+
+	returnRDD = sqlCtx.sql("SELECT * FROM hbond_NOT ")
 	return returnRDD
 
 def get_all_saving_file(mypath):
@@ -176,16 +208,20 @@ def get_hbonds_number_pose(sqlCtx):
 	number_pose = sqlCtx.sql('SELECT number_pose_table.pose, number_pose_table.numPose FROM number_pose_table ORDER BY number_pose_table.numPose DESC')
 	return number_pose
 
-def save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD):
+def save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD, all_NOT_hydrogen_bindRDD):
 	f_file = "summary_hbonds_"+str(distance_cutoff)+"A"+"_"+str(angle_cutoff)+"deg"+".dat"
 	f_file = os.path.join(path_analysis, f_file)
 	f_poses = open(f_file,"w")	
 	line = "# number_hbonds	pose\n"
 	f_poses.write(line)
 	#all_poses_2_txt = number_poseRDD.map(lambda p: p.receptor +"\t"+ p.ligand +"\t"+ str(p.model) +"\t"+str(p.numPose) +"\n")	
-	all_poses_2_txt = number_poseRDD.map(lambda p: str(p.numPose)+"\t"+ str(p.pose) +"\n")		
+	all_poses_2_txt = number_poseRDD.map(lambda p: str(p.numPose)+"\t"+ str(p.pose) +"\n")
 	for item in all_poses_2_txt.collect():
 		f_poses.write(item)
+	#insert NOT hydrogen bind
+	all_poses_2_txt = all_NOT_hydrogen_bindRDD.map(lambda p: str(0)+"\t"+ str(p.pose) +"\n")	
+	for pose_item in all_poses_2_txt.collect(): #.map(lambda p : Row(pose=str(p[0]) ) )				
+		f_poses.write(pose_item)
 	f_poses.close()
 
 def get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx):
@@ -241,11 +277,32 @@ def create_file_receptor_all_saving_files(all_saving_files_by_receptor,base_name
 		os.remove(path_f_saving)
 	f_receptor.close()
 
+def create_file_receptor_no_hydrogen_bonds(all_saving_files_no_hBonds,base_name_receptor, path_analysis):	
+	aux_f_receptor = str(base_name_receptor).replace("_-_","_without.NotBounds")
+	path_f_receptor = os.path.join(path_analysis, aux_f_receptor)
+	f_receptor = open(path_f_receptor,"w")
+	for path_f_saving in all_saving_files_no_hBonds:
+		path, filename = ntpath.split(path_f_saving)
+		pose = str(filename).split(".saving")[0]	
+		line = str(pose)+"\n"
+		f_receptor.write(line)
+		os.remove(path_f_saving)
+	f_receptor.close()
+
 def get_hydrogen_bind_files(mypath):
 	only_hydrogen_bind_file = []
 	for root, dirs, files in os.walk(mypath):
 		for file in files:
 			if file.endswith(filename_extension):
+				f_path = os.path.join(root,file)
+				only_hydrogen_bind_file.append(f_path)			
+	return only_hydrogen_bind_file
+
+def get_NOT_hydrogen_bind_files(mypath):
+	only_hydrogen_bind_file = []
+	for root, dirs, files in os.walk(mypath):
+		for file in files:
+			if file.endswith(".NotBounds"):
 				f_path = os.path.join(root,file)
 				only_hydrogen_bind_file.append(f_path)			
 	return only_hydrogen_bind_file
@@ -363,6 +420,12 @@ def main():
 		all_saving_files_by_receptor = get_saving_files_with_lines(path_analysis_temp, base_name_receptor)
 		#Creating file based on all saving files
 		create_file_receptor_all_saving_files(all_saving_files_by_receptor,base_name_receptor,path_analysis)		
+		
+		#Getting all saving files that have lines equal 0		
+		all_saving_files_no_lines = get_saving_files_no_lines(path_analysis_temp, base_name_receptor)		
+		#Creating file based on all saving files
+		create_file_receptor_no_hydrogen_bonds(all_saving_files_no_lines,base_name_receptor,path_analysis)		
+
 		#Removing temp directory
 		shutil.rmtree(path_analysis_temp)
 
@@ -370,23 +433,29 @@ def main():
 	all_hydrogen_bind = get_hydrogen_bind_files(path_analysis)
 
 	if len(all_hydrogen_bind) > 0:		
+		#No Hydrogen bind
+		all_NOT_hydrogen_bind = get_NOT_hydrogen_bind_files(path_analysis)
+		all_NOT_hydrogen_bindRDD = sc.parallelize(all_NOT_hydrogen_bind)
+		#loading from files
+		all_NOT_hydrogen_bindRDD = all_NOT_hydrogen_bindRDD.flatMap(loading_from_files_NOT_hydrogen_bind).collect()		
+		#loading all values from list
+		all_NOT_hydrogen_bindRDD = loading_from_all_lists_NOT_hydrogen_bind(sc, all_NOT_hydrogen_bindRDD, sqlCtx)
+		all_NOT_hydrogen_bindRDD.cache()		
 
+		#Working with Hydrogen bind
 		all_hydrogen_bindRDD = sc.parallelize(all_hydrogen_bind)
-
 		#loading from files
 		all_hydrogen_bindRDD = all_hydrogen_bindRDD.flatMap(loading_from_files).collect()
-
 		#loading all values from list
 		all_hydrogen_bindRDD = loading_from_all_lists(sc, all_hydrogen_bindRDD, sqlCtx)
 		all_hydrogen_bindRDD.cache()
-
 		#saving all_bonds_file	
 		save_all_bonds_file(path_analysis, distance_cutoff, angle_cutoff, all_hydrogen_bindRDD)
 
 		#number hydrogen binds of poses
 		number_poseRDD = get_hbonds_number_pose(sqlCtx)
 		number_poseRDD.cache()
-		save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD)
+		save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD, all_NOT_hydrogen_bindRDD)
 
 		#number hydrogen binds of ligands
 #		number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
