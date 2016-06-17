@@ -279,17 +279,25 @@ def main():
 				process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
 				stdout, stderr = process.communicate()
 				#calculate area
-				buried_receptor_system = get_value_from_xvg_sasa(f_xvg_temporary_sasa_res_lig)
-				buried_receptor_res  = get_value_from_xvg_sasa(f_xvg_temporary_sasa_res)
+				if os.path.exists(f_xvg_temporary_sasa_res_lig):
+					buried_receptor_system = get_value_from_xvg_sasa(f_xvg_temporary_sasa_res_lig)
+				else:
+					buried_receptor_system = 0
+				if os.path.exists(f_xvg_temporary_sasa_res):									
+					buried_receptor_res  = get_value_from_xvg_sasa(f_xvg_temporary_sasa_res)
+				else:
+					buried_receptor_res = 0
 				res_buried_area = buried_receptor_res - buried_receptor_system
-				if res_buried_area > 0:
+				if (res_buried_area > 0) and (buried_receptor_res > 0):
 					res_buried_area_perc = res_buried_area/buried_receptor_res
 					#Generating result
 					result = (base_name, res, res_buried_area,  res_buried_area_perc)				
 					returned_list.append(result)
 				#Deleting files
-				os.remove(f_xvg_temporary_sasa_res_lig)
-				os.remove(f_xvg_temporary_sasa_res)
+				if os.path.exists(f_xvg_temporary_sasa_res_lig):
+					os.remove(f_xvg_temporary_sasa_res_lig)
+				if os.path.exists(f_xvg_temporary_sasa_res):					
+					os.remove(f_xvg_temporary_sasa_res)
 
 			#Computing Receptor Area
 			command = gromacs_path.value +"gmx sasa -surface complex -output rec"+ " -o "+ f_xvg_temporary_sasa_rec_lig + " -xvg none -f " + pdb_complex +" -s " + pdb_complex + " -n "+ f_ndx_temporary + " -nopbc "			
