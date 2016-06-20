@@ -18,7 +18,7 @@ def sorting_buried_area_ligand(sc, buried_areaRDD):
 	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
 	buried_area_table.registerTempTable("buried_area_ligand")
 
-	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area_ligand ORDER BY buried_lig_rec ") 
+	buried_area_sorted_by_lig_rec_perc = sqlCtx.sql("SELECT * FROM buried_area_ligand ORDER BY buried_lig_rec DESC") 
 	return buried_area_sorted_by_lig_rec_perc
 
 def save_buried_area_ligand(path_file_buried_area, buried_area_sorted_by_res_buried_area_perc):	
@@ -267,12 +267,12 @@ def main():
 	buried_areaRDD = sc.textFile(all_area_file).map(loading_lines_from_ligandArea_files).collect()	
 
 	#Sorting by buried_lig_lig column
-	buried_area_sorted_by_buried_lig_lig_perc = sorting_buried_area_ligand(sc, buried_areaRDD)
-	buried_area_sorted_by_buried_lig_lig_perc = buried_area_sorted_by_buried_lig_lig_perc.map(lambda p: (p.pose, p.buried_lig_rec, p.buried_lig_rec_perc, p.buried_lig_lig, p.buried_lig_lig_perc) ).collect() #p.receptor, p.ligand, p.model
+	buried_area_sorted_by_buried_lig_rec = sorting_buried_area_ligand(sc, buried_areaRDD)
+	buried_area_sorted_by_buried_lig_rec = buried_area_sorted_by_buried_lig_rec.map(lambda p: (p.pose, p.buried_lig_rec, p.buried_lig_rec_perc, p.buried_lig_lig, p.buried_lig_lig_perc) ).collect() #p.receptor, p.ligand, p.model
 
 	#Saving buried area ligand file
 	path_file_buried_area = os.path.join(path_analysis, "summary_buried_area_ligand.dat")
-	save_buried_area_ligand_sort(path_file_buried_area, buried_area_sorted_by_buried_lig_lig_perc)	
+	save_buried_area_ligand_sort(path_file_buried_area, buried_area_sorted_by_buried_lig_rec)	
 
 	#Removing all area files
 	all_area_files = get_files_ligandArea(path_analysis)
