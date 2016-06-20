@@ -158,7 +158,7 @@ def save_all_bonds_file(path_analysis, distance_cutoff, angle_cutoff, all_saving
 	line = "# ligand_atom\taccept_or_donate\treceptor_residue\treceptor_atom\tdistance[A]\tangle[deg]\tpose"+"\n"
 	f_hbond.write(line)
 	#all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.receptor + "\t"+ p.ligand +"\t"+ str(p.model)+"\t" + p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.distValue)) + "\t"+str("{:.2f}".format(p.angleValue))+"\n")	
-	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.2f}".format(p.distValue)) + "\t"+str("{:.2f}".format(p.angleValue)) + "\t"+ p.pose+"\n")
+	all_saving_filesRDD_2_txt = all_saving_filesRDD.map(lambda p: p.lig +"\t"+ p.acpDon +"\t"+ p.res +"\t"+ p.atm +"\t"+ str("{:.1f}".format(p.distValue)) + "\t"+str("{:.1f}".format(p.angleValue)) + "\t"+ p.pose+"\n")
 	for item in all_saving_filesRDD_2_txt.collect():
 		f_hbond.write(item)
 	f_hbond.close()
