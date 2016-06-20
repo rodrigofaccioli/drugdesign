@@ -10,6 +10,16 @@ from gromacs_utils import get_value_from_xvg_sasa
 from pdb_io import replace_chain_atom_line
 import shutil
 
+def sorting_by_buried_lig_rec(sc, buried_areaRDD):
+	sqlCtx = SQLContext(sc)
+	buried_areaRDD = sc.parallelize(buried_areaRDD)
+	buried_areaRDD = buried_areaRDD.map(lambda p: Row(pose=str(p[0]), buried_lig_rec=float(p[1]) ) )
+	buried_area_table = sqlCtx.createDataFrame(buried_areaRDD)	
+	buried_area_table.registerTempTable("buried_area_receptor_summary")
+
+	buried_area_sorted_by_lig_rec = sqlCtx.sql("SELECT pose, buried_lig_rec FROM buried_area_receptor_summary ORDER BY buried_lig_rec DESC") 
+	return buried_area_sorted_by_lig_rec
+
 def sorting_buried_area_receptor(sc, buried_areaRDD):
 	sqlCtx = SQLContext(sc)
 	buried_areaRDD = sc.parallelize(buried_areaRDD)
@@ -24,7 +34,7 @@ def save_buried_area_receptor_sort(path_file_buried_area, buried_area):
 	f_buried_area = open(path_file_buried_area,"w")
 	line = "# buried_area_receptor[nm2]\tpose"+"\n"
 	f_buried_area.write(line)	
-	for area in buried_area:
+	for area in buried_area:		
 		pose = str(str(area[0]).replace("compl_", " ")).strip()
 		buried_lig_rec = "{:.4f}".format(area[1])
 		line = str(buried_lig_rec)+"\t"+str(pose)+"\n"
@@ -384,9 +394,12 @@ def main():
 	all_outAreaRecep_file = os.path.join(path_analysis_pdb,"*.outAreaRecep")		
 	buried_outAreaRecepRDD = sc.textFile(all_outAreaRecep_file).map(loading_lines_from_outAreaRecep_files).collect()
 
+	buried_outAreaRecepRDD_sort_by_buried_lig_rec = sorting_by_buried_lig_rec(sc, buried_outAreaRecepRDD)
+	buried_outAreaRecepRDD_sort_by_buried_lig_rec = buried_outAreaRecepRDD_sort_by_buried_lig_rec.map(lambda p: (p.pose, p.buried_lig_rec) ).collect()
+
 	#Saving buried area receptor file
 	path_file_buried_area_rec = os.path.join(path_analysis, "summary_buried_areas_receptor.dat")
-	save_buried_area_receptor_sort(path_file_buried_area_rec, buried_outAreaRecepRDD)	
+	save_buried_area_receptor_sort(path_file_buried_area_rec, buried_outAreaRecepRDD_sort_by_buried_lig_rec)	
 
 	#Removing all outAreaRecep files
 	all_outAreaRecep = get_files_outAreaRecep(path_analysis)
