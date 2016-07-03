@@ -61,7 +61,7 @@ def save_buried_area_recep(path_file_buried_area, buried_area_sorted_by_res_buri
 		#receptor = area[0]
 		#ligand = area[1]
 		#model = area[2]		
-		res = area[0]		
+		res = str(area[0]).replace("_","-")
 		res_buried_area = "{:.4f}".format(area[1])
 		res_buried_area_perc = "{:.4f}".format(area[2])
 		pose = area[3]		
