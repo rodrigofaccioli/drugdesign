@@ -1,0 +1,9 @@
+# List of residues to select hydrogen bind poses
+ARG-54
+GLY-133
+SER-135
+GLY-151
+TYR-161
+VAL-36
+ASP-81
+
