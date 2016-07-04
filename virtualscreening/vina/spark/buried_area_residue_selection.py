@@ -3,6 +3,7 @@ from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
 import ConfigParser as configparser
 import os
+from datetime import datetime
 
 def save_result_only_pose(path_file_result_file_only_pose, df_result):	
 	f_file = open(path_file_result_file_only_pose, "w")
@@ -21,6 +22,21 @@ def save_result(path_file_result_file, df_result):
 		line = str(row.residue)+"\t"+str(row.buried_area_residue)+"\t"+str(row.residue_sasa_buried_perc)+"\t"+str(row.pose)+"\n"
 		f_file.write(line)				
 	f_file.close()
+
+def save_log(finish_time, start_time):
+	log_file_name = 'buried_area_residue_selection.log'
+	current_path = os.getcwd()
+	path_file = os.path.join(current_path, log_file_name)
+	log_file = open(path_file, 'w')
+
+	diff_time = finish_time - start_time
+	msg = 'Starting ' + str(start_time) +'\n'
+	log_file.write(msg)
+	msg = 'Finishing ' + str(finish_time) +'\n'
+	log_file.write(msg)
+	msg = 'Time Execution (seconds): ' + str(diff_time.total_seconds()) +'\n'
+	log_file.write(msg)
+
 
 def main():
 
@@ -45,6 +61,8 @@ def main():
 	# Create context
 	sc = SparkContext(conf=conf)
 	sqlCtx = SQLContext(sc)
+
+	start_time = datetime.now()
 
 	#load all-residue_buried_areas.dat file
 	path_file_buried_area = os.path.join(path_analysis, "all-residue_buried_areas.dat")
@@ -85,5 +103,9 @@ def main():
 
 	path_file_result_file_only_pose = os.path.join(path_analysis, result_file_to_select_buried_area_only_pose)
 	save_result_only_pose(path_file_result_file_only_pose, df_result)	
+
+	finish_time = datetime.now()
+
+	save_log(finish_time, start_time)
 
 main()
