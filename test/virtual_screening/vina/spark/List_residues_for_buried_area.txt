@@ -1,0 +1,5 @@
+# List of residues to select buried areas poses
+HIS-51
+VAL-36	
+PRO-132 
+VAL-52
