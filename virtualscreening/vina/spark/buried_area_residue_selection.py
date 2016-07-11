@@ -9,10 +9,10 @@ from vina_utils import get_directory_pdb_analysis
 
 def save_result_only_pose(path_file_result_file_only_pose, df_result):	
 	f_file = open(path_file_result_file_only_pose, "w")
-	header = "# poses and number of residues that were filtered by residues from buried area\n"
+	header = "# poses and sum of buried area by residues that were filtered by residues from buried area\n"
 	f_file.write(header)				
 	for row in df_result.collect():
-		line = str(row.pose)+"\t"+str(row.num_res)+"\n"
+		line = str(row.pose)+"\t"+str(row.sum_buried_area_res)+"\n"
 		f_file.write(line)				
 	f_file.close()
 
@@ -124,10 +124,10 @@ def main():
 
 	#Grouping
 	sql = """
-	       SELECT pose, count(*) as num_res
+	       SELECT pose, sum(buried_area_residue) as sum_buried_area_res
 	       FROM residues_filtered_by_list 
 	       GROUP BY pose
-	       ORDER BY num_res DESC 
+	       ORDER BY sum_buried_area_res DESC 
 	      """	
 	df_result = sqlCtx.sql(sql)	
 
@@ -140,7 +140,7 @@ def main():
 	header = only_poseRDD.first() #extract header		
 	#Spliting file by \t
 	only_poseRDD = only_poseRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-	only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p[0]).strip(), num_res=int(str(p[1]).strip() ) ))
+	only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p[0]).strip(), sum_buried_area_res=float(str(p[1]).strip() ) ))
 
 	only_pose_takeRDD = only_poseRDD.take(number_poses_to_select_buried_area)
 
