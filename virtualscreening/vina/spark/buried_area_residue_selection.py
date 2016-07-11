@@ -9,10 +9,10 @@ from vina_utils import get_directory_pdb_analysis
 
 def save_result_only_pose(path_file_result_file_only_pose, df_result):	
 	f_file = open(path_file_result_file_only_pose, "w")
-	header = "# poses that were filtered by residues from buried area\n"
+	header = "# poses and number of residues that were filtered by residues from buried area\n"
 	f_file.write(header)				
 	for row in df_result.collect():
-		line = str(row.pose)+"\n"
+		line = str(row.pose)+"\t"+str(row.num_res)+"\n"
 		f_file.write(line)				
 	f_file.close()
 
@@ -113,14 +113,23 @@ def main():
 	sql = """
 	       SELECT all_residue.*
 	       FROM all_residue 
-	       JOIN residue_list ON residue_list.residue = all_residue.residue
-	       ORDER BY all_residue.buried_area_residue DESC
+	       JOIN residue_list ON residue_list.residue = all_residue.residue	       
 	      """
 	df_result = sqlCtx.sql(sql)
+	df_result.registerTempTable("residues_filtered_by_list")	
 
 	#Saving result
 	path_file_result_file = os.path.join(path_analysis, result_file_to_select_buried_area)
 	save_result(path_file_result_file, df_result)	
+
+	#Grouping
+	sql = """
+	       SELECT pose, count(*) as num_res
+	       FROM residues_filtered_by_list 
+	       GROUP BY pose
+	       ORDER BY num_res DESC 
+	      """	
+	df_result = sqlCtx.sql(sql)	
 
 	#Saving result only pose
 	path_file_result_file_only_pose = os.path.join(path_analysis, result_file_to_select_buried_area_only_pose)
@@ -130,8 +139,8 @@ def main():
 	only_poseRDD = sc.textFile(path_file_result_file_only_pose)
 	header = only_poseRDD.first() #extract header		
 	#Spliting file by \t
-	only_poseRDD = only_poseRDD.filter(lambda x:x !=header).map(lambda line: line)
-	only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p).strip() ))
+	only_poseRDD = only_poseRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
+	only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p[0]).strip(), num_res=int(str(p[1]).strip() ) ))
 
 	only_pose_takeRDD = only_poseRDD.take(number_poses_to_select_buried_area)
 
