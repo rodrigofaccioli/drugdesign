@@ -9,13 +9,11 @@ from vina_utils import get_directory_pdb_analysis
 def save_result_only_pose(path_file_result_file_only_pose, df_result):
 	list_aux = []	
 	f_file = open(path_file_result_file_only_pose, "w")
-	header = "# poses that were filtered by residues from hydrogen bind\n"
+	header = "# poses and number of hydrogen bind hat were filtered by residues from hydrogen bind\n"
 	f_file.write(header)				
-	for row in df_result.collect(): 
-		if row.pose not in list_aux: #removes duplicates poses
-			line = str(row.pose)+"\n"
-			f_file.write(line)
-			list_aux.append(row.pose)				
+	for row in df_result.collect(): 		
+		line = str(row.pose)+"\t"+str(row.num_res)+"\n"
+		f_file.write(line)
 	f_file.close()
 
 def save_result(path_file_result_file, df_result):
@@ -117,10 +115,20 @@ def main():
 	       JOIN residue_list ON residue_list.residue = all_residue.receptor_residue
 	      """
 	df_result = sqlCtx.sql(sql)
+	df_result.registerTempTable("residues_filtered_by_list")
 
 	#Saving result
 	path_file_result_file = os.path.join(path_analysis, result_file_to_select_hydrogen_bind)
 	save_result(path_file_result_file, df_result)	
+
+	#Grouping
+	sql = """
+	       SELECT pose, count(*) as num_res
+	       FROM residues_filtered_by_list 
+	       GROUP BY pose
+	       ORDER BY num_res DESC 
+	      """	
+	df_result = sqlCtx.sql(sql)	
 
 	#Saving result only pose
 	path_file_result_file_only_pose = os.path.join(path_analysis, result_file_to_select_hydrogen_bind_only_pose)
@@ -130,8 +138,8 @@ def main():
 	only_poseRDD = sc.textFile(path_file_result_file_only_pose)
 	header = only_poseRDD.first() #extract header		
 	#Spliting file by \t
-	only_poseRDD = only_poseRDD.filter(lambda x:x !=header).map(lambda line: line)
-	only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p).strip() ))
+	only_poseRDD = only_poseRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
+	only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p[0]).strip(), num_res=int(str(p[1]).strip() ) ))
 
 	only_pose_takeRDD = only_poseRDD.take(number_poses_to_select_hydrogen_bind)
 
@@ -169,7 +177,6 @@ def main():
 # ******************** FINISHED FUNCTION ********************************
 
 	sc.parallelize(only_pose_takeRDD).foreach(build_complex_from_pose_file_name)
-
 
 	finish_time = datetime.now()
 
