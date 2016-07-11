@@ -67,3 +67,13 @@ It must be executed before Burried area analysis.
 *************************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/vs_full_data_analysis.py
 
+*************************************************************************************************************************************
+* 				Selecting complex based on buried area
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_residue_selection.py
+
+*************************************************************************************************************************************
+* 				Selecting complex based on hydrogen area
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bind_residue_selection.py
+
