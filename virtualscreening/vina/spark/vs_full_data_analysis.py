@@ -4,6 +4,7 @@ import ConfigParser as configparser
 import os
 from vina_utils import get_file_name_sorted_energy
 from datetime import datetime
+from database_io import load_database
 
 def format_Hydrogen_bind(num_hydrogen_bind):
 	if num_hydrogen_bind == None:
@@ -54,6 +55,8 @@ def main():
 
 	#Adding Python Source file
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"database_io.py"))
+
 
 	#Sufix of completly data file
 	full_data_file_name = config.get('DRUGDESIGN', 'full_data_file_name')
@@ -75,12 +78,8 @@ def main():
 #**************** Finish 
 
 #**************** Loading Ligand Database
-	ligand_database_file = sc.textFile(ligand_database)
 
-	#Spliting score file by \t
-	header = ligand_database_file.first() #extract header	
-	rdd_database_split = ligand_database_file.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-	rdd_database = rdd_database_split.map(lambda p: Row(ligand=str(p[0]), torsion=int(p[1]), atom=int(p[2]), heavyAtom=int(p[3]) ))
+	rdd_database = load_database(sc, ligand_database)
 	#Creating Dataframe
 	database_table = sqlCtx.createDataFrame(rdd_database)	
 	database_table.registerTempTable("database")

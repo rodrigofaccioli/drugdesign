@@ -4,6 +4,7 @@ import ConfigParser as configparser
 import os
 from vina_utils import get_file_name_sorted_energy, get_ligand_from_receptor_ligand_model, get_name_model_pdb
 from datetime import datetime
+from database_io import load_database
 
 def save_ligand_efficiency(path_analysis, list_ligand_efficiency):
 	path_file_ligand_efficiency = os.path.join(path_analysis, "summary_energies.dat")
@@ -73,12 +74,7 @@ def main():
 #**************** Finish 
 
 #**************** Loading Ligand Database
-	ligand_database_file = sc.textFile(ligand_database)
-
-	#Spliting score file by \t
-	header = ligand_database_file.first() #extract header	
-	rdd_database_split = ligand_database_file.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-	rdd_database = rdd_database_split.map(lambda p: Row(ligand=str(p[0]), torsion=int(p[1]), atom=int(p[2]), heavyAtom=int(p[3]) ))
+	rdd_database = load_database(sc, ligand_database)	
 	#Creating Dataframe
 	database_table = sqlCtx.createDataFrame(rdd_database)	
 	database_table.registerTempTable("database")
