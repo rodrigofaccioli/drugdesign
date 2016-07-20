@@ -10,6 +10,7 @@ from pdbqt_io import get_atom_section_from_atom_list, save_text_file_from_list
 from vina_utils import get_name_model_pdb, get_name_model_pdbqt, get_directory_pdbqt_analysis, get_files_pdbqt, get_name_receptor_pdbqt, get_separator_filename_mode, get_ligand_from_receptor_ligand_model, get_model_from_receptor_ligand_model, get_directory_temp_analysis
 import ntpath
 import shutil
+from database_io import load_database
 
 #Used for creating hydrogen bind by receptor
 filename_extension = ".hydrogen_bind"
@@ -224,6 +225,17 @@ def save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRD
 		f_poses.write(pose_item)
 	f_poses.close()
 
+def save_number_pose_normalized(path_analysis, distance_cutoff, angle_cutoff, full_dataRDD):
+	f_file = "summary_normalized_hbonds_"+str(distance_cutoff)+"A"+"_"+str(angle_cutoff)+"deg"+".dat"
+	f_file = os.path.join(path_analysis, f_file)
+	f_poses = open(f_file,"w")	
+	line = "# normalized_hbonds	pose\n"
+	f_poses.write(line)		
+	for item in full_dataRDD.collect():
+		line = str("{:.2f}".format(item.normalized_hb)) +"\t" + str(item.pose) +"\n"
+		f_poses.write(line)
+	f_poses.close()		
+
 def get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx):
 	only_ligandRDD = number_poseRDD.map(lambda p: Row(receptor=str(p[0]), ligand=str(p[1]), model=int(p[2]), numLigH=int(p[3]) ) )
 	
@@ -332,6 +344,8 @@ def main():
 	path_receptor_pdbqt = config.get('DEFAULT', 'pdbqt_receptor_path')
 	#Path that contains all files for analysis
 	path_analysis = config.get('DEFAULT', 'path_analysis') 
+	#Ligand Database file
+	ligand_database  = config.get('DEFAULT', 'ligand_database_path_file')	
 	#Path of pdbqt model
 	path_analysis_pdbqt_model = get_directory_pdbqt_analysis(path_analysis)
 	#Path analysis temp
@@ -345,6 +359,7 @@ def main():
 	#Adding Python Source file
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdbqt_io.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"database_io.py"))
 
 	start_time = datetime.now()
 
@@ -456,6 +471,28 @@ def main():
 		number_poseRDD = get_hbonds_number_pose(sqlCtx)
 		number_poseRDD.cache()
 		save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRDD, all_NOT_hydrogen_bindRDD)
+
+		#Calculating Normalized Hydrogen Bond 
+		#Loading database
+		rdd_database = load_database(sc, ligand_database)
+		#Creating Dataframe
+		database_table = sqlCtx.createDataFrame(rdd_database)	
+		database_table.registerTempTable("database")
+
+		number_pose_ligandRDD = number_poseRDD.map(lambda p: Row(numPose=int(p.numPose), ligand=get_ligand_from_receptor_ligand_model(p.pose), pose=str(p.pose) ) ).collect()
+		number_pose_ligand_table = sqlCtx.createDataFrame(number_pose_ligandRDD)	
+		number_pose_ligand_table.registerTempTable("pose_ligand_hb")
+
+		sql = """
+				SELECT pose, (b.numPose / a.hb_donors_acceptors) as normalized_hb
+				FROM database a 
+				JOIN pose_ligand_hb b ON b.ligand = a.ligand
+				ORDER BY normalized_hb DESC 
+		      """
+		#Getting all data
+		full_dataRDD = sqlCtx.sql(sql) 		
+		#Saving file
+		save_number_pose_normalized(path_analysis, distance_cutoff, angle_cutoff, full_dataRDD)
 
 		#number hydrogen binds of ligands
 #		number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
