@@ -167,10 +167,12 @@ def main():
 		f_compl = open(full_path_for_save_complex, "w")
 		#Insert lines of receptor
 		for item in  f_receptor_file:
-			f_compl.write(item)
+			if str(item).find("END") == -1:
+				f_compl.write(item)
 		#Insert lines of model
 		for item in f_ligand_file_name:		
-			f_compl.write(item)
+			if str(item).find("REMARK") == -1:
+				f_compl.write(item)
 		#Closing files
 		f_compl.close()
 		f_ligand_file_name.close()
