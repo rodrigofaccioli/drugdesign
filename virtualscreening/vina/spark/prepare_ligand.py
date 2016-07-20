@@ -71,7 +71,56 @@ def get_heavy_atom_number(pathfilename):
 			if last_column.find("H") ==-1: #Not found H atom
 				number = number +1
 	fpdbqt.close()
-	return number	
+	return number
+
+"""
+	Returns the number of Hydrogen bond donors  
+	
+	pathfilename contains path and file name in which
+	wants to know the number of atoms.
+	In pdbqt files, the number of heavy atom is obatined reading
+	all lines of files looking by ATOM and and have HD or HS atoms. 
+"""
+def get_hb_donors (pathfilename):
+	number = int(0)
+	fpdbqt = open(pathfilename, "r")
+	for line in fpdbqt:
+		if (line.find("ATOM") > -1):			
+			splited_line = str(line).split()
+			last_column = str(splited_line[-1])#Get the last column
+			if last_column.find("HD") >-1: #Found HD atom
+				number = number +1
+			elif last_column.find("HS") >-1: #Found HS atom
+				number = number +1
+	fpdbqt.close()
+	return number
+"""
+	Returns the number of Hydrogen bond acceptors  
+	
+	pathfilename contains path and file name in which
+	wants to know the number of atoms.
+	In pdbqt files, the number of heavy atom is obatined reading
+	all lines of files looking by ATOM and have NA or NS or OA or OS atoms. 
+"""
+def get_hb_acceptors (pathfilename):
+	number = int(0)
+	fpdbqt = open(pathfilename, "r")
+	for line in fpdbqt:
+		if (line.find("ATOM") > -1):			
+			splited_line = str(line).split()
+			last_column = str(splited_line[-1])#Get the last column
+			if last_column.find("NA") >-1: #Found NA atom
+				number = number +1
+			elif last_column.find("NS") >-1: #Found NS atom
+				number = number +1
+			elif last_column.find("OA") >-1: #Found OA atom
+				number = number +1
+			elif last_column.find("OS") >-1: #Found OS atom
+				number = number +1
+	fpdbqt.close()
+	return number
+
+
 
 def prepare_for_creating_database(database_path_file, pdbqt_path_file):
 	if len(vina_utils.get_files_pdbqt(pdbqt_path_file)) == 0:
@@ -88,7 +137,10 @@ def build_compound_database(f_pdbqt):
 	torsion_angle = int(get_number_torsion_angle(f_pdbqt))
 	atom_number = int(get_number_atom(f_pdbqt))
 	heavy_atom_number = int(get_heavy_atom_number(f_pdbqt))
-	line = (ligand_name + str("\t")+ str(torsion_angle) + str("\t") + str(atom_number) + str("\t") + str(heavy_atom_number) +str("\n") )
+	hb_donors = int(get_hb_donors(f_pdbqt) )
+	hb_acceptors = int(get_hb_acceptors(f_pdbqt) )
+	hb_donors_acceptors = hb_donors + hb_acceptors
+	line = (ligand_name + str("\t")+ str(torsion_angle) + str("\t") + str(atom_number) + str("\t") + str(heavy_atom_number) + str("\t")+ str(hb_donors) + str("\t")+ str(hb_acceptors) + str("\t")+ str(hb_donors_acceptors) + str("\n") )
 	return line
 	
 """
@@ -98,7 +150,7 @@ def build_compound_database(f_pdbqt):
 def save_database(database_path_file, list_compound):
 	line = ""
 	f_database = open(database_path_file, 'w')
-	line = str(";Ligand\t") + str("Torsion\t") + str("Atoms\t") + str("Heavy_Atoms\t") +str("\n")
+	line = str(";Ligand\t\t") + str("Torsion\t") + str("Atoms\t") + str("Heavy_Atoms\t")+ str("hb_donors\t")+ str("hb_acceptors\t")+ str("hb_donors_acceptors\t") +str("\n")
 	f_database.write(line)
 	for line in list_compound:
 		f_database.write(line)

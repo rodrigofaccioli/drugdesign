@@ -1,7 +1,7 @@
-;Ligand	Torsion	Atoms	Heavy_Atoms	
-NuBBE_109_obabel_3D	10	32	32
-NuBBE_128_obabel_3D	2	23	23
-NuBBE_102_obabel_3D	7	37	37
-NuBBE_142_obabel_3D	7	44	44
-NuBBE_127_obabel_3D	5	33	33
-NuBBE_115_obabel_3D	12	77	77
+;Ligand		Torsion	Atoms	Heavy_Atoms	hb_donors	hb_acceptors	hb_donors_acceptors	
+NuBBE_109_obabel_3D	10	32	32	0	13	13
+NuBBE_128_obabel_3D	2	23	23	0	7	7
+NuBBE_102_obabel_3D	7	37	37	0	10	10
+NuBBE_142_obabel_3D	7	44	44	0	17	17
+NuBBE_127_obabel_3D	5	33	33	0	11	11
+NuBBE_115_obabel_3D	12	77	77	0	23	23
