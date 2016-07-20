@@ -139,7 +139,7 @@ def main():
 	header = only_poseRDD.first() #extract header		
 	#Spliting file by \t
 	only_poseRDD = only_poseRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-	only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p[0]).strip(), num_res=int(str(p[1]).strip() ) ))
+	only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p[0]).strip(), num_res=int(str(p[1]).strip()), f_name=str(p[1]).strip()+"_hb_"+str(p[0]).strip() ) )
 
 	only_pose_takeRDD = only_poseRDD.take(number_poses_to_select_hydrogen_bind)
 
@@ -151,7 +151,7 @@ def main():
 		path_receptor = path_receptor_b.value
 		path_ligand = path_ligand_b.value
 		#Based on row value from dataframe
-		pose_file_name = p_name.pose
+		pose_file_name =  p_name.pose
 
 		#Receptor
 		receptor_file_name = get_receptor_from_receptor_ligand_model(pose_file_name)				
@@ -162,7 +162,7 @@ def main():
 		f_ligand_file_name = open(ligand_file_name,"r")
 
 		#Open file for writting the complex
-		full_path_for_save_complex = os.path.join(path_to_save, pose_file_name+".pdb")
+		full_path_for_save_complex = os.path.join(path_to_save, p_name.f_name+".pdb")
 		f_compl = open(full_path_for_save_complex, "w")
 		#Insert lines of receptor
 		for item in  f_receptor_file:
@@ -170,7 +170,8 @@ def main():
 				f_compl.write(item)
 		#Insert lines of model
 		for item in f_ligand_file_name:		
-			f_compl.write(item)
+			if str(item).find("REMARK") == -1:
+				f_compl.write(item)
 		#Closing files
 		f_compl.close()
 		f_ligand_file_name.close()
