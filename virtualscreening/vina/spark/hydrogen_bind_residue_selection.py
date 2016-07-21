@@ -60,10 +60,15 @@ def main():
 	#File for saving the filtered buried area only poses
 	result_file_to_select_hydrogen_bind_only_pose = config.get('DRUGDESIGN', 'result_file_to_select_hydrogen_bind_only_pose')
 	#Path where saved the selected compelex
-	path_to_save = os.path.join("selected_complexo", "hydrogen_bind")
+	path_to_save = os.path.join("selected_complexo", "hydrogen_bond")
 	path_to_save = os.path.join(path_analysis, path_to_save)
 	if not os.path.exists(path_to_save):
 		os.makedirs(path_to_save)
+	#Path where saved the normalized selected compelex	
+	path_to_save_normalized = os.path.join("selected_complexo", "normalized_hydrogen_bond")
+	path_to_save_normalized = os.path.join(path_analysis, path_to_save_normalized)
+	if not os.path.exists(path_to_save_normalized):
+		os.makedirs(path_to_save_normalized)
 
 	# Create SPARK config
 	maxResultSize = str(config.get('SPARK', 'maxResultSize'))
@@ -143,6 +148,16 @@ def main():
 
 	only_pose_takeRDD = only_poseRDD.take(number_poses_to_select_hydrogen_bind)
 
+	#Loading normalized poses
+	path_file_normalized_pose = os.path.join(path_analysis, "summary_normalized_hbonds_4.0A_30.0deg.dat")
+	normalized_poseRDD = sc.textFile(path_file_normalized_pose)
+	header = normalized_poseRDD.first() #extract header		
+	#Spliting file by \t
+	normalized_poseRDD = normalized_poseRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
+	normalized_poseRDD = normalized_poseRDD.map(lambda p: Row( pose=str(p[1]).strip(), normalized=float(str(p[0]).strip()), f_name=str(p[0]).strip()+"_hb_"+str(p[1]).strip() ) )
+
+	normalized_poseRDD = normalized_poseRDD.take(number_poses_to_select_hydrogen_bind)
+
 # ******************** STARTED FUNCTION ********************************
 	def build_complex_from_pose_file_name(p_name):
 		from vina_utils import get_receptor_from_receptor_ligand_model, get_ligand_from_receptor_ligand_model, get_model_from_receptor_ligand_model, get_separator_filename_mode
@@ -177,9 +192,14 @@ def main():
 		f_ligand_file_name.close()
 		f_receptor_file.close()
 # ******************** FINISHED FUNCTION ********************************
-
+	#Selecting poses by residues filtered
 	sc.parallelize(only_pose_takeRDD).foreach(build_complex_from_pose_file_name)
 
+	#Selecting poses by normalized
+	#Broadcast
+	path_to_save_b = sc.broadcast(path_to_save_normalized) #Updated path to save complex
+	sc.parallelize(normalized_poseRDD).foreach(build_complex_from_pose_file_name)
+	
 	finish_time = datetime.now()
 
 	save_log(finish_time, start_time)
