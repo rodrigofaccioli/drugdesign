@@ -12,8 +12,8 @@ import ntpath
 import shutil
 from database_io import load_database
 
-#Used for creating hydrogen bind by receptor
-filename_extension = ".hydrogen_bind"
+#Used for creating hydrogen bond by receptor
+filename_extension = ".hydrogen_bond"
 
 def get_line_number(input_file):
 	with open(input_file) as foo:

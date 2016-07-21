@@ -58,9 +58,9 @@ It must be executed before Burried area analysis.
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_ligand.py  0.14 24
 
 *************************************************************************************************************************************
-* 				Hydrogen Bind
+* 				Hydrogen Bond
 *************************************************************************************************************************************
-/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bind.py 4.0 30.0
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bond.py 4.0 30.0
 
 *************************************************************************************************************************************
 * 				Full Data Analysis
@@ -73,7 +73,7 @@ It must be executed before Burried area analysis.
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_residue_selection.py
 
 *************************************************************************************************************************************
-* 				Selecting complex based on hydrogen area
+* 				Selecting complex based on hydrogen bond
 *************************************************************************************************************************************
-/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bind_residue_selection.py
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bond_residue_selection.py
 
