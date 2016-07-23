@@ -105,50 +105,52 @@ def main():
 	df_all_residue = sqlCtx.createDataFrame(all_residue_split)	
 	df_all_residue.registerTempTable("all_residue")
 
-	#Creating resudue list as Dataframe
-	residue_list = sc.textFile(file_select_buried_area)	
-	header = residue_list.first() #extract header		
-	#Spliting file by \t
-	residue_listRDD = residue_list.filter(lambda x:x !=header).map(lambda line: line)
-	residue_listRDD = residue_listRDD.map(lambda p: Row( residue=str(p).strip() ))
+	if os.path.isfile(file_select_buried_area):
+		#Creating resudue list as Dataframe
+		residue_list = sc.textFile(file_select_buried_area)	
+		header = residue_list.first() #extract header		
+		#Spliting file by \t
+		residue_listRDD = residue_list.filter(lambda x:x !=header).map(lambda line: line)
+		residue_listRDD = residue_listRDD.map(lambda p: Row( residue=str(p).strip() ))
 
-	df_residue_list = sqlCtx.createDataFrame(residue_listRDD)	
-	df_residue_list.registerTempTable("residue_list")
+		df_residue_list = sqlCtx.createDataFrame(residue_listRDD)	
+		df_residue_list.registerTempTable("residue_list")
 
-	#Getting all information based on list of residues
-	sql = """
+		#Getting all information based on list of residues
+		sql = """
 	       SELECT all_residue.*
 	       FROM all_residue 
 	       JOIN residue_list ON residue_list.residue = all_residue.residue	       
 	      """
-	df_result = sqlCtx.sql(sql)
-	df_result.registerTempTable("residues_filtered_by_list")	
+		df_result = sqlCtx.sql(sql)
+		df_result.registerTempTable("residues_filtered_by_list")	
 
-	#Saving result
-	path_file_result_file = os.path.join(path_analysis, result_file_to_select_buried_area)
-	save_result(path_file_result_file, df_result)	
+		#Saving result
+		path_file_result_file = os.path.join(path_analysis, result_file_to_select_buried_area)
+		save_result(path_file_result_file, df_result)	
 
-	#Grouping
-	sql = """
+		#Grouping
+		sql = """
 	       SELECT pose, sum(buried_area_residue) as sum_buried_area_res
 	       FROM residues_filtered_by_list 
 	       GROUP BY pose
 	       ORDER BY sum_buried_area_res DESC 
 	      """	
-	df_result = sqlCtx.sql(sql)	
+		df_result = sqlCtx.sql(sql)	
 
-	#Saving result only pose
-	path_file_result_file_only_pose = os.path.join(path_analysis, result_file_to_select_buried_area_only_pose)
-	save_result_only_pose(path_file_result_file_only_pose, df_result)	
+		#Saving result only pose
+		path_file_result_file_only_pose = os.path.join(path_analysis, result_file_to_select_buried_area_only_pose)
+		save_result_only_pose(path_file_result_file_only_pose, df_result)	
 
-	#Loading poses
-	only_poseRDD = sc.textFile(path_file_result_file_only_pose)
-	header = only_poseRDD.first() #extract header		
-	#Spliting file by \t
-	only_poseRDD = only_poseRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-	only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p[0]).strip(), sum_buried_area_res=float(str(p[1]).strip() ), f_name=str(p[1]).strip()+"_nm2_"+str(p[0]).strip()  ))
+		#Loading poses
+		only_poseRDD = sc.textFile(path_file_result_file_only_pose)
+		header = only_poseRDD.first() #extract header		
+		#Spliting file by \t
+		only_poseRDD = only_poseRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
+		only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p[0]).strip(), sum_buried_area_res=float(str(p[1]).strip() ), f_name=str(p[1]).strip()+"_nm2_"+str(p[0]).strip()  ))
 
-	only_pose_takeRDD = only_poseRDD.take(number_poses_to_select_buried_area)
+		only_pose_takeRDD = only_poseRDD.take(number_poses_to_select_buried_area)
+#************** END OF RESIDUE LIST
 
 	#Loading normalized poses
 	path_file_normalized_pose = os.path.join(path_analysis, "summary_normalized_buried_areas.dat")
@@ -195,8 +197,9 @@ def main():
 		f_receptor_file.close()
 # ******************** FINISHED FUNCTION ********************************
 
-	#Selecting poses by residues filtered
-	sc.parallelize(only_pose_takeRDD).foreach(build_complex_from_pose_file_name)
+	if os.path.isfile(file_select_buried_area):
+		#Selecting poses by residues filtered
+		sc.parallelize(only_pose_takeRDD).foreach(build_complex_from_pose_file_name)
 
 	#Selecting poses by normalized
 	#Broadcast
