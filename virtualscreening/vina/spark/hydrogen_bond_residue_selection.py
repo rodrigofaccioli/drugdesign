@@ -7,10 +7,22 @@ from datetime import datetime
 from vina_utils import get_directory_pdb_analysis, get_ligand_from_receptor_ligand_model
 from database_io import load_database
 
+def save_result_only_pose_normalized_by_residue_list_heavy_atoms(path_file_result_file_only_pose, df_result):
+	list_aux = []	
+	f_file = open(path_file_result_file_only_pose, "w")
+	header = "# poses and normalized hydrogen bond by heavy_atoms that were filtered by residues from hydrogen bond\n"
+	f_file.write(header)				
+	for row in df_result.collect():
+		normalized_value  = "{:.4f}".format(row.normalized_hb) 		
+		line = str(row.pose)+"\t"+str(normalized_value)+"\n"
+		f_file.write(line)
+	f_file.close()
+
+
 def save_result_only_pose_normalized_by_residue_list(path_file_result_file_only_pose, df_result):
 	list_aux = []	
 	f_file = open(path_file_result_file_only_pose, "w")
-	header = "# poses and normalized hydrogen bond hat were filtered by residues from hydrogen bond\n"
+	header = "# poses and normalized hydrogen bond that were filtered by residues from hydrogen bond\n"
 	f_file.write(header)				
 	for row in df_result.collect():
 		normalized_value  = "{:.4f}".format(row.normalized_hb) 		
@@ -82,16 +94,24 @@ def main():
 	if not os.path.exists(path_to_save):
 		os.makedirs(path_to_save)
 	#Path where saved the normalized selected compelex	
-	path_to_save_normalized = os.path.join("selected_complexo", "normalized_hydrogen_bond")
-	path_to_save_normalized = os.path.join(path_analysis, path_to_save_normalized)
-	if not os.path.exists(path_to_save_normalized):
-		os.makedirs(path_to_save_normalized)
+	path_to_save_normalized_da = os.path.join("selected_complexo", "normalized_hydrogen_bond_donors_acceptors")
+	path_to_save_normalized_da = os.path.join(path_analysis, path_to_save_normalized_da)
+	if not os.path.exists(path_to_save_normalized_da):
+		os.makedirs(path_to_save_normalized_da)
+	path_to_save_normalized_heavyAtom = os.path.join("selected_complexo", "normalized_hydrogen_bond_heavyAtom")
+	path_to_save_normalized_heavyAtom = os.path.join(path_analysis, path_to_save_normalized_heavyAtom)
+	if not os.path.exists(path_to_save_normalized_heavyAtom):
+		os.makedirs(path_to_save_normalized_heavyAtom)
 	#Path where saved the normalized by residue list selected compelex	
-	path_to_save_normalized_residue = os.path.join("selected_complexo", "normalized_hydrogen_bond_residue")
+	path_to_save_normalized_residue = os.path.join("selected_complexo", "normalized_hydrogen_bond_residue_donors_acceptors")
 	path_to_save_normalized_residue = os.path.join(path_analysis, path_to_save_normalized_residue)
 	if not os.path.exists(path_to_save_normalized_residue):
 		os.makedirs(path_to_save_normalized_residue)
 
+	path_to_save_normalized_residue_heavyAtoms = os.path.join("selected_complexo", "normalized_hydrogen_bond_residue_heavyAtoms")
+	path_to_save_normalized_residue_heavyAtoms = os.path.join(path_analysis, path_to_save_normalized_residue_heavyAtoms)
+	if not os.path.exists(path_to_save_normalized_residue_heavyAtoms):
+		os.makedirs(path_to_save_normalized_residue_heavyAtoms)
 
 	# Create SPARK config
 	maxResultSize = str(config.get('SPARK', 'maxResultSize'))
@@ -173,7 +193,7 @@ def main():
 
 		only_pose_takeRDD = only_poseRDD.take(number_poses_to_select_hydrogen_bond)
 
-		#Calculating normalized buried area by residues
+		#Calculating normalized hydrogen bond
 		#Loading database
 		rdd_database = load_database(sc, ligand_database)
 		#Creating Dataframe
@@ -181,9 +201,10 @@ def main():
 		database_table.registerTempTable("database")
 
 		normalizedRDD = df_result.map(lambda p: Row(num_res=int(p.num_res), ligand=get_ligand_from_receptor_ligand_model(p.pose), pose=str(p.pose) ) ).collect()
-		#Creating Dataframe
+		#Creating Dataframe 
 		normalized_residues_filtered_by_list_table = sqlCtx.createDataFrame(normalizedRDD)	
-		normalized_residues_filtered_by_list_table.registerTempTable("normalized_residues_filtered_by_list")		
+		normalized_residues_filtered_by_list_table.registerTempTable("normalized_residues_filtered_by_list")
+		# Normalized Hydrogen Bond by donors and acceptors
 		sql = """
 			SELECT pose, (b.num_res / a.hb_donors_acceptors) as normalized_hb
 			FROM database a 
@@ -204,10 +225,31 @@ def main():
 		only_pose_normalizedRDD = only_pose_normalizedRDD.map(lambda p: Row( pose=str(p[0]).strip(), normalized_hb_res=float(str(p[1]).strip() ), f_name=str(p[1]).strip()+"_hb_"+str(p[0]).strip()  ))
 
 		only_pose_normalizedRDD = only_pose_normalizedRDD.take(number_poses_to_select_hydrogen_bond)
+		# Normalized Hydrogen Bond by heavy atoms
+		sql = """
+			SELECT pose, (b.num_res / a.heavyAtom) as normalized_hb
+			FROM database a 
+			JOIN normalized_residues_filtered_by_list b ON b.ligand = a.ligand
+			ORDER BY normalized_hb DESC 
+	      """
+		df_result = sqlCtx.sql(sql)			
+
+		#Saving result only pose by normalized buried area
+		path_file_result_file_only_pose = os.path.join(path_analysis, result_file_to_select_normalized_heavy_atom_hydrogen_bond_only_pose)
+		save_result_only_pose_normalized_by_residue_list_heavy_atoms(path_file_result_file_only_pose, df_result)	
+
+		#Loading poses - normalized_residues_filtered_by_list
+		only_pose_normalized_heavyAtomsRDD = sc.textFile(path_file_result_file_only_pose)
+		header = only_pose_normalized_heavyAtomsRDD.first() #extract header		
+		#Spliting file by \t
+		only_pose_normalized_heavyAtomsRDD = only_pose_normalized_heavyAtomsRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
+		only_pose_normalized_heavyAtomsRDD = only_pose_normalized_heavyAtomsRDD.map(lambda p: Row( pose=str(p[0]).strip(), normalized_hb_res=float(str(p[1]).strip() ), f_name=str(p[1]).strip()+"_hb_"+str(p[0]).strip()  ))
+
+		only_pose_normalized_heavyAtomsRDD = only_pose_normalized_heavyAtomsRDD.take(number_poses_to_select_hydrogen_bond)
 
 #************** END OF RESIDUE LIST
 
-	#Loading normalized poses donors and acceptors
+	#Loading normalized poses by donors and acceptors
 	path_file_normalized_pose = os.path.join(path_analysis, "summary_normalized_hbonds_donors_acceptors_4.0A_30.0deg.dat")
 	normalized_poseRDD = sc.textFile(path_file_normalized_pose)
 	header = normalized_poseRDD.first() #extract header		
@@ -216,6 +258,16 @@ def main():
 	normalized_poseRDD = normalized_poseRDD.map(lambda p: Row( pose=str(p[1]).strip(), normalized=float(str(p[0]).strip()), f_name=str(p[0]).strip()+"_hb_"+str(p[1]).strip() ) )
 
 	normalized_poseRDD = normalized_poseRDD.take(number_poses_to_select_hydrogen_bond)
+
+	#Loading normalized poses by heavy atoms
+	path_file_normalized_pose = os.path.join(path_analysis, "summary_normalized_hbonds_heavyAtom_4.0A_30.0deg.dat")
+	normalized_pose_heavyAtomsRDD = sc.textFile(path_file_normalized_pose)
+	header = normalized_pose_heavyAtomsRDD.first() #extract header		
+	#Spliting file by \t
+	normalized_pose_heavyAtomsRDD = normalized_pose_heavyAtomsRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
+	normalized_pose_heavyAtomsRDD = normalized_pose_heavyAtomsRDD.map(lambda p: Row( pose=str(p[1]).strip(), normalized=float(str(p[0]).strip()), f_name=str(p[0]).strip()+"_hb_"+str(p[1]).strip() ) )
+
+	normalized_pose_heavyAtomsRDD = normalized_pose_heavyAtomsRDD.take(number_poses_to_select_hydrogen_bond)
 
 # ******************** STARTED FUNCTION ********************************
 	def build_complex_from_pose_file_name(p_name):
@@ -255,14 +307,24 @@ def main():
 	if os.path.isfile(file_select_hydrogen_bond):
 		#Selecting poses by residues filtered
 		sc.parallelize(only_pose_takeRDD).foreach(build_complex_from_pose_file_name)
-		path_to_save_b = sc.broadcast(path_to_save_normalized_residue) #Updated path to save complex	
+		#Updated path to save complex			
+		path_to_save_b = sc.broadcast(path_to_save_normalized_residue) 
 		sc.parallelize(only_pose_normalizedRDD).foreach(build_complex_from_pose_file_name)				
+		#Updated path to save complex
+		path_to_save_b = sc.broadcast(path_to_save_normalized_residue_heavyAtoms) #Updated path to save complex	
+		sc.parallelize(only_pose_normalized_heavyAtomsRDD).foreach(build_complex_from_pose_file_name)				
+
 
 	#Selecting poses by normalized donors and acceptors
 	#Broadcast
-	path_to_save_b = sc.broadcast(path_to_save_normalized) #Updated path to save complex
+	path_to_save_b = sc.broadcast(path_to_save_normalized_da) #Updated path to save complex
 	sc.parallelize(normalized_poseRDD).foreach(build_complex_from_pose_file_name)
-	
+
+	#Selecting poses by normalized heavy atoms
+	#Broadcast
+	path_to_save_b = sc.broadcast(path_to_save_normalized_heavyAtom) #Updated path to save complex
+	sc.parallelize(normalized_pose_heavyAtomsRDD).foreach(build_complex_from_pose_file_name)
+
 	finish_time = datetime.now()
 
 	save_log(finish_time, start_time)
