@@ -226,10 +226,21 @@ def save_number_pose(path_analysis, distance_cutoff, angle_cutoff, number_poseRD
 	f_poses.close()
 
 def save_number_pose_normalized_donors_acceptors(path_analysis, distance_cutoff, angle_cutoff, full_dataRDD):
-	f_file = "summary_normalized_hbonds_"+str(distance_cutoff)+"A"+"_"+str(angle_cutoff)+"deg"+".dat"
+	f_file = "summary_normalized_hbonds_donors_acceptors_"+str(distance_cutoff)+"A"+"_"+str(angle_cutoff)+"deg"+".dat"
 	f_file = os.path.join(path_analysis, f_file)
 	f_poses = open(f_file,"w")	
 	line = "# normalized_hbonds_donors_acceptors\tpose\n"
+	f_poses.write(line)		
+	for item in full_dataRDD.collect():
+		line = str("{:.2f}".format(item.normalized_hb)) +"\t" + str(item.pose) +"\n"
+		f_poses.write(line)
+	f_poses.close()		
+
+def save_number_pose_normalized_heavyAtom(path_analysis, distance_cutoff, angle_cutoff, full_dataRDD):
+	f_file = "summary_normalized_hbonds_heavyAtom_"+str(distance_cutoff)+"A"+"_"+str(angle_cutoff)+"deg"+".dat"
+	f_file = os.path.join(path_analysis, f_file)
+	f_poses = open(f_file,"w")	
+	line = "# normalized_hbonds_heavyAtom\tpose\n"
 	f_poses.write(line)		
 	for item in full_dataRDD.collect():
 		line = str("{:.2f}".format(item.normalized_hb)) +"\t" + str(item.pose) +"\n"
@@ -494,6 +505,18 @@ def main():
 		full_dataRDD = sqlCtx.sql(sql) 		
 		#Saving file
 		save_number_pose_normalized_donors_acceptors(path_analysis, distance_cutoff, angle_cutoff, full_dataRDD)
+
+		#Calculating normalized Hydrogen Bond by heavy atoms
+		sql = """
+				SELECT pose, (b.numPose / a.heavyAtom) as normalized_hb
+				FROM database a 
+				JOIN pose_ligand_hb b ON b.ligand = a.ligand
+				ORDER BY normalized_hb DESC 
+		      """
+		#Getting all data
+		full_dataRDD = sqlCtx.sql(sql) 		
+		#Saving file
+		save_number_pose_normalized_heavyAtom(path_analysis, distance_cutoff, angle_cutoff, full_dataRDD)
 
 		#number hydrogen binds of ligands
 #		number_ligandRDD = get_hbonds_number_ligand(sc, number_poseRDD, sqlCtx)
