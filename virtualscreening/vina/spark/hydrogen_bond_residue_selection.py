@@ -75,6 +75,7 @@ def main():
 	#File for saving the filtered buried area only poses
 	result_file_to_select_hydrogen_bond_only_pose = config.get('DRUGDESIGN', 'result_file_to_select_hydrogen_bond_only_pose')
 	result_file_to_select_normalized_hydrogen_bond_only_pose = config.get('DRUGDESIGN', 'result_file_to_select_normalized_hydrogen_bond_only_pose')	
+	result_file_to_select_normalized_heavy_atom_hydrogen_bond_only_pose = config.get('DRUGDESIGN', 'result_file_to_select_normalized_heavy_atom_hydrogen_bond_only_pose')		
 	#Path where saved the selected compelex
 	path_to_save = os.path.join("selected_complexo", "hydrogen_bond")
 	path_to_save = os.path.join(path_analysis, path_to_save)
@@ -206,8 +207,8 @@ def main():
 
 #************** END OF RESIDUE LIST
 
-	#Loading normalized poses
-	path_file_normalized_pose = os.path.join(path_analysis, "summary_normalized_hbonds_4.0A_30.0deg.dat")
+	#Loading normalized poses donors and acceptors
+	path_file_normalized_pose = os.path.join(path_analysis, "summary_normalized_hbonds_donors_acceptors_4.0A_30.0deg.dat")
 	normalized_poseRDD = sc.textFile(path_file_normalized_pose)
 	header = normalized_poseRDD.first() #extract header		
 	#Spliting file by \t
@@ -257,7 +258,7 @@ def main():
 		path_to_save_b = sc.broadcast(path_to_save_normalized_residue) #Updated path to save complex	
 		sc.parallelize(only_pose_normalizedRDD).foreach(build_complex_from_pose_file_name)				
 
-	#Selecting poses by normalized
+	#Selecting poses by normalized donors and acceptors
 	#Broadcast
 	path_to_save_b = sc.broadcast(path_to_save_normalized) #Updated path to save complex
 	sc.parallelize(normalized_poseRDD).foreach(build_complex_from_pose_file_name)
