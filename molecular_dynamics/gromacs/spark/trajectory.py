@@ -1,5 +1,5 @@
 from pyspark import SparkContext, SparkConf, SparkFiles
-from pyspark.sql import SQLContext, Row	
+from pyspark.sql import SQLContext, Row
 import ConfigParser as configparser
 from subprocess import Popen, PIPE
 from datetime import datetime
@@ -23,7 +23,7 @@ def search_for_ligand_ndx_file(ndx_file):
 		return False
 
 def load_md_traj(file_of_md_analysis):
-	list_ret = []	
+	list_ret = []
 	f_file = open(file_of_md_analysis,"r")
 	for line in f_file:
 		splited_line = str(line).split()
@@ -34,10 +34,10 @@ def load_md_traj(file_of_md_analysis):
 		total_running = int(splited_line[4])
 
 		obj = md_description(path, prefix_ref, repetion_number, title_output, total_running)
-		list_ret.append(obj)	
+		list_ret.append(obj)
 	return list_ret
 
-	
+
 def save_log_trajectory(finish_time, start_time):
 	log_file_name = 'gromacs_trajectory.log'
 	current_path = os.getcwd()
@@ -60,7 +60,7 @@ def main():
 	config.read('config.ini')
 
 	#Path for gromacs spark project
-	path_spark_gromacs = config.get('DRUGDESIGN', 'path_spark_gromacs')	
+	path_spark_gromacs = config.get('DRUGDESIGN', 'path_spark_gromacs')
 
 	#Adding Python Source file
 	sc.addPyFile(os.path.join(path_spark_gromacs,"md_description.py"))
@@ -69,9 +69,10 @@ def main():
 
 	#Adding bash scripts
 	sc.addFile(os.path.join(path_spark_gromacs,"make_ndx_trajectory.sh"))
+	sc.addFile(os.path.join(path_spark_gromacs, "select.sh"))
 
 	#path for gromacs program
-	gromacs_path = preparing_path(config.get('DRUGDESIGN', 'gromacs_path'))	
+	gromacs_path = preparing_path(config.get('DRUGDESIGN', 'gromacs_path'))
 
 	time_dt = int(config.get('GROMACS_ANALYSIS', 'time_dt'))
 	time_dt_pdb = int(config.get('GROMACS_ANALYSIS', 'time_dt_pdb'))
@@ -79,7 +80,7 @@ def main():
 
 	#File that contains all md to create the trajectory
 	file_of_md_analysis = sys.argv[1]
-	check_file_exists(file_of_md_analysis)	
+	check_file_exists(file_of_md_analysis)
 
 	start_time  = datetime.now()
 
@@ -97,8 +98,8 @@ def main():
 		# Original file names from the simulation
 		reference_xtc = os.path.join(md_obj.path, md_obj.get_simulation_prefix()+".xtc")
 		reference_tpr = os.path.join(md_obj.path,md_obj.get_simulation_prefix()+".tpr")
-	
-		# File names after trajectory treatment. 
+
+		# File names after trajectory treatment.
 		allatom_xtc = os.path.join(ana_dir,md_obj.get_prefix_ref()+"_fit."+str(md_obj.get_repetion_number())+".xtc")
 		allatom_tpr = reference_tpr
 		nonwater_xtc = os.path.join(ana_dir,md_obj.get_prefix_ref()+"_non-water."+str(md_obj.get_repetion_number())+".xtc")
@@ -109,48 +110,48 @@ def main():
 		#Trajectory treatment to remove PBC artifacts
 		xtc_whole = os.path.join(ana_dir,md_obj.get_prefix_ref()+"_whole."+str(md_obj.get_repetion_number())+".xtc")
 		command = "echo System | "+ gromacs_path.value +"./gmx trjconv " +"-f " + reference_xtc +" -s " + reference_tpr + " -pbc whole" + " -o " + xtc_whole + " >/dev/null 2>/dev/null"
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 
 		#Extracting first frame
 		gro_first_frame = os.path.join(ana_dir,"0."+str(md_obj.get_repetion_number())+".gro")
 		command = "echo System | "+ gromacs_path.value +"./gmx trjconv " +"-f "  + xtc_whole + " -s " +reference_tpr + " -e 0.1 " " -o " + gro_first_frame + " >/dev/null 2>/dev/null"
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 
 		#Removing jumps
 		xtc_nojump = os.path.join(ana_dir,md_obj.get_prefix_ref()+"_nojump."+str(md_obj.get_repetion_number())+".xtc" )
 		command = "echo System | "+ gromacs_path.value +"./gmx trjconv " +"-f "  + xtc_whole + " -s " + gro_first_frame + " -pbc nojump " + " -o " + xtc_nojump + " >/dev/null 2>/dev/null"
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 
 		#Centering the protein
-		xtc_center_protein = os.path.join(ana_dir,md_obj.get_prefix_ref()+"_center."+str(md_obj.get_repetion_number())+".xtc")		
+		xtc_center_protein = os.path.join(ana_dir,md_obj.get_prefix_ref()+"_center."+str(md_obj.get_repetion_number())+".xtc")
 		command = "echo C-alpha System | "+ gromacs_path.value +"./gmx trjconv " +"-f " + xtc_whole + " -s " + gro_first_frame +  " -center " + " -o " + xtc_center_protein +" >/dev/null 2>/dev/null"
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 
 		#Putting all atoms in a compact box
 		xtc_atoms_box = os.path.join(ana_dir,md_obj.get_prefix_ref()+"_atom."+str(md_obj.get_repetion_number())+".xtc")
 		command =  "echo System | "+ gromacs_path.value +"./gmx trjconv " +"-f " + xtc_center_protein + " -s " + gro_first_frame + " -ur compact " + " -pbc atom " + " -o " + xtc_atoms_box + " >/dev/null 2>/dev/null"
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 
 		#Fitting the protein
-		command = "echo C-alpha System | "+ gromacs_path.value +"./gmx trjconv " +"-f " + xtc_atoms_box + " -s " + gro_first_frame + " -fit rot+trans " + " -o " + allatom_xtc + " >/dev/null 2>/dev/null"		
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
+		command = "echo C-alpha System | "+ gromacs_path.value +"./gmx trjconv " +"-f " + xtc_atoms_box + " -s " + gro_first_frame + " -fit rot+trans " + " -o " + allatom_xtc + " >/dev/null 2>/dev/null"
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 
 		#Creating water-free trajectory
 		command = "echo non-water | "+ gromacs_path.value +"./gmx convert-tpr " + " -s " + reference_tpr + " -o " + nonwater_tpr + " >/dev/null 2>/dev/null"
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 		command = "echo non-water | "+ gromacs_path.value +"./gmx trjconv " +"-f " + allatom_xtc + " -s " + gro_first_frame + " -o " + nonwater_xtc + " >/dev/null 2>/dev/null"
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
-		command = "echo system | "+ gromacs_path.value +"./gmx trjconv " +" -f " + nonwater_xtc + " -s " + nonwater_tpr + " -o "+ nonwater_pdb + " -dt " + str(time_dt_pdb.value) + " >/dev/null 2>/dev/null"		
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
+		command = "echo system | "+ gromacs_path.value +"./gmx trjconv " +" -f " + nonwater_xtc + " -s " + nonwater_tpr + " -o "+ nonwater_pdb + " -dt " + str(time_dt_pdb.value) + " >/dev/null 2>/dev/null"
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 
 		#Creating water_layer_thickness - A water-layer pdb trajectory
 		t = 0
@@ -160,22 +161,42 @@ def main():
 		if os.path.isfile(waterlayer_pdb):
 			os.remove(waterlayer_pdb)
 		if os.path.isfile(ndx_water_layer):
-			os.remove(ndx_water_layer) 
+			os.remove(ndx_water_layer)
 		select_string = '"water_layer" (same residue as ( (resname SOL and within 0.'"$water_layer_thickness"' of group "Protein"))) or (group "Ion" and within 0.'"$water_layer_thickness"' of group "Protein") or (group "Protein")'
-		select_string = select_string.replace("$water_layer_thickness", str(water_layer_thickness.value) )				
-		#Script for running make_ndx		
+		select_string = select_string.replace("$water_layer_thickness", str(water_layer_thickness.value) )
+		#Script for running make_ndx
 		script_make_ndx_traj = SparkFiles.get("make_ndx_trajectory.sh") #Getting bash script that was copied by addFile command
 		command = script_make_ndx_traj + " "+ gromacs_path.value + " "+ reference_tpr + " "+ ndx_temporary
-		##proc = Popen(command, shell=True, stdout=PIPE)
-		##proc.communicate()
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 		#Are there ligands?
 		if search_for_ligand_ndx_file(ndx_temporary) == True:
-			select_string = select_string +' or (same residue as ( (resname SOL and within 0.'"$water_layer_thickness"' of group "Other"))) or (group "Ion" and within 0.'"$water_layer_thickness"' of group "Other") or (group "Other")'
-			select_string = select_string.replace("$water_layer_thickness", str(water_layer_thickness.value) )
-		
+		    select_string = select_string +' or (same residue as ( (resname SOL and within 0.'"$water_layer_thickness"' of group "Other"))) or (group "Ion" and within 0.'"$water_layer_thickness"' of group "Other") or (group "Other")'
+	        select_string = select_string.replace("$water_layer_thickness", str(water_layer_thickness.value) )
 
+
+		script_select = SparkFiles.get("select.sh")
+		command = script_select + " " + gromacs_path.value + " " + allatom_xtc + " " + allatom_tpr + " " + ndx_water_layer + " " + select_string + " " + str(time_dt_pdb.value)
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
+
+		#Creating pdb files
+		commmand = "echo " + str(frame) + " | " + gromacs_path.value + "./gmx trjconv " + "-f " + allatom_xtc + " -s " + allatom_tpr + " -n " + ndx_water_layer + " -o " + "frame_" + str(frame) + ".pdb " + "-b " + str(t) + " -e " + str(t) + " >/dev/null 2>/dev/null"
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
+		command =  "echo MODEL " + str(frame) + " >> " + waterlayer_pdb
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
+		command = "grep ATOM " + "frame_" + str(frame) + ".pdb " + ">> " + waterlayer_pdb
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
+		command = "echo ENDML" + ">> " + waterlayer_pdb
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
+		frame = frame + 1
+		t = t + int(time_dt_pdb.value)
 #************************** END FUNCTION **************************************
-	
+
 	list_obj_md = load_md_traj(file_of_md_analysis)
 
 	md_trajRDD = sc.parallelize(list_obj_md)
