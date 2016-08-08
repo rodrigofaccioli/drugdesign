@@ -162,7 +162,7 @@ def main():
 			os.remove(waterlayer_pdb)
 		if os.path.isfile(ndx_water_layer):
 			os.remove(ndx_water_layer)
-		select_string = '"water_layer" (same residue as ( (resname SOL and within 0.'"$water_layer_thickness"' of group "Protein"))) or (group "Ion" and within 0.'"$water_layer_thickness"' of group "Protein") or (group "Protein")'
+		select_string = '\'"water_layer" (same residue as ((resname SOL and within 0.'"$water_layer_thickness"' of group "Protein"))) or (group "Ion" and within 0.'"$water_layer_thickness"' of group "Protein") or (group "Protein")\''
 		select_string = select_string.replace("$water_layer_thickness", str(water_layer_thickness.value) )
 		#Script for running make_ndx
 		script_make_ndx_traj = SparkFiles.get("make_ndx_trajectory.sh") #Getting bash script that was copied by addFile command
@@ -171,7 +171,7 @@ def main():
 		proc.communicate()
 		#Are there ligands?
 		if search_for_ligand_ndx_file(ndx_temporary) == True:
-		    select_string = select_string +' or (same residue as ( (resname SOL and within 0.'"$water_layer_thickness"' of group "Other"))) or (group "Ion" and within 0.'"$water_layer_thickness"' of group "Other") or (group "Other")'
+		    select_string = select_string +'\'or (same residue as ((resname SOL and within 0.'"$water_layer_thickness"' of group "Other"))) or (group "Ion" and within 0.'"$water_layer_thickness"' of group "Other") or (group "Other")\''
 	        select_string = select_string.replace("$water_layer_thickness", str(water_layer_thickness.value) )
 
 
@@ -181,7 +181,7 @@ def main():
 		proc.communicate()
 
 		#Creating pdb files
-		commmand = "echo " + str(frame) + " | " + gromacs_path.value + "./gmx trjconv " + "-f " + allatom_xtc + " -s " + allatom_tpr + " -n " + ndx_water_layer + " -o " + "frame_" + str(frame) + ".pdb " + "-b " + str(t) + " -e " + str(t) + " >/dev/null 2>/dev/null"
+		command = "echo " + str(frame) + " | " + gromacs_path.value + "./gmx trjconv " + "-f " + allatom_xtc + " -s " + allatom_tpr + " -n " + ndx_water_layer + " -o " + "frame_" + str(frame) + ".pdb " + "-b " + str(t) + " -e " + str(t) + " >/dev/null 2>/dev/null"
 		proc = Popen(command, shell=True, stdout=PIPE)
 		proc.communicate()
 		command =  "echo MODEL " + str(frame) + " >> " + waterlayer_pdb
@@ -193,8 +193,30 @@ def main():
 		command = "echo ENDML" + ">> " + waterlayer_pdb
 		proc = Popen(command, shell=True, stdout=PIPE)
 		proc.communicate()
+
+		#Removing temporary files
+		command = "rm frame_" + str(frame) + ".pdb"
+		proc = Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
 		frame = frame + 1
 		t = t + int(time_dt_pdb.value)
+
+		if os.path.isfile(xtc_whole):
+			os.remove(xtc_whole)
+		if os.path.isfile(xtc_nojump):
+			os.remove(xtc_nojump)
+		if os.path.isfile(xtc_center_protein):
+			os.remove(xtc_center_protein)
+		if os.path.isfile(xtc_atoms_box):
+			os.remove(xtc_atoms_box)
+		if os.path.isfile(ndx_water_layer):
+			os.remove(ndx_water_layer)
+		if os.path.isfile(gro_first_frame):
+			os.remove(gro_first_frame)
+		command = "rm \#* 2>/dev/null"
+		proc =  Popen(command, shell=True, stdout=PIPE)
+		proc.communicate()
+
 #************************** END FUNCTION **************************************
 
 	list_obj_md = load_md_traj(file_of_md_analysis)
