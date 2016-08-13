@@ -67,10 +67,6 @@ def main():
 	sc.addPyFile(os.path.join(path_spark_gromacs,"gromacs_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_gromacs,"os_utils.py"))
 
-	#Adding bash scripts
-	sc.addFile(os.path.join(path_spark_gromacs,"make_ndx_trajectory.sh"))
-	sc.addFile(os.path.join(path_spark_gromacs, "select.sh"))
-
 	#path for gromacs program
 	gromacs_path = preparing_path(config.get('DRUGDESIGN', 'gromacs_path'))
 
@@ -164,9 +160,8 @@ def main():
 			os.remove(ndx_water_layer)
 		select_string = '\'"water_layer" (same residue as ((resname SOL and within 0.'"$water_layer_thickness"' of group "Protein"))) or (group "Ion" and within 0.'"$water_layer_thickness"' of group "Protein") or (group "Protein")\''
 		select_string = select_string.replace("$water_layer_thickness", str(water_layer_thickness.value) )
-		#Script for running make_ndx
-		script_make_ndx_traj = SparkFiles.get("make_ndx_trajectory.sh") #Getting bash script that was copied by addFile command
-		command = script_make_ndx_traj + " "+ gromacs_path.value + " "+ reference_tpr + " "+ ndx_temporary
+		#Running make_ndx
+		command = "echo -e 'q' \"\\n\" | " + gromacs_path.value + "gmx make_ndx " + "-f " + reference_tpr +  " -o " + ndx_temporary + " >/dev/null 2>/dev/null"
 		proc = Popen(command, shell=True, stdout=PIPE)
 		proc.communicate()
 		#Are there ligands?
@@ -174,9 +169,7 @@ def main():
 		    select_string = select_string +'\'or (same residue as ((resname SOL and within 0.'"$water_layer_thickness"' of group "Other"))) or (group "Ion" and within 0.'"$water_layer_thickness"' of group "Other") or (group "Other")\''
 	        select_string = select_string.replace("$water_layer_thickness", str(water_layer_thickness.value) )
 
-
-		script_select = SparkFiles.get("select.sh")
-		command = script_select + " " + gromacs_path.value + " " + allatom_xtc + " " + allatom_tpr + " " + ndx_water_layer + " " + select_string + " " + str(time_dt_pdb.value)
+		command = gromacs_path.value + "gmx select -f " + allatom_xtc + " -s " + allatom_tpr + " -on " + ndx_water_layer + " -select " + select_string + " -dt " + str(time_dt_pdb.value) + " >/dev/null 2>/dev/null"
 		proc = Popen(command, shell=True, stdout=PIPE)
 		proc.communicate()
 
