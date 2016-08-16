@@ -23,3 +23,5 @@ $spark_paths --driver-memory $d_memory $path_files"/"vs_full_data_analysis.py
 $spark_paths --driver-memory $d_memory $path_files"/"buried_area_residue_selection.py
 
 $spark_paths --driver-memory $d_memory $path_files"/"hydrogen_bond_residue_selection.py
+
+$spark_paths --driver-memory $d_memory $path_files"/"mult_objective_selection.py

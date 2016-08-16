@@ -77,3 +77,8 @@ It must be executed before Burried area analysis.
 *************************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bond_residue_selection.py
 
+*************************************************************************************************************************************
+* 				Selecting complex based on mult-objective
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/mult_objective_selection.py
+
