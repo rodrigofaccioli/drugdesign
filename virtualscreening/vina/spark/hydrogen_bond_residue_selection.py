@@ -6,6 +6,8 @@ import os
 from datetime import datetime
 from vina_utils import get_directory_pdb_analysis, get_ligand_from_receptor_ligand_model
 from database_io import load_database
+from hydrogen_bond_io import load_file_select_hydrogen_bond, load_file_all_residue_hbonds, load_only_poses_file_hydrogen_bond, load_only_poses_file_hydrogen_bond_normalized_by_residues, load_file_summary_normalized_hbonds
+from hydrogen_bond_crud import create_df_residue_list, create_df_all_residue, create_df_all_residue_filtered_by_res_list, get_group_by_poses_all_residue_filtered_by_res_list, create_df_normalized_by_donors_acceptors, create_df_normalized_by_heavy_atoms
 
 def save_result_only_pose_normalized_by_residue_list_heavy_atoms(path_file_result_file_only_pose, df_result):
 	list_aux = []	
@@ -133,139 +135,77 @@ def main():
 	path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')	
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"database_io.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"hydrogen_bond_io.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"hydrogen_bond_crud.py"))
 
 	#load all-residue_hbonds_4.0A_30.0deg.dat file
 	path_file_hydrogen_bond = os.path.join(path_analysis, "all-residue_hbonds_4.0A_30.0deg.dat")
-	all_residue	= sc.textFile(path_file_hydrogen_bond)
-	header = all_residue.first() #extract header	
-
-	#Spliting file by \t
-	all_residue_split = all_residue.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-	all_residue_split = all_residue_split.map(lambda p: Row( ligand_atom=str(p[0]), accept_or_donate=str(p[1]), receptor_residue=str(p[2]), receptor_atom=str(p[3]), distance=float(p[4]), angle=float(p[5]), pose=str(p[6]) ))
+	all_residue_split = load_file_all_residue_hbonds(sc, path_file_hydrogen_bond)
 
 	#Creating all_residue Dataframe
-	df_all_residue = sqlCtx.createDataFrame(all_residue_split)	
-	df_all_residue.registerTempTable("all_residue")
+	df_all_residue = create_df_all_residue(sqlCtx, all_residue_split)
 
 	if os.path.isfile(file_select_hydrogen_bond):
 		#Creating resudue list as Dataframe
-		residue_list = sc.textFile(file_select_hydrogen_bond)	
-		header = residue_list.first() #extract header		
-		#Spliting file by \t
-		residue_listRDD = residue_list.filter(lambda x:x !=header).map(lambda line: line)
-		residue_listRDD = residue_listRDD.map(lambda p: Row( residue=str(p).strip() ))
+		residue_listRDD = load_file_select_hydrogen_bond(sc, file_select_hydrogen_bond)
+		df_residue_list = create_df_residue_list(sqlCtx, residue_listRDD)		
 
-		df_residue_list = sqlCtx.createDataFrame(residue_listRDD)	
-		df_residue_list.registerTempTable("residue_list")
-
-		#Getting all information based on list of residues
-		sql = """
-	    	SELECT all_residue.*
-	       	FROM all_residue 
-	       	JOIN residue_list ON residue_list.residue = all_residue.receptor_residue
-	        """
-		df_result = sqlCtx.sql(sql)
-		df_result.registerTempTable("residues_filtered_by_list")
-
+		df_result = create_df_all_residue_filtered_by_res_list(sqlCtx)
 		#Saving result
 		path_file_result_file = os.path.join(path_analysis, result_file_to_select_hydrogen_bond)
 		save_result(path_file_result_file, df_result)	
 
-		#Grouping
-		sql = """
-	    	SELECT pose, count(*) as num_res
-	       	FROM residues_filtered_by_list 
-	        GROUP BY pose
-	        ORDER BY num_res DESC 
-	       """	
-		df_result = sqlCtx.sql(sql)	
+		#Grouping by poses
+		df_result = get_group_by_poses_all_residue_filtered_by_res_list(sqlCtx)
 
 		#Saving result only pose
 		path_file_result_file_only_pose = os.path.join(path_analysis, result_file_to_select_hydrogen_bond_only_pose)
 		save_result_only_pose(path_file_result_file_only_pose, df_result)	
 
-		#Loading poses
-		only_poseRDD = sc.textFile(path_file_result_file_only_pose)
-		header = only_poseRDD.first() #extract header		
-		#Spliting file by \t
-		only_poseRDD = only_poseRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-		only_poseRDD = only_poseRDD.map(lambda p: Row( pose=str(p[0]).strip(), num_res=int(str(p[1]).strip()), f_name=str(p[1]).strip()+"_hb_"+str(p[0]).strip() ) )
-
+		#Loading all poses group by poses
+		only_poseRDD = load_only_poses_file_hydrogen_bond(sc, path_file_result_file_only_pose)
 		only_pose_takeRDD = only_poseRDD.take(number_poses_to_select_hydrogen_bond)
 
 		#Calculating normalized hydrogen bond
+
 		#Loading database
 		rdd_database = load_database(sc, ligand_database)
 		#Creating Dataframe
 		database_table = sqlCtx.createDataFrame(rdd_database)	
 		database_table.registerTempTable("database")
 
-		normalizedRDD = df_result.map(lambda p: Row(num_res=int(p.num_res), ligand=get_ligand_from_receptor_ligand_model(p.pose), pose=str(p.pose) ) ).collect()
-		#Creating Dataframe 
-		normalized_residues_filtered_by_list_table = sqlCtx.createDataFrame(normalizedRDD)	
-		normalized_residues_filtered_by_list_table.registerTempTable("normalized_residues_filtered_by_list")
-		# Normalized Hydrogen Bond by donors and acceptors
-		sql = """
-			SELECT pose, (b.num_res / a.hb_donors_acceptors) as normalized_hb
-			FROM database a 
-			JOIN normalized_residues_filtered_by_list b ON b.ligand = a.ligand
-			ORDER BY normalized_hb DESC 
-	      """
-		df_result = sqlCtx.sql(sql)			
-
-		#Saving result only pose by normalized buried area
+		#Creating Dataframe normalized_by_donors_acceptors		
+		df_result = create_df_normalized_by_donors_acceptors(sqlCtx, df_result)
+		#Saving result only pose by normalized hydrogen bond
 		path_file_result_file_only_pose = os.path.join(path_analysis, result_file_to_select_normalized_hydrogen_bond_only_pose)
 		save_result_only_pose_normalized_by_residue_list(path_file_result_file_only_pose, df_result)	
 
 		#Loading poses - normalized_residues_filtered_by_list
-		only_pose_normalizedRDD = sc.textFile(path_file_result_file_only_pose)
-		header = only_pose_normalizedRDD.first() #extract header		
-		#Spliting file by \t
-		only_pose_normalizedRDD = only_pose_normalizedRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-		only_pose_normalizedRDD = only_pose_normalizedRDD.map(lambda p: Row( pose=str(p[0]).strip(), normalized_hb_res=float(str(p[1]).strip() ), f_name=str(p[1]).strip()+"_hb_"+str(p[0]).strip()  ))
-
+		only_pose_normalizedRDD = load_only_poses_file_hydrogen_bond_normalized_by_residues(sc, path_file_result_file_only_pose)
 		only_pose_normalizedRDD = only_pose_normalizedRDD.take(number_poses_to_select_hydrogen_bond)
+		
 		# Normalized Hydrogen Bond by heavy atoms
-		sql = """
-			SELECT pose, (b.num_res / a.heavyAtom) as normalized_hb
-			FROM database a 
-			JOIN normalized_residues_filtered_by_list b ON b.ligand = a.ligand
-			ORDER BY normalized_hb DESC 
-	      """
-		df_result = sqlCtx.sql(sql)			
+		df_result = create_df_normalized_by_heavy_atoms(sqlCtx)			
 
 		#Saving result only pose by normalized buried area
 		path_file_result_file_only_pose = os.path.join(path_analysis, result_file_to_select_normalized_heavy_atom_hydrogen_bond_only_pose)
 		save_result_only_pose_normalized_by_residue_list_heavy_atoms(path_file_result_file_only_pose, df_result)	
 
 		#Loading poses - normalized_residues_filtered_by_list
-		only_pose_normalized_heavyAtomsRDD = sc.textFile(path_file_result_file_only_pose)
-		header = only_pose_normalized_heavyAtomsRDD.first() #extract header		
-		#Spliting file by \t
-		only_pose_normalized_heavyAtomsRDD = only_pose_normalized_heavyAtomsRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-		only_pose_normalized_heavyAtomsRDD = only_pose_normalized_heavyAtomsRDD.map(lambda p: Row( pose=str(p[0]).strip(), normalized_hb_res=float(str(p[1]).strip() ), f_name=str(p[1]).strip()+"_hb_"+str(p[0]).strip()  ))
-
+		only_pose_normalized_heavyAtomsRDD = load_only_poses_file_hydrogen_bond_normalized_by_residues(sc, path_file_result_file_only_pose)
 		only_pose_normalized_heavyAtomsRDD = only_pose_normalized_heavyAtomsRDD.take(number_poses_to_select_hydrogen_bond)
 
 #************** END OF RESIDUE LIST
 
 	#Loading normalized poses by donors and acceptors
 	path_file_normalized_pose = os.path.join(path_analysis, "summary_normalized_hbonds_donors_acceptors_4.0A_30.0deg.dat")
-	normalized_poseRDD = sc.textFile(path_file_normalized_pose)
-	header = normalized_poseRDD.first() #extract header		
-	#Spliting file by \t
-	normalized_poseRDD = normalized_poseRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-	normalized_poseRDD = normalized_poseRDD.map(lambda p: Row( pose=str(p[1]).strip(), normalized=float(str(p[0]).strip()), f_name=str(p[0]).strip()+"_hb_"+str(p[1]).strip() ) )
+	normalized_poseRDD = load_file_summary_normalized_hbonds(sc, path_file_normalized_pose)
 
 	normalized_poseRDD = normalized_poseRDD.take(number_poses_to_select_hydrogen_bond)
 
 	#Loading normalized poses by heavy atoms
 	path_file_normalized_pose = os.path.join(path_analysis, "summary_normalized_hbonds_heavyAtom_4.0A_30.0deg.dat")
-	normalized_pose_heavyAtomsRDD = sc.textFile(path_file_normalized_pose)
-	header = normalized_pose_heavyAtomsRDD.first() #extract header		
-	#Spliting file by \t
-	normalized_pose_heavyAtomsRDD = normalized_pose_heavyAtomsRDD.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-	normalized_pose_heavyAtomsRDD = normalized_pose_heavyAtomsRDD.map(lambda p: Row( pose=str(p[1]).strip(), normalized=float(str(p[0]).strip()), f_name=str(p[0]).strip()+"_hb_"+str(p[1]).strip() ) )
+	normalized_pose_heavyAtomsRDD = load_file_summary_normalized_hbonds(sc, path_file_normalized_pose)
 
 	normalized_pose_heavyAtomsRDD = normalized_pose_heavyAtomsRDD.take(number_poses_to_select_hydrogen_bond)
 

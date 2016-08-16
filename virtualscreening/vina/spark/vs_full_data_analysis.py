@@ -5,12 +5,14 @@ import os
 from vina_utils import get_file_name_sorted_energy
 from datetime import datetime
 from database_io import load_database
+from hydrogen_bond_io import load_file_summary_hbonds
+from hydrogen_bond_crud import create_df_hydrogen_bond
 
-def format_Hydrogen_bind(num_hydrogen_bind):
-	if num_hydrogen_bind == None:
+def format_Hydrogen_bond(num_hydrogen_bond):
+	if num_hydrogen_bond == None:
 		return "0"
 	else:
-		return str(num_hydrogen_bind)
+		return str(num_hydrogen_bond)
 
 def save_vs_full_data(path_analysis, list_full_data, full_data_file_name):	
 	path_file_vs_full_data = os.path.join(path_analysis, full_data_file_name)
@@ -18,7 +20,7 @@ def save_vs_full_data(path_analysis, list_full_data, full_data_file_name):
 	header = "# affinity[kcal/mol]\tligand_efficiency[kcal/mol.ha]\tnumber_hbonds\tburied_area_lig[nm2]\tburied_area_lig[%]\tburied_area_lig-lig[%]\tburied_area_rec[nm2]\tburied_area_total[nm2]\tpose\n"
 	f_vs_full_data.write(header)	
 	for full_data in list_full_data:		
-		line = str("{:.2f}".format(full_data[0]))+"\t"+str("{:.4f}".format(full_data[1]))+"\t"+format_Hydrogen_bind(full_data[2])+"\t"+str("{:.4f}".format(full_data[3]))+"\t"+str("{:.4f}".format(full_data[4]))+"\t"+str("{:.4f}".format(full_data[5]))+"\t"+str("{:.4f}".format(full_data[6]))+"\t"+str("{:.4f}".format(full_data[7]))+"\t"+ str(full_data[8])+"\n"
+		line = str("{:.2f}".format(full_data[0]))+"\t"+str("{:.4f}".format(full_data[1]))+"\t"+format_Hydrogen_bond(full_data[2])+"\t"+str("{:.4f}".format(full_data[3]))+"\t"+str("{:.4f}".format(full_data[4]))+"\t"+str("{:.4f}".format(full_data[5]))+"\t"+str("{:.4f}".format(full_data[6]))+"\t"+str("{:.4f}".format(full_data[7]))+"\t"+ str(full_data[8])+"\n"
 		f_vs_full_data.write(line)
 	f_vs_full_data.close()
 
@@ -56,7 +58,8 @@ def main():
 	#Adding Python Source file
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"database_io.py"))
-
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"hydrogen_bond_io.py"))	
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"hydrogen_bond_crud.py"))
 
 	#Sufix of completly data file
 	full_data_file_name = config.get('DRUGDESIGN', 'full_data_file_name')
@@ -128,17 +131,12 @@ def main():
 	buried_area_file_ligand_table.registerTempTable("buried_area_ligand")
 #**************** Finish	
 
-#**************** Loading Hydrogen Bind 
-	hydrogen_bind_num_pose_file_name = os.path.join(path_analysis,"summary_hbonds_4.0A_30.0deg.dat")
-	hydrogen_bind_num_pose_file = sc.textFile(hydrogen_bind_num_pose_file_name)
-	header = hydrogen_bind_num_pose_file.first() #extract header	
-
-	#Spliting file by \t
-	rdd_hydrogen_bind_split = hydrogen_bind_num_pose_file.filter(lambda x:x !=header).map(lambda line: line.split("\t"))
-	rdd_hydrogen_bind = rdd_hydrogen_bind_split.map(lambda p: Row(numHydroBind=int(p[0]), pose=str(p[1]) ) )
+#**************** Loading Hydrogen Bond 
+	hydrogen_bond_num_pose_file_name = os.path.join(path_analysis,"summary_hbonds_4.0A_30.0deg.dat")
+	rdd_hydrogen_bond = load_file_summary_hbonds(sc, hydrogen_bond_num_pose_file_name)
 	#Creating buried Dataframe
-	hydrogen_bind_table = sqlCtx.createDataFrame(rdd_hydrogen_bind)	
-	hydrogen_bind_table.registerTempTable("hydrogenbind")
+	hydrogen_bond_table = create_df_hydrogen_bond(sqlCtx, rdd_hydrogen_bond)
+	
 #**************** Finish	
 
 	#Creating SQL command
@@ -147,18 +145,18 @@ def main():
 	sql +=" ,buriedArea_total.buried_area_total"
 	sql +=" ,buried_area_receptor.buried_area_receptor"
 	sql +=" ,buried_area_ligand.buried_area_lig, buried_area_ligand.buried_area_lig_perc, buried_area_ligand.buried_area_lig_lig_perc "
-	sql +=" ,hydrogenbind.numHydroBind	"
+	sql +=" ,hydrogenbond.numHydroBond	"
 	sql +=" FROM vina_lig_efficiency"
 	sql +=" JOIN buriedArea_total ON buriedArea_total.pose = vina_lig_efficiency.pose"	
 	sql +=" JOIN buried_area_receptor ON buried_area_receptor.pose = vina_lig_efficiency.pose"	
 	sql +=" JOIN buried_area_ligand ON buried_area_ligand.pose = vina_lig_efficiency.pose"	
 	sql +=" LEFT OUTER	"	
-	sql +=" JOIN hydrogenbind ON hydrogenbind.pose = vina_lig_efficiency.pose"		
+	sql +=" JOIN hydrogenbond ON hydrogenbond.pose = vina_lig_efficiency.pose"		
 	sql +=" ORDER BY vina_lig_efficiency.pose"
 
 	#Getting all data
 	full_dataRDD = sqlCtx.sql(sql) 
-	full_dataRDD = full_dataRDD.map(lambda p: (p.affinity, p.ligand_efficiency, p.numHydroBind, p.buried_area_lig, p.buried_area_lig_perc, p.buried_area_lig_lig_perc, p.buried_area_total, p.buried_area_receptor, p.pose) ).collect()
+	full_dataRDD = full_dataRDD.map(lambda p: (p.affinity, p.ligand_efficiency, p.numHydroBond, p.buried_area_lig, p.buried_area_lig_perc, p.buried_area_lig_lig_perc, p.buried_area_total, p.buried_area_receptor, p.pose) ).collect()
 
 	#Saving file
 	save_vs_full_data(path_analysis, full_dataRDD, full_data_file_name)	
