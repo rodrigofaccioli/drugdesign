@@ -1,6 +1,6 @@
 virtualscreening
 ================
-In this directory for performing the virtual screening.
+This directory is responsible for performing the Virtual Screening.
 
-Nowadays, this project supports virtual screening based on AutoDock Vina. Look for vina directory for more details about it.
-
+The current build supports Virtual Screening trough the AutoDock Vina software. 
+For more information about Vina, please check the respective diretory.
