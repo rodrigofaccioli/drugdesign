@@ -1,5 +1,5 @@
+import sys
 from subprocess import Popen, PIPE
-
 
 def run_basic_analysis(basic_an_data):
     gromacs_path, nonwater_xtc, nonwater_tpr, simulation_prefix,\
@@ -18,7 +18,6 @@ def run_basic_analysis(basic_an_data):
                + "/rmsd_ca_"
                + simulation_prefix
                + ".xvg")
-    print(command + "HAHAHAHAHA\n\n\n\n")
     proc = Popen(command, shell=True, stdout=PIPE)
     proc.communicate()
 
@@ -37,7 +36,6 @@ def run_basic_analysis(basic_an_data):
                + ".xvg "
                + " -dt "
                + str(time_dt))
-    print(command + "HAHAHAHAHA\n\n\n\n")
     proc = Popen(command, shell=True, stdout=PIPE)
     proc.communicate()
 
@@ -54,7 +52,6 @@ def run_basic_analysis(basic_an_data):
                + "/rg_ca_"
                + str(simulation_prefix)
                + ".xvg")
-    print(command + "HAHAHAHAHA\n\n\n\n")
     proc = Popen(command, shell=True, stdout=PIPE)
     proc.communicate()
 
@@ -71,15 +68,13 @@ def run_basic_analysis(basic_an_data):
                + "/hb_p-p_"
                + simulation_prefix
                + ".xvg")
-    print(command + "HAHAHAHAHA\n\n\n\n")
     proc = Popen(command, shell=True, stdout=PIPE)
     proc.communicate()
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
 
-    # nonwater_xtc = "/home/hakory/Execute/teste_script_traj/ns3pro/ \
-    # analysis/md_non-water.1.xtc"
-    # reference_tpr = "/home/hakory/Execute/teste_script_traj/ns3pro/md.1.tpr"
+    test_ba_file = sys.argv[1]
+    basic_an_data = tuple(open(test_ba_file, "r"))
+    run_basic_analysis(basic_an_data)
 
-    # def basic_analysis(gromacs_path, nonwater_xtc, reference_tpr, prefix)
