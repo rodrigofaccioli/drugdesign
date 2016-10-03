@@ -1,6 +1,6 @@
 from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
-import ConfigParser as configparser
+import configparser
 from subprocess import Popen, PIPE
 from datetime import datetime
 import os
@@ -52,11 +52,11 @@ def save_log_trajectory(finish_time, start_time):
     log_file = open(path_file, 'w')
 
     diff_time = finish_time - start_time
-    msg = 'Starting ' + str(start_time) + '\n'
+    msg = "".join(['Starting ', str(start_time), '\n'])
     log_file.write(msg)
-    msg = 'Finishing ' + str(finish_time) + '\n'
+    msg = "".join(['Finishing ', str(finish_time), '\n'])
     log_file.write(msg)
-    msg = 'Time Execution (seconds): ' + str(diff_time.total_seconds()) + '\n'
+    msg = "".join(['Time Execution (seconds): ', str(diff_time.total_seconds()), '\n'])
     log_file.write(msg)
 
 
@@ -107,201 +107,191 @@ def main():
                                      md_obj.get_simulation_prefix() + ".tpr")
 
         # File names after trajectory treatment.
-        allatom_xtc = os.path.join(ana_dir,
-                                   md_obj.get_prefix_ref()
-                                   + "_fit."
-                                   + str(md_obj.get_repetion_number())
-                                   + ".xtc")
+        allatom_xtc = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
+                                                     "_fit.",
+                                                     str(md_obj.get_repetion_number()),
+                                                     ".xtc"]))
         allatom_tpr = reference_tpr
-        nonwater_xtc = os.path.join(ana_dir,
-                                    md_obj.get_prefix_ref()
-                                    + "_non-water."
-                                    + str(md_obj.get_repetion_number())
-                                    + ".xtc")
-        nonwater_tpr = os.path.join(ana_dir,
-                                    md_obj.get_prefix_ref()
-                                    + "_non-water."
-                                    + str(md_obj.get_repetion_number())
-                                    + ".tpr")
-        nonwater_pdb = os.path.join(ana_dir,
-                                    md_obj.get_prefix_ref()
-                                    + "_non-water."
-                                    + str(md_obj.get_repetion_number())
-                                    + ".pdb")
-        waterlayer_pdb = os.path.join(ana_dir,
-                                      md_obj.get_prefix_ref()
-                                      + "_water-"
-                                      + str(water_layer_thickness.value)
-                                      + "A-layer."
-                                      + str(md_obj.get_repetion_number())
-                                      + ".pdb")
+        nonwater_xtc = os.path.join(ana_dir,"".join([md_obj.get_prefix_ref(),
+                                                     "_non-water.",
+                                                     str(md_obj.get_repetion_number()),
+                                                     ".xtc"]))
+        nonwater_tpr = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
+                                                      "_non-water.",
+                                                      str(md_obj.get_repetion_number()),
+                                                      ".tpr"]))
+        nonwater_pdb = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
+                                                      "_non-water.",
+                                                      str(md_obj.get_repetion_number()),
+                                                      ".pdb"]))
+        waterlayer_pdb = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
+                                                        "_water-",
+                                                        str(water_layer_thickness.value),
+                                                        "A-layer.",
+                                                        str(md_obj.get_repetion_number()),
+                                                        ".pdb"]))
 
         # Trajectory treatment to remove PBC artifacts
-        xtc_whole = os.path.join(ana_dir,
-                                 md_obj.get_prefix_ref()
-                                 + "_whole."
-                                 + str(md_obj.get_repetion_number())
-                                 + ".xtc")
-        command = ("echo System | "
-                   + gromacs_path.value
-                   + "./gmx trjconv "
-                   + "-f "
-                   + reference_xtc
-                   + " -s "
-                   + reference_tpr
-                   + " -pbc whole"
-                   + " -o "
-                   + xtc_whole
-                   + " >/dev/null 2>/dev/null")
+        xtc_whole = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
+                                                   "_whole.",
+                                                   str(md_obj.get_repetion_number()),
+                                                   ".xtc"]))
+
+        command = "".join(["echo System | ",
+                           gromacs_path.value,
+                           "./gmx trjconv ",
+                           "-f ",
+                           reference_xtc,
+                           " -s ",
+                           reference_tpr,
+                           " -pbc whole",
+                           " -o ",
+                           xtc_whole,
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Extracting first frame
-        gro_first_frame = os.path.join(ana_dir,
-                                       "0."
-                                       + str(md_obj.get_repetion_number())
-                                       + ".gro")
-        command = ("echo System | "
-                   + gromacs_path.value
-                   + "./gmx trjconv "
-                   + "-f "
-                   + xtc_whole
-                   + " -s "
-                   + reference_tpr
-                   + " -e 0.1 "
-                   + " -o "
-                   + gro_first_frame
-                   + " >/dev/null 2>/dev/null")
+        gro_first_frame = os.path.join(ana_dir, "".join(["0.",
+                                                         str(md_obj.get_repetion_number()),
+                                                         ".gro"]))
+        command = "".join(["echo System | ",
+                           gromacs_path.value,
+                           "./gmx trjconv ",
+                           "-f ",
+                           xtc_whole,
+                           " -s ",
+                           reference_tpr,
+                           " -e 0.1 ",
+                           " -o ",
+                           gro_first_frame,
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Removing jumps
         xtc_nojump = os.path.join(ana_dir,
-                                  md_obj.get_prefix_ref()
-                                  + "_nojump."
-                                  + str(md_obj.get_repetion_number())
-                                  + ".xtc")
-        command = ("echo System | "
-                   + gromacs_path.value
-                   + "./gmx trjconv "
-                   + "-f "
-                   + xtc_whole
-                   + " -s "
-                   + gro_first_frame
-                   + " -pbc nojump "
-                   + " -o "
-                   + xtc_nojump
-                   + " >/dev/null 2>/dev/null")
+                                  "".join([md_obj.get_prefix_ref(),
+                                           "_nojump.",
+                                           str(md_obj.get_repetion_number()),
+                                           ".xtc"]))
+        command = "".join(["echo System | ",
+                           gromacs_path.value,
+                           "./gmx trjconv ",
+                           "-f ",
+                           xtc_whole,
+                           " -s ",
+                           gro_first_frame,
+                           " -pbc nojump ",
+                           " -o ",
+                           xtc_nojump,
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Centering the protein
-        xtc_center_protein = os.path.join(ana_dir,
-                                          md_obj.get_prefix_ref()
-                                          + "_center."
-                                          + str(md_obj.get_repetion_number())
-                                          + ".xtc")
-        command = ("echo C-alpha System | "
-                   + gromacs_path.value
-                   + "./gmx trjconv "
-                   + "-f "
-                   + xtc_whole
-                   + " -s "
-                   + gro_first_frame
-                   + " -center "
-                   + " -o "
-                   + xtc_center_protein
-                   + " >/dev/null 2>/dev/null")
+        xtc_center_protein = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
+                                                            "_center.",
+                                                            str(md_obj.get_repetion_number()),
+                                                            ".xtc"]))
+        command = "".join(["echo C-alpha System | ",
+                           gromacs_path.value,
+                           "./gmx trjconv ",
+                           "-f ",
+                           xtc_whole,
+                           " -s ",
+                           gro_first_frame,
+                           " -center ",
+                           " -o ",
+                           xtc_center_protein,
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Putting all atoms in a compact box
-        xtc_atoms_box = os.path.join(ana_dir,
-                                     md_obj.get_prefix_ref()
-                                     + "_atom."
-                                     + str(md_obj.get_repetion_number())
-                                     + ".xtc")
-        command = ("echo System | "
-                   + gromacs_path.value
-                   + "./gmx trjconv "
-                   + "-f "
-                   + xtc_center_protein
-                   + " -s "
-                   + gro_first_frame
-                   + " -ur compact "
-                   + " -pbc atom "
-                   + " -o "
-                   + xtc_atoms_box
-                   + " >/dev/null 2>/dev/null")
+        xtc_atoms_box = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
+                                                       "_atom.",
+                                                       str(md_obj.get_repetion_number()),
+                                                       ".xtc"]))
+        command = "".join(["echo System | ",
+                           gromacs_path.value,
+                           "./gmx trjconv ",
+                           "-f ",
+                           xtc_center_protein,
+                           " -s ",
+                           gro_first_frame,
+                           " -ur compact ",
+                           " -pbc atom ",
+                           " -o ",
+                           xtc_atoms_box,
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Fitting the protein
-        command = ("echo C-alpha System | "
-                   + gromacs_path.value
-                   + "./gmx trjconv "
-                   + "-f "
-                   + xtc_atoms_box
-                   + " -s "
-                   + gro_first_frame
-                   + " -fit rot+trans "
-                   + " -o "
-                   + allatom_xtc
-                   + " >/dev/null 2>/dev/null")
+        command = "".join(["echo C-alpha System | ",
+                           gromacs_path.value,
+                           "./gmx trjconv ",
+                           "-f ",
+                           xtc_atoms_box,
+                           " -s ",
+                           gro_first_frame,
+                           " -fit rot+trans ",
+                           " -o ",
+                           allatom_xtc,
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Creating water-free trajectory
-        command = ("echo non-water | "
-                   + gromacs_path.value
-                   + "./gmx convert-tpr "
-                   + " -s "
-                   + reference_tpr
-                   + " -o "
-                   + nonwater_tpr
-                   + " >/dev/null 2>/dev/null")
+        command = "".join(["echo non-water | ",
+                           gromacs_path.value,
+                           "./gmx convert-tpr ",
+                           " -s ",
+                           reference_tpr,
+                           " -o ",
+                           nonwater_tpr,
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
-        command = ("echo non-water | "
-                   + gromacs_path.value
-                   + "./gmx trjconv "
-                   + "-f "
-                   + allatom_xtc
-                   + " -s "
-                   + gro_first_frame
-                   + " -o "
-                   + nonwater_xtc
-                   + " >/dev/null 2>/dev/null")
+        command = "".join(["echo non-water | ",
+                           gromacs_path.value,
+                           "./gmx trjconv ",
+                           "-f ",
+                           allatom_xtc,
+                           " -s ",
+                           gro_first_frame,
+                           " -o ",
+                           nonwater_xtc,
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
-        command = ("echo system | "
-                   + gromacs_path.value
-                   + "./gmx trjconv "
-                   + " -f "
-                   + nonwater_xtc
-                   + " -s "
-                   + nonwater_tpr
-                   + " -o "
-                   + nonwater_pdb
-                   + " -dt "
-                   + str(time_dt_pdb.value)
-                   + " >/dev/null 2>/dev/null")
+        command = "".join(["echo system | ",
+                           gromacs_path.value,
+                           "./gmx trjconv ",
+                           " -f ",
+                           nonwater_xtc,
+                           " -s ",
+                           nonwater_tpr,
+                           " -o ",
+                           nonwater_pdb,
+                           " -dt ",
+                           str(time_dt_pdb.value),
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Creating water_layer_thickness - A water-layer pdb trajectory
         t = 0
         frame = 0
-        ndx_water_layer = os.path.join(ana_dir,
-                                       md_obj.get_prefix_ref()
-                                       + "water-layer"
-                                       + str(md_obj.get_repetion_number())
-                                       + ".ndx")
-        ndx_temporary = os.path.join(ana_dir,
-                                     md_obj.get_prefix_ref()
-                                     + "temporary"
-                                     + str(md_obj.get_repetion_number())
-                                     + ".ndx")
+        ndx_water_layer = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
+                                                         "_water-layer.",
+                                                         str(md_obj.get_repetion_number()),
+                                                         ".ndx"]))
+        ndx_temporary = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
+                                                       "_temporary.",
+                                                       str(md_obj.get_repetion_number()),
+                                                       ".ndx"]))
         if os.path.isfile(waterlayer_pdb):
             os.remove(waterlayer_pdb)
         if os.path.isfile(ndx_water_layer):
@@ -312,14 +302,14 @@ def main():
         select_string = select_string.replace("$water_layer_thickness",
                                               str(water_layer_thickness.value))
         # Running make_ndx
-        command = ("echo -e 'q' \"\\n\" | "
-                   + gromacs_path.value
-                   + "gmx make_ndx "
-                   + "-f "
-                   + reference_tpr
-                   + " -o "
-                   + ndx_temporary
-                   + " >/dev/null 2>/dev/null")
+        command = "".join(["echo -e 'q' \"\\n\" | ",
+                           gromacs_path.value,
+                           "gmx make_ndx ",
+                           "-f ",
+                           reference_tpr,
+                           " -o ",
+                           ndx_temporary,
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
         # Are there ligands?
@@ -330,60 +320,61 @@ def main():
                              or (group "Other")\'')
         select_string = select_string.replace("$water_layer_thickness",
                                               str(water_layer_thickness.value))
-        command = (gromacs_path.value
-                   + "gmx select -f "
-                   + allatom_xtc
-                   + " -s "
-                   + allatom_tpr
-                   + " -on "
-                   + ndx_water_layer
-                   + " -select "
-                   + select_string
-                   + " -dt "
-                   + str(time_dt_pdb.value)
-                   + " >/dev/null 2>/dev/null")
+        command = "".join([gromacs_path.value,
+                           "gmx select -f ",
+                           allatom_xtc,
+                           " -s ",
+                           allatom_tpr,
+                           " -on ",
+                           ndx_water_layer,
+                           " -select ",
+                           select_string,
+                           " -dt ",
+                           str(time_dt_pdb.value),
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Creating pdb files
-        command = ("echo "
-                   + str(frame)
-                   + " | " + gromacs_path.value
-                   + "./gmx trjconv "
-                   + "-f "
-                   + allatom_xtc
-                   + " -s "
-                   + allatom_tpr
-                   + " -n "
-                   + ndx_water_layer
-                   + " -o "
-                   + "frame_"
-                   + str(frame)
-                   + ".pdb "
-                   + "-b "
-                   + str(t)
-                   + " -e "
-                   + str(t)
-                   + " >/dev/null 2>/dev/null")
+        command = "".join(["echo ",
+                           str(frame),
+                           " | ",
+                           gromacs_path.value,
+                           "./gmx trjconv ",
+                           "-f ",
+                           allatom_xtc,
+                           " -s ",
+                           allatom_tpr,
+                           " -n ",
+                           ndx_water_layer,
+                           " -o ",
+                           "frame_",
+                           str(frame),
+                           ".pdb ",
+                           "-b ",
+                           str(t),
+                           " -e ",
+                           str(t),
+                           " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
-        command = "echo MODEL " + str(frame) + " >> " + waterlayer_pdb
+        command = "".join(["echo MODEL ", str(frame), " >> ", waterlayer_pdb])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
-        command = ("grep ATOM "
-                   + "frame_"
-                   + str(frame)
-                   + ".pdb "
-                   + ">> "
-                   + waterlayer_pdb)
+        command = "".join(["grep ATOM ",
+                           "frame_",
+                           str(frame),
+                           ".pdb ",
+                           ">> ",
+                           waterlayer_pdb])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
-        command = "echo ENDML" + ">> " + waterlayer_pdb
+        command = "".join(["echo ENDML", ">> ", waterlayer_pdb])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Removing temporary files
-        command = "rm frame_" + str(frame) + ".pdb"
+        command = "".join(["rm frame_", str(frame), ".pdb"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
         frame = frame + 1
@@ -405,7 +396,7 @@ def main():
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
-# ************************** END FUNCTION **********************************
+        # Basic Analysis
         basic_an_data = (gromacs_path.value,
                          nonwater_xtc,
                          nonwater_tpr,
@@ -413,6 +404,8 @@ def main():
                          ana_dir,
                          time_dt.value)
         run_basic_analysis(basic_an_data)
+
+# ************************** END FUNCTION **********************************
 
     list_obj_md = load_md_traj(file_of_md_analysis)
 
