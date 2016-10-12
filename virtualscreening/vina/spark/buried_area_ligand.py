@@ -216,28 +216,30 @@ def main():
 			command = script_make_ndx_buried_area_ligand + " " + gromacs_path.value + " "+ pdb_complex + " "+ f_ndx + " "+  xvg_temp_sasa_lig_pose + " "+ str(probe.value)  + " "+ str(ndots.value)  + " "+  xvg_temp_sasa_lig_complex  + " "+ pdb_before_vs  + " "+  xvg_temp_sasa_lig_min
 			process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()			
-			# SASA of the isolated ligand in the pose conformation			
-			sasa_lig_pose = get_value_from_xvg_sasa(xvg_temp_sasa_lig_pose)
-			# SASA of the complexed ligand in the pose conformation
-			sasa_lig_complex = get_value_from_xvg_sasa(xvg_temp_sasa_lig_complex)
-			# SASA of the isolated ligand in its energy-minimized conformation. Only for carbohydrates!
-			sasa_lig_min = get_value_from_xvg_sasa(xvg_temp_sasa_lig_min)
-			# Area of the ligand which is buried in the receptor
-			buried_lig_rec = sasa_lig_pose - sasa_lig_complex
-			buried_lig_rec_perc = buried_lig_rec / sasa_lig_pose
-			# Area of the ligand in the pose conformation which is buried in itself when compared to the energy-minimized conformation
-			buried_lig_lig = sasa_lig_min - sasa_lig_pose
-			buried_lig_lig_perc = buried_lig_lig / sasa_lig_min
-			returned_list = (base_name, buried_lig_rec, buried_lig_rec_perc, buried_lig_lig, buried_lig_lig_perc)
+			try:
+				# SASA of the isolated ligand in the pose conformation			
+				sasa_lig_pose = get_value_from_xvg_sasa(xvg_temp_sasa_lig_pose)
+				# SASA of the complexed ligand in the pose conformation
+				sasa_lig_complex = get_value_from_xvg_sasa(xvg_temp_sasa_lig_complex)
+				# SASA of the isolated ligand in its energy-minimized conformation. Only for carbohydrates!
+				sasa_lig_min = get_value_from_xvg_sasa(xvg_temp_sasa_lig_min)
+				# Area of the ligand which is buried in the receptor
+				buried_lig_rec = sasa_lig_pose - sasa_lig_complex
+				buried_lig_rec_perc = buried_lig_rec / sasa_lig_pose
+				# Area of the ligand in the pose conformation which is buried in itself when compared to the energy-minimized conformation
+				buried_lig_lig = sasa_lig_min - sasa_lig_pose
+				buried_lig_lig_perc = buried_lig_lig / sasa_lig_min
+				returned_list = (base_name, buried_lig_rec, buried_lig_rec_perc, buried_lig_lig, buried_lig_lig_perc)
 
-			#Deleting files
-			os.remove(f_ndx)			
-			os.remove(xvg_temp_sasa_lig_pose)
-			os.remove(xvg_temp_sasa_lig_complex)
-			os.remove(xvg_temp_sasa_lig_min)
+				#Deleting files
+				os.remove(f_ndx)			
+				os.remove(xvg_temp_sasa_lig_pose)
+				os.remove(xvg_temp_sasa_lig_complex)
+				os.remove(xvg_temp_sasa_lig_min)
 
-			return returned_list
-			
+				return returned_list
+			except:
+				return null			
 # ********** Finish function **********************************************************					
 
 # ********** Starting function **********************************************************		
