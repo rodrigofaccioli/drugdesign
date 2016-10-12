@@ -239,7 +239,7 @@ def main():
 
 				return returned_list
 			except:
-				return null			
+				return None			
 # ********** Finish function **********************************************************					
 
 # ********** Starting function **********************************************************		
