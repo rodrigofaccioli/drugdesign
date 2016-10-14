@@ -239,7 +239,7 @@ def main():
 
 				return returned_list
 			except:
-				return None			
+				return (base_name, float(0.0), float(0.0), float(0.0), float(0.0))
 # ********** Finish function **********************************************************					
 
 # ********** Starting function **********************************************************		
