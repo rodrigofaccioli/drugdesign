@@ -15,6 +15,7 @@ def preparing_path(ref_path):
         ref_path += os.sep
     return ref_path
 
+
 def check_file_exists(full_path):
     if not os.path.isfile(full_path):
         message = "File NOT found \n"+full_path
@@ -37,4 +38,3 @@ def time_execution_log(finish_time, start_time, log_name):
     log_file.write(msg)
     msg = "".join(['Time Execution (seconds): ', str(diff_time.total_seconds()), '\n'])
     log_file.write(msg)
-

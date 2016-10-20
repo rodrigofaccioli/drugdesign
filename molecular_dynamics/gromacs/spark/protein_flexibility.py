@@ -5,8 +5,9 @@ from subprocess import Popen, PIPE
 from gromacs_utils import check_file_exists
 import sys
 import os
-from os_utils import make_directory, preparing_path
+from os_utils import make_directory, preparing_path, time_execution_log
 from pf_description import pf_description
+from datetime import datetime
 
 
 def load_prot_flex(file_of_protein_flexibility):
@@ -64,6 +65,9 @@ def main():
     # Broadcast
     gromacs_path = sc.broadcast(gromacs_path)
     time_dt = sc.broadcast(time_dt)
+
+    # Start time
+    start_time = datetime.now()
 
 # ********************* STARTING FUNCTION ***************************
 
@@ -130,3 +134,7 @@ def main():
     prot_flex = sc.parallelize(list_obj_pf)
 
     prot_flex.foreach(run_protein_flexibility)
+
+    finish_time = datetime.now()
+
+    time_execution_log(finish_time, start_time, "gromacs_flexibility.log")

@@ -7,7 +7,7 @@ import os
 import sys
 from md_description import md_description
 from gromacs_utils import check_file_exists
-from os_utils import make_directory, preparing_path
+from os_utils import make_directory, preparing_path, time_execution_log
 from basic_analysis import run_basic_analysis
 
 
@@ -45,21 +45,6 @@ def load_md_traj(file_of_md_analysis):
     return list_ret
 
 
-def save_log_trajectory(finish_time, start_time):
-    log_file_name = 'gromacs_trajectory.log'
-    current_path = os.getcwd()
-    path_file = os.path.join(current_path, log_file_name)
-    log_file = open(path_file, 'w')
-
-    diff_time = finish_time - start_time
-    msg = "".join(['Starting ', str(start_time), '\n'])
-    log_file.write(msg)
-    msg = "".join(['Finishing ', str(finish_time), '\n'])
-    log_file.write(msg)
-    msg = "".join(['Time Execution (seconds): ', str(diff_time.total_seconds()), '\n'])
-    log_file.write(msg)
-
-
 def main():
     sc = SparkContext()
     sqlCtx = SQLContext(sc)
@@ -68,7 +53,7 @@ def main():
     config.read('config.ini')
 
     # Path for gromacs spark project
-    path_spark_gromacs = config.get('DRUGDESIGN', 'path_spark_gromacs')
+    path_spark_gromacs = config.get('DRUGDESIGN', 'path_gromacs')
 
     # Adding Python Source file
     sc.addPyFile(os.path.join(path_spark_gromacs, "md_description.py"))
@@ -415,6 +400,6 @@ def main():
 
     finish_time = datetime.now()
 
-    save_log_trajectory(finish_time, start_time)
+    time_execution_log(finish_time, start_time, "gromacs_trajectory.log")
 
 main()
