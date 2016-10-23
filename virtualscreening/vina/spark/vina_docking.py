@@ -93,4 +93,4 @@ if __name__ == '__main__':
     vina_dockingRDD.foreach(run_vina_docking)
 
     finish_time = datetime.now()
-    time_execution_log(finish_time, start_time, "project.log")
+    time_execution_log(finish_time, start_time, "vina_docking.log")
