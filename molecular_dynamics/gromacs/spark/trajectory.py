@@ -274,7 +274,7 @@ def main():
                                                          str(md_obj.get_repetion_number()),
                                                          ".ndx"]))
         ndx_temporary = os.path.join(ana_dir, "".join([md_obj.get_prefix_ref(),
-                                                       "_temporary.",
+                                                       "_temporary_",
                                                        str(md_obj.get_repetion_number()),
                                                        ".ndx"]))
         if os.path.isfile(waterlayer_pdb):

@@ -1,21 +1,12 @@
 import configparser
+import os
 import sys
 from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
 from datetime import datetime
 from os_utils import make_directory, preparing_path, time_execution_log, check_file_exists
 from subprocess import Popen, PIPE
-
-
-def load_receptor_list(file_of_receptor):
-    list_ret = []
-    f_file = open(file_of_receptor, "r")
-
-    for line in f_file:
-        receptor = str(line)
-        list_ret.append(receptor)
-
-    return list_ret
+from vina_utils import get_files_pdb, get_name_model_pdb
 
 
 if __name__ == '__main__':
@@ -27,33 +18,43 @@ if __name__ == '__main__':
     config.read('config.ini')
 
     pythonsh = config.get('VINA', 'pythonsh')
-    script_receptor4 = config.get('VINA', 'script_receptor4 ')
+    script_receptor4 = config.get('VINA', 'script_receptor4')
+    pdb_path = config.get('DEFAULT', 'pdb_path')
+    pdbqt_receptor_path = config.get('DEFAULT', 'pdbqt_receptor_path')
+    path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
+
+    # Adding Python Source file
+    sc.addPyFile(os.path.join(path_spark_drugdesign, "vina_utils.py"))
 
     # Broadcast
     pythonsh = sc.broadcast(pythonsh)
     script_receptor4 = sc.broadcast(script_receptor4)
+    pdbqt_receptor_path = sc.broadcast(pdbqt_receptor_path)
+
 
     def run_prepare_receptor_spark(receptor):
 
-        command = ''.join([pythonsh,
+
+        receptor_pdbqt = os.path.join(pdbqt_receptor_path.value,
+                                      get_name_model_pdb(receptor))
+
+        command = ''.join([pythonsh.value,
                            ' ',
-                           script_receptor4,
+                           script_receptor4.value,
                            ' -r ',
                            receptor,
-                           '.pdb'
                            ' -o ',
-                           receptor,
+                           receptor_pdbqt,
                            '.pdbqt',
                            ' -v '])
+        print(command)
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
 
-    file_of_receptor = sys.argv[1]
-    check_file_exists(file_of_receptor)
     start_time = datetime.now()
 
-    list_receptor = load_receptor_list(file_of_receptor)
+    list_receptor = get_files_pdb(pdb_path)
     vina_dockingRDD = sc.parallelize(list_receptor)
     vina_dockingRDD.foreach(run_prepare_receptor_spark)
 
