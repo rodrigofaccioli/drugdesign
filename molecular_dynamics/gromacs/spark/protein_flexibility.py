@@ -17,11 +17,11 @@ def load_prot_flex(file_of_protein_flexibility):
         splited_line = str(line).split()
         path = str(splited_line[0]).strip()
         nonwater_tpr = str(splited_line[1]).strip()
-        echo_trjconv = str(splited_line[2]).strip()
+        echo_trjconv = str(splited_line[2]).strip().capitalize()
         initial_frame_trjconv = int(splited_line[3])
         final_frame_trjconv = int(splited_line[4])
-        nonwater_xtc = int(splited_line[5])
-        echo_rmsf = str(splited_line[6]).strip()
+        nonwater_xtc = str(splited_line[5])
+        echo_rmsf = str(splited_line[6]).strip().capitalize()
         initial_frame_rmsf = int(splited_line[7])
         final_frame_rmsf = int(splited_line[8])
         title_output = str(splited_line[9]).strip()
@@ -39,7 +39,7 @@ def load_prot_flex(file_of_protein_flexibility):
 
     return list_ret
 
-def main():
+if __name__ == '__main__':
     sc = SparkContext()
     sqlCtx = SQLContext(sc)
 
@@ -52,6 +52,8 @@ def main():
     # Adding Python Source file
     sc.addPyFile(os.path.join(path_spark_gromacs, "gromacs_utils.py"))
     sc.addPyFile(os.path.join(path_spark_gromacs, "os_utils.py"))
+    sc.addPyFile(os.path.join(path_spark_gromacs, "pf_description.py"))
+
 
     # Path for gromacs program
     gromacs_path = preparing_path(config.get('DRUGDESIGN', 'gromacs_path'))
@@ -80,19 +82,19 @@ def main():
 
         traj_gro = os.path.join(flex_dir, "".join([pf_obj.get_title_output(),
                                                    ".",
-                                                   pf_obj.get_output_sufix,
+                                                   pf_obj.get_output_sufix_trjconv(),
                                                    ".gro"]))
         rmsf_xvg = os.path.join(flex_dir, "".join(["rmsf_",
                                                    pf_obj.get_title_output(),
                                                    ".",
-                                                   pf_obj.get_output_sufix,
+                                                   pf_obj.get_output_sufix_rmsf(),
                                                    ".xvg"]))
 
 
         command = "".join(["echo ",
                            pf_obj.get_echo_trjconv(),
                            " | ",
-                           gromacs_path,
+                           gromacs_path.value,
                            "./gmx trjconv",
                            " -s ",
                            nonwater_tpr,
@@ -101,9 +103,9 @@ def main():
                            " -o ",
                            traj_gro,
                            " -b ",
-                           pf_obj.get_initial_frame_trjconv(),
+                           str(pf_obj.get_initial_frame_trjconv()),
                            " -e ",
-                           pf_obj.get_final_frame_trjconv()])
+                           str(pf_obj.get_final_frame_trjconv())])
 
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
@@ -111,7 +113,7 @@ def main():
         command = "".join(["echo ",
                            pf_obj.get_echo_rmsf(),
                            " | ",
-                           gromacs_path,
+                           gromacs_path.value,
                            "./gmx rmsf",
                            " -f ",
                            nonwater_xtc,
@@ -120,11 +122,11 @@ def main():
                            " -o ",
                            rmsf_xvg,
                            " -b ",
-                           pf_obj.get_initial_frame_rmsf(),
+                           str(pf_obj.get_initial_frame_rmsf()),
                            " -e ",
-                           pf_obj.get_final_frame_rmsf(),
+                           str(pf_obj.get_final_frame_rmsf()),
                            " -dt ",
-                           time_dt,
+                           str(time_dt.value),
                            " -res"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()

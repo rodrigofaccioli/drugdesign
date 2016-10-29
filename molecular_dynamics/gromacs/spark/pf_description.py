@@ -54,18 +54,22 @@ class pf_description:
 
     def get_output_sufix_trjconv(self):
 
-        output = str(self.get_initial_frame_trjconv()/1000) + "-" + str(self.get_final_frame_trjconv()/1000)
+        output = ''.join([str(int(self.get_initial_frame_trjconv()/1000)),
+                          "-",
+                          str(self.get_final_frame_trjconv()/1000)])
 
-        if self.get_final_frame_trjconv() == self.get_final_frame_trjconv():
-            output = str(self.get_initial_frame_trjconv()/1000)
+        if self.get_initial_frame_trjconv() == self.get_final_frame_trjconv():
+            output = str(int(self.get_initial_frame_trjconv()/1000))
 
         return output
 
     def get_output_sufix_rmsf( self ):
 
-        output = str(self.get_initial_frame_rmsf()/1000) + "-" + str(self.get_final_frame_rmsf()/1000)
+        output = ''.join([str(int(self.get_initial_frame_rmsf()/1000)),
+                         "-",
+                         str(int(self.get_final_frame_rmsf()/1000))])
 
-        if self.get_final_frame_rmsf() == self.get_final_frame_rmsf():
-            output = str(self.get_initial_frame_rmsf()/1000)
+        if self.get_initial_frame_rmsf() == self.get_final_frame_rmsf():
+            output = str(int(self.get_initial_frame_rmsf()/1000))
 
         return output
