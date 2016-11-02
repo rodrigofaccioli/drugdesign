@@ -74,7 +74,7 @@ def main():
 	sc = SparkContext()
 
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	#Broadcast
 	path_analysis = config.get('DEFAULT', 'path_analysis')

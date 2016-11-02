@@ -15,7 +15,7 @@ import ConfigParser as configparser
 
 def main():
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	path_analysis = config.get('DEFAULT', 'path_analysis')	
 	h_eger.build_histogram_energy(path_analysis, analysis.get_histogram_filename())	

@@ -28,7 +28,7 @@ def save_analysis_log(finish_time, start_time):
 def main():
 
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	#Path that contains all files for analysis
 	path_analysis = config.get('DEFAULT', 'path_analysis')

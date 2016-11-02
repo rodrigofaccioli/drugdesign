@@ -70,7 +70,7 @@ def save_log(finish_time, start_time):
 def main():
 
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	#Number of poses to select by buried area
 	number_poses_to_select_hydrogen_bond = int(config.get('DRUGDESIGN', 'number_poses_to_select_hydrogen_bond') )

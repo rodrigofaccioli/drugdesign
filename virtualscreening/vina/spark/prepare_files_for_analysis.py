@@ -30,7 +30,7 @@ def main():
 	sc = SparkContext()
 
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	#Broadcast
 	#Path that contains all files for analysis

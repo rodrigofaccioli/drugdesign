@@ -12,7 +12,7 @@ import ligand_database as database
 
 def main():
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	vina.check_for_preparing_ligand(config.get('DEFAULT', 'mol2_path'), 
 			config.get('DEFAULT', 'pdbqt_ligand_path'),

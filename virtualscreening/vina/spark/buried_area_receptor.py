@@ -155,7 +155,7 @@ def save_log(finish_time, start_time):
 def main():
 	
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	#Path for Gromacs project
 	gromacs_path = preparing_path(config.get('DRUGDESIGN', 'gromacs_path'))

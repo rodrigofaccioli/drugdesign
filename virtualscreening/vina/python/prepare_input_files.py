@@ -12,8 +12,8 @@ import ConfigParser as configparser
 import vs_preparation as prep
 import ligand_database as database
 
-file_name_docking = "overall_docking_list.txt"
-file_name_config  = "config.conf"
+file_name_docking = os.getenv('DRUGDESIGN') + "/config/overall_docking_list.txt"
+file_name_config  = os.getenv('DRUGDESIGN') + "/config/config.conf"
 
 def creating_overall_docking_list(current_dir, vina, config, ligand_database):	
 	#Obtain all receptors to perform the virtual screening
@@ -78,7 +78,7 @@ def creating_config_file(current_dir, config):
 def main():
 	
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	#Obtaining current directory
 	current_dir = os.getcwd()

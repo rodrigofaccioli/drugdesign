@@ -13,7 +13,7 @@ import docking_time as d_time
 
 def main():
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	path_analysis = config.get('DEFAULT', 'path_analysis')
 	#Checking path_analysis

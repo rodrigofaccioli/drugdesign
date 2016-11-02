@@ -216,7 +216,7 @@ def main():
 	
 	sc = SparkContext()
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	#Broadcast - global
 	path_pdbqt     = config.get('DEFAULT', 'pdbqt_ligand_path')

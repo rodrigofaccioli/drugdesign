@@ -14,7 +14,7 @@ from analysis import call_analysis as ana
 
 def main():
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	#Preparing the virtual screening enviroment
 	prep.preparing_vs(config.get('DEFAULT', 'pdbqt_ligand_path'), config.get('DEFAULT', 'pdbqt_receptor_path') )

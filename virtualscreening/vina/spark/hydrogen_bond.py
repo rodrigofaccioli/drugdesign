@@ -345,7 +345,7 @@ def main():
 	sqlCtx = SQLContext(sc)
 
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	#Path for drugdesign project
 	path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')

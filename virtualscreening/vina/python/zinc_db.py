@@ -151,7 +151,7 @@ def get_files_mol2(mypath):
 
 def main():
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	decompress_gz_files(config.get('ZINCDB', 'path_downloaded'))
 	mol2_files = get_files_mol2(config.get('ZINCDB', 'path_downloaded'))

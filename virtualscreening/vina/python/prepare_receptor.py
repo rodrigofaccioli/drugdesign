@@ -12,7 +12,7 @@ import vina
 
 def main():
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read((os.getenv('DRUGDESIGN') + '/config/config.ini'))
 
 	vina.check_for_preparing_receptor(config.get('DEFAULT', 'pdb_path'), 
 			config.get('DEFAULT', 'pdbqt_receptor_path'),
