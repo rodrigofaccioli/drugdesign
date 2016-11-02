@@ -27,19 +27,27 @@ The current version of the project uses python 2.7.x, if the python interpreter 
 ## How to install
 ### Before you start
 
-Some tools are used to automate the installation process. [Fabric](http://www.fabfile.org/) is used to automate the build and deploy process. [Miniconda](http://conda.pydata.org/miniconda.html), a small package manager which is part of [Anaconda](https://www.continuum.io/anaconda-overview), is used to setup the project virtual environment and to install dependencies. The following dependencies are currently used by the project:
+[Fabric](http://www.fabfile.org/) is used to automate the build and deploy process. The following dependencies are currently used by the project:
 
-1. AutoDock Vina - [vina.scripps.edu](vina.scripps.edu) (Miniconda installation)
-2. MGLTools - [mgltools.scripps.edu](mgltools.scripps.edu) (Miniconda installation)
-3. Gromacs - [www.gromacs.org](www.gromacs.org) (Miniconda installation)
-4. Apache Spark - [spark.apache.org](spark.apache.org) (Fabric installation)
-5. OpenMPI - [https://www.open-mpi.org/](https://www.open-mpi.org/) (Fabric installation)
+1. AutoDock Vina - [vina.scripps.edu](vina.scripps.edu)
+2. MGLTools - [mgltools.scripps.edu](mgltools.scripps.edu)
+3. Gromacs - [www.gromacs.org](www.gromacs.org)
+4. Apache Spark - [spark.apache.org](spark.apache.org)
+5. OpenMPI - [https://www.open-mpi.org/](https://www.open-mpi.org/)
 
 ### Installation
 
-To perform the installation process you need only execute the `fabfile.py` script, this will execute the others required steps. If you need more information about how to run this script you can execute the follow command:
+To perform the installation process, local or remote, you need only execute the following command:
 
-`$ python fabfile.py --help`
+`$ fab -H hosts -u username -p password --sudo-password=sudo_password build_drugdesign`
+
+For more information about the fab program read the [docs](http://docs.fabfile.org/en/1.12/).
+
+### Execution
+
+To execute drugdesign project you'll need to run `load_variables.sh` before:
+
+`$ ./load_variables.sh`
 
 ## How to Contribute
 
