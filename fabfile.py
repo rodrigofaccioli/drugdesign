@@ -54,13 +54,8 @@ def install_packages():
     sudo("apt-get -y install tar")
     sudo("apt-get -y install openmpi-bin libopenmpi-dev")
     sudo("apt-get -y install cmake")
-    sudo("apt-get -y install libcurl14-gnutls-dev")
     sudo("apt-get -y install libffi-dev")
     sudo("apt-get -y install openjdk-8-jdk")
-    sudo("ln -s /usr/lib/libmpi_cxx.so.0.0.1 /usr/lib/libmpi_cxx.so.1")
-    sudo("ln -s /usr/lib/openmpi/lib/libmpi_cxx.so.0.0.1 /usr/lib/openmpi/lib/libmpi_cxx.so.1")
-    sudo("ln -s /usr/lib/libmpi.so.0 /usr/lib/libmpi.so.1")
-    sudo("ln -s /usr/lib/openmpi/lib/libmpi.so /usr/lib/openmpi/lib/libmpi.so.1")
 
 
 def install_dependencies():
@@ -116,16 +111,12 @@ def compile_drugdesign():
             run("cmake ..")
             run("make")
 
-        remove_file("build")
-
     with cd((CURRENT_DIR + "/virtualscreening/vina/detect_hbonds/")):
         make_directory("build")
 
         with cd("build"):
             run("cmake ..")
             run("make")
-
-        remove_file("build")
 
 
 def build_drugdesign():
