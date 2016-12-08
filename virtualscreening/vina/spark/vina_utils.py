@@ -1,5 +1,6 @@
 import os
 import ntpath
+from math import sqrt
 
 def get_files_mol2(mypath):
 	only_mol2_file = []
@@ -7,7 +8,7 @@ def get_files_mol2(mypath):
 		for file in files:
 			if file.endswith(".mol2"):
 				f_path = os.path.join(root,file)
-				only_mol2_file.append(f_path)			
+				only_mol2_file.append(f_path)
 	return only_mol2_file
 
 """ This function obtains all pdb files 
@@ -141,9 +142,12 @@ def get_ligand_from_receptor_ligand_model(receptor_ligand_model):
 	ligand_name = str(s[0]) #geting name of ligand
 	return ligand_name
 
+
 """ This function obtains the name of 
-path that saving pdbqt files for analysis 
+path that saving pdbqt files for analysis
 """
+
+
 def get_directory_pdb_analysis(path_analysis):
 	path_analysis_pdb = os.path.join(path_analysis,"pdb_model")
 	#Checking path_analysis
@@ -151,9 +155,12 @@ def get_directory_pdb_analysis(path_analysis):
 		os.makedirs(path_analysis_pdb)
 	return path_analysis_pdb
 
+
 """ This function obtains the name of 
 path that saving pdbqt files for analysis 
 """
+
+
 def get_directory_complex_pdb_analysis(path_analysis):
 	path_analysis_pdb = os.path.join(path_analysis,"pdb_complex")
 	#Checking path_analysis
@@ -161,9 +168,13 @@ def get_directory_complex_pdb_analysis(path_analysis):
 		os.makedirs(path_analysis_pdb)
 	return path_analysis_pdb
 
+
+
 """ This function loading pdb file to list.
 list_ret is composed by pdb_path_file and loaded file. 
 """
+
+
 def loading_pdb_2_list(pdb_path_file):
 	list_pdb = []
 	f_PDB = open(pdb_path_file, "r")
@@ -174,3 +185,63 @@ def loading_pdb_2_list(pdb_path_file):
 	list_ret = (pdb_path_file, list_pdb)
 	return list_ret
 
+
+"""	Extract the numbers. GROMACS uses nm and autodock vina uses A as units.
+Therefore, values from gromacs are multiplied by 10.
+"""
+
+
+def get_value_from_box_center(box):
+    splited_value_box = str(box).split()
+    return dict(box_center_x=str(float(splited_value_box[0])*10),
+                box_center_y=str(float(splited_value_box[1])*10),
+                box_center_z=str(float(splited_value_box[2])*10))
+
+
+def get_value_from_box_size(box):
+    splited_value_box = str(box).split()
+    return dict(box_size_x=str(float(splited_value_box[0])*10),
+                box_size_y=str(float(splited_value_box[1])*10),
+                box_size_z=str(float(splited_value_box[2])*10))
+
+
+def create_jsondata_from_docking_output_file(docking_output):
+
+    f_file = open(docking_output, "r")
+    data = {}
+    for line in f_file:
+        splited_line = str(line).split()
+        if not len(splited_line) == 0 and splited_line[0].isdigit():
+            key = str(splited_line[0])
+            value = ', '.join([splited_line[1], splited_line[2], splited_line[3]])
+            data[key] = value
+
+    f_file.close()
+    return data
+
+
+def calculate_avg_value(docking_output):
+    f_file = open(docking_output, "r")
+    err_list = []
+    value = 0
+    n = 0
+    for line in f_file:
+        splited_line = str(line).split()
+        if not len(splited_line) == 0 and splited_line[0].isdigit():
+            value += float(splited_line[1])
+            err_list.append(float(splited_line[2]))
+            n += 1
+
+    avg = value/n
+    avg = "%.1f" % avg
+    err = 0
+
+    for value in err_list:
+        err = (value - float(avg))*(value - float(avg))
+        err = sqrt(err/ (n - 1) / sqrt(n))
+        err = "%.1f" % err
+
+    f_file.close()
+    return dict(number_modes=n,
+                avg=avg,
+                err=err)
