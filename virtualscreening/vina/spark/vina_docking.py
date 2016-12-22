@@ -6,7 +6,7 @@ from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
 from datetime import datetime
 from os_utils import make_directory, preparing_path, time_execution_log, check_file_exists
-from vd_description import vd_description
+from docking_description import vd_description
 
 
 def load_vd_file(file_of_vina_docking):
