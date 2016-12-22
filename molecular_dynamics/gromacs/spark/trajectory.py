@@ -288,7 +288,8 @@ def main():
         select_string = select_string.replace("$water_layer_thickness",
                                               str(water_layer_thickness.value))
         # Running make_ndx
-        command = "".join(["echo -e 'q' \"\\n\" | ",
+        command = "".join(["echo -e ",
+                           "'chain z'\"\\n\"'q'\"\\n\" | ",
                            gromacs_path.value,
                            "gmx make_ndx ",
                            "-f ",
