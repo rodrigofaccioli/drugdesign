@@ -5,7 +5,7 @@ from subprocess import Popen, PIPE
 from datetime import datetime
 from vina_utils import get_directory_complex_pdb_analysis, get_files_pdb, get_name_model_pdb, get_ligand_from_receptor_ligand_model, get_separator_filename_mode
 import os, sys
-from os_util import preparing_path
+from os_utils import preparing_path
 from gromacs_utils import get_value_from_xvg_sasa
 
 def sorting_buried_area(sc, buried_areaRDD):
@@ -63,7 +63,7 @@ def main():
 	#Path for drugdesign project
 	path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')	
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
-	sc.addPyFile(os.path.join(path_spark_drugdesign,"os_util.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"os_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"gromacs_utils.py"))
 
 	#Adding bash scripts
