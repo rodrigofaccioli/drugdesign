@@ -12,8 +12,9 @@ from docking_description import vd_description
 def load_vd_file(file_of_vina_docking):
     list_ret = []
     f_file = open(file_of_vina_docking, "r")
+    next(f_file)
     for line in f_file:
-        splited_line = str(line).split()
+        splited_line = str(line).split("\t")
         receptor = str(splited_line[0]).strip()
         ligand = str(splited_line[1]).strip()
         obj = vd_description(receptor,
@@ -74,7 +75,7 @@ if __name__ == '__main__':
                                "_-_",
                                vd_obj.get_ligand(),
                                ".log"])
-
+                                       
         command = "".join([vina_path.value,
                            " --config ",
                            config_vina,
