@@ -8,6 +8,7 @@ from datetime import datetime
 from os_utils import make_directory, preparing_path, time_execution_log, check_file_exists
 from vd_description import vd_description
 
+
 def load_vd_file(file_of_vina_docking):
     list_ret = []
     f_file = open(file_of_vina_docking, "r")
@@ -30,19 +31,20 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('config.ini')
 
-    #Vina configuration for broadcast
+    # Vina configuration for broadcast
     config_vina = config.get('VINA', 'config_file')
     vina_path = config.get('VINA', 'vina_program')
     pdbqt_ligand_path = config.get('DEFAULT', 'pdbqt_ligand_path')
     pdbqt_receptor_path = config.get('DEFAULT', 'pdbqt_receptor_path')
     path_save_output = config.get('DEFAULT', 'path_save_structure')
     path_save_log = config.get('DEFAULT', 'path_save_log')
+    path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
+
 
     # Adding Python Source file
-    path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
-    sc.addPyFile(os.path.join(path_spark_drugdesign, "vd_description.py"))
+    sc.addPyFile(os.path.join(path_spark_drugdesign, "docking_description.py"))
 
-    #Broadcast
+    # Broadcast
     vina_path = sc.broadcast(vina_path)
     pdbqt_ligand_path = sc.broadcast(pdbqt_ligand_path)
     pdbqt_receptor_path = sc.broadcast(pdbqt_receptor_path)

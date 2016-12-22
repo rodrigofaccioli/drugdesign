@@ -53,13 +53,14 @@ def main():
     config.read('config.ini')
 
     # Path for gromacs spark project
-    path_spark_gromacs = config.get('DRUGDESIGN', 'path_gromacs')
+    path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
 
     # Adding Python Source file
-    sc.addPyFile(os.path.join(path_spark_gromacs, "md_description.py"))
-    sc.addPyFile(os.path.join(path_spark_gromacs, "gromacs_utils.py"))
-    sc.addPyFile(os.path.join(path_spark_gromacs, "os_utils.py"))
-    sc.addPyFile(os.path.join(path_spark_gromacs, "basic_analysis.py"))
+    sc.addPyFile(os.path.join(path_spark_drugdesign, "gromacs_utils.py"))
+    sc.addPyFile(os.path.join(path_spark_drugdesign, "os_utils.py"))
+    sc.addPyFile(os.path.join(path_spark_drugdesign, "basic_analysis.py"))
+    sc.addPyFile(os.path.join(path_spark_drugdesign, "md_description.py"))
+
     # Path for gromacs program
     gromacs_path = preparing_path(config.get('DRUGDESIGN', 'gromacs_path'))
 
@@ -297,6 +298,7 @@ def main():
                            " >/dev/null 2>/dev/null"])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
+
         # Are there ligands?
         if search_for_ligand_ndx_file(ndx_temporary) is True:
             select_string = (select_string
