@@ -41,6 +41,11 @@ if __name__ == '__main__':
     path_save_log = config.get('DEFAULT', 'path_save_log')
     path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
 
+    path_save_log = preparing_path(path_save_log)
+    make_directory(path_save_log)
+
+    path_save_output = preparing_path(path_save_output)
+    make_directory(path_save_output)
 
     # Adding Python Source file
     sc.addPyFile(os.path.join(path_spark_drugdesign, "docking_description.py"))
@@ -75,7 +80,7 @@ if __name__ == '__main__':
                                "_-_",
                                vd_obj.get_ligand(),
                                ".log"])
-                                       
+
         command = "".join([vina_path.value,
                            " --config ",
                            config_vina,
