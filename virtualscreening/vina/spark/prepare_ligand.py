@@ -228,6 +228,7 @@ def main():
 	path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
 
 	#Adding Python Source file
+	sc.addPyFile(os.path.join(path_spark_drugdesign, "json_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdbqt_io.py"))
 
