@@ -230,22 +230,8 @@ def get_value_from_box_size(box):
                 box_size_z=str(float(splited_value_box[2]) * 10))
 
 
-# Create a dictionary from log file. This dictionary will be used to create json
-def format_output_log_file_to_dict(docking_output):
-    f_file = open(docking_output, "r")
-    data = {}
-    for line in f_file:
-        splited_line = str(line).split()
-        if not len(splited_line) == 0 and splited_line[0].isdigit():
-            key = str(splited_line[0])
-            value = ', '.join([splited_line[1], splited_line[2], splited_line[3]])
-            data[key] = value
-
-    f_file.close()
-    return data
-
-
-def generate_parameters_to_complexo_dm():
+def _generate_parameters_to_complexo_dm():
+    """These parameters are generated in hardcoded form, so this function will be deprecated later"""
     d = dict(num_modes=9999,
              energy_range=9999,
              exhaustiveness=10,
@@ -278,28 +264,4 @@ def generate_config_complexo_dm(box_json, general_parameters_json):
     file.close()
 
 
-def calculate_avg_value(docking_output):
-    f_file = open(docking_output, "r")
-    err_list = []
-    value = 0
-    n = 0
-    for line in f_file:
-        splited_line = str(line).split()
-        if not len(splited_line) == 0 and splited_line[0].isdigit():
-            value += float(splited_line[1])
-            err_list.append(float(splited_line[2]))
-            n += 1
 
-    avg = value / n
-    avg = "%.1f" % avg
-    err = 0
-
-    for value in err_list:
-        err = (value - float(avg)) * (value - float(avg))
-        err = sqrt(err / (n - 1) / sqrt(n))
-        err = "%.1f" % err
-
-    f_file.close()
-    return dict(number_modes=n,
-                avg=avg,
-                err=err)
