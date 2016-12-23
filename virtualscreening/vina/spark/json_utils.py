@@ -6,6 +6,7 @@ def create_json_file(output_file_name, data):
         json.dump(data, outfile, indent=4, sort_keys=True, separators=(',', ':'))
 
 
+# Create a dictionary from log file. This dictionary will be used to create json
 def create_jsondata_from_docking_output_file(docking_output):
     f_file = open(docking_output, "r")
     data = {}

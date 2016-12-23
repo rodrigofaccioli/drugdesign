@@ -5,8 +5,8 @@ from subprocess import Popen, PIPE
 from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
 from datetime import datetime
-from os_utils import make_directory, preparing_path, time_execution_log, check_file_exists
-from vd_description import vd_description
+from os_utils import time_execution_log, check_file_exists
+from docking_description import vd_description
 
 
 def load_vd_file(file_of_vina_docking):
@@ -17,7 +17,7 @@ def load_vd_file(file_of_vina_docking):
         receptor = str(splited_line[0]).strip()
         ligand = str(splited_line[1]).strip()
         obj = vd_description(receptor,
-                           ligand)
+                             ligand)
         list_ret.append(obj)
 
     return list_ret
@@ -71,9 +71,9 @@ if __name__ == '__main__':
                                ".pdbqt"])
         output_log = ''.join([path_save_log.value,
                               vd_obj.get_receptor(),
-                               "_-_",
-                               vd_obj.get_ligand(),
-                               ".log"])
+                              "_-_",
+                              vd_obj.get_ligand(),
+                              ".log"])
 
         command = "".join([vina_path.value,
                            " --config ",
