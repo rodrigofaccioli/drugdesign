@@ -28,8 +28,8 @@ def creating_docking_list(current_dir, config, sqlCtx):
 			only_name_compound = os.path.basename(compound)
 			only_name_compound = str(os.path.splitext(only_name_compound)[0])			
 			torsion_num, atom_num = get_torsion_atom_from_database(sqlCtx, only_name_compound)
-			#line = str(only_name_receptor) + "\t" + str(only_name_compound) + "\t" + str(torsion_num) + "\t" + str(atom_num) +"\n"
-			#file_all_docking.write(line)			
+			line = str(only_name_receptor) + "\t" + str(only_name_compound) + "\t" + str(torsion_num) + "\t" + str(atom_num) +"\n"
+			file_all_docking.write(line)			
 		# File is closed for each receptor because the number of compound can be large. 
 		# Therefore, this file is closed to avoid saving amount of data 
 		file_all_docking.close()
