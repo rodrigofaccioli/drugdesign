@@ -303,3 +303,31 @@ def calculate_avg_value(docking_output):
     return dict(number_modes=n,
                 avg=avg,
                 err=err)
+
+def get_receptor_from_receptor_ligand_model(receptor_ligand_model):
+    """ 
+    This function obtains the name of receptor based on receptor_ligand_model
+    Example of input: compl_ns3pro_dm_0_-_NuBBE_485_obabel_3D+----+20
+    """ 
+    separator_model = get_separator_filename_mode()
+    separator_receptor = "_-_"
+    string_ref = receptor_ligand_model
+    
+    receptor_name = string_ref.split(separator_receptor)[0] #Removing all, except receptor name
+    return receptor_name
+
+def get_model_from_receptor_ligand_model(receptor_ligand_model):
+    """ 
+    This function obtains the model based on receptor_ligand_model
+    Example of input: compl_ns3pro_dm_0_-_NuBBE_485_obabel_3D+----+20
+    Return: 20
+    """     
+    separator_model = get_separator_filename_mode()
+    separator_receptor = "_-_"
+    string_ref = receptor_ligand_model
+    
+    s = string_ref.split(separator_receptor) #Removing receptor
+    s = str(s[1]).split(separator_model) #Removing ligand name
+    # getting model
+    model = int(s[len(s)-1])
+    return model
