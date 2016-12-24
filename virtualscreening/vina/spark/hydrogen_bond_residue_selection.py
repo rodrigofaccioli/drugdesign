@@ -137,6 +137,7 @@ def main():
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"database_io.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"hydrogen_bond_io.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"hydrogen_bond_crud.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"json_utils.py"))
 
 	#load all-residue_hbonds_4.0A_30.0deg.dat file
 	path_file_hydrogen_bond = os.path.join(path_analysis, "all-residue_hbonds_4.0A_30.0deg.dat")

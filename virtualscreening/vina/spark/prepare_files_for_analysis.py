@@ -54,6 +54,7 @@ def main():
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"summary_statistics.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdbqt_io.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdb_io.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"json_utils.py"))
 
 	start_time = datetime.now()
 

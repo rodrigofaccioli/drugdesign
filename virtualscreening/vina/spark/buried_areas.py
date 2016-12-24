@@ -131,6 +131,7 @@ def main():
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"gromacs_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdb_io.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"database_io.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"json_utils.py"))
 
 	#Adding bash scripts
 	sc.addFile(os.path.join(path_spark_drugdesign,"make_ndx_buried_area_total.sh"))

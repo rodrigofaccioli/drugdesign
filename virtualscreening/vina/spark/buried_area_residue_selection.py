@@ -110,6 +110,7 @@ def main():
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdb_io.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"database_io.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"json_utils.py"))
 
 	#load all-residue_buried_areas.dat file
 	path_file_buried_area = os.path.join(path_analysis, "all-residue_buried_areas.dat")
