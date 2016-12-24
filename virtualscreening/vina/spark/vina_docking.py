@@ -18,7 +18,7 @@ def load_vd_file(file_of_vina_docking):
         receptor = str(splited_line[0]).strip()
         ligand = str(splited_line[1]).strip()
         obj = vd_description(receptor,
-                           ligand)
+                             ligand)
         list_ret.append(obj)
 
     return list_ret
@@ -77,9 +77,9 @@ if __name__ == '__main__':
                                ".pdbqt"])
         output_log = ''.join([path_save_log.value,
                               vd_obj.get_receptor(),
-                               "_-_",
-                               vd_obj.get_ligand(),
-                               ".log"])
+                              "_-_",
+                              vd_obj.get_ligand(),
+                              ".log"])
 
         command = "".join([vina_path.value,
                            " --config ",

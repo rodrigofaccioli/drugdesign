@@ -6,7 +6,7 @@ from pyspark.sql import SQLContext, Row
 from pbox_description import pbox_description
 from datetime import datetime
 from subprocess import Popen, PIPE
-from os_utils import check_file_exists
+from os_utils import check_file_exists, download_file
 from vina_utils import get_value_from_box_center, get_value_from_box_size, format_output_file_to_dict, calculate_avg_value
 from json_utils import create_json_file
 
@@ -17,7 +17,6 @@ def load_pbox_file(file_of_pdbid_list):
     for line in f_file:
         splited_line = str(line).split()
         pdb_id = str(splited_line[0]).strip()
-        ligand = str(splited_line[1]).strip()
         obj = pbox_description(pdb_id)
         list_ret.append(obj)
 
@@ -61,18 +60,13 @@ if __name__ == '__main__':
     file_of_pdbid_list = sys.argv[1]
     check_file_exists(file_of_pdbid_list)
 
-    def run_single_docking(prepare_box_obj):
-
-        docking_output_pdbqt = prepare_box_obj.get_pdb_id() + 'output.pdbqt'
-        docking_output_log = prepare_box_obj.get_pdb_id() + '_output.log'
+    def run_prepare_box(prepare_box_obj):
 
 
         # Downloads the receptor pdb file
-        command = ''.join(["wget http://www.rcsb.org/pdb/files/",
-                            prepare_box_obj.get_pdb_id(),
-                           ".pdb >/dev/null 2>/dev/null"])
-        proc = Popen(command, shell=True, stdout=PIPE)
-        proc.communicate()
+        file_name = prepare_box_obj.get_pdb_id() + '.pdb'
+        url = 'http://www.rcsb.org/pdb/files/' + file_name
+        download_file(url, file_name)
 
         # Removes waters, ligands and metals with ADT
         command = ''.join([pythonsh.value,
@@ -193,4 +187,4 @@ if __name__ == '__main__':
 
     list_obj_prepare_box = load_pbox_file(file_of_pdbid_list)
     sing_dockRDD = sc.parallelize(list_obj_prepare_box)
-    sing_dockRDD.foreach(run_single_docking)
+    sing_dockRDD.foreach(run_prepare_box)

@@ -1,4 +1,6 @@
 import os
+import urllib.request
+import shutil
 
 
 def make_directory(directory):
@@ -38,3 +40,8 @@ def time_execution_log(finish_time, start_time, log_name):
     log_file.write(msg)
     msg = "".join(['Time Execution (seconds): ', str(diff_time.total_seconds()), '\n'])
     log_file.write(msg)
+
+
+def download_file(url, file_name):
+    with urllib.request.urlopen(url) as response, open(file_name, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)

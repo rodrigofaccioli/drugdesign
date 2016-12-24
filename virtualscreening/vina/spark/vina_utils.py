@@ -230,22 +230,8 @@ def get_value_from_box_size(box):
                 box_size_z=str(float(splited_value_box[2]) * 10))
 
 
-# Create a dictionary from log file. This dictionary will be used to create json
-def format_output_log_file_to_dict(docking_output):
-    f_file = open(docking_output, "r")
-    data = {}
-    for line in f_file:
-        splited_line = str(line).split()
-        if not len(splited_line) == 0 and splited_line[0].isdigit():
-            key = str(splited_line[0])
-            value = ', '.join([splited_line[1], splited_line[2], splited_line[3]])
-            data[key] = value
-
-    f_file.close()
-    return data
-
-
-def generate_parameters_to_complexo_dm():
+def _generate_parameters_to_complexo_dm():
+    """These parameters are generated in hardcoded form, so this function will be deprecated later"""
     d = dict(num_modes=9999,
              energy_range=9999,
              exhaustiveness=10,
