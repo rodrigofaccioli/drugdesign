@@ -1,22 +1,32 @@
 It is directory for testing of virtual screening from Autodock Vina by Apache Spark.
 
-Checking your config.ini file.
- 
+Enter at directory testing directory: cd /home/faccioli/workspace/drugdesign/test/virtual_screening/vina/spark
+
 ***********************************************************************************************************************************
-* 				Preparing ligand for Autodock Vina
+* 				config.ini file
+***********************************************************************************************************************************
+
+Checking your config.ini file. It is used in all application
+
+***********************************************************************************************************************************
+* 				Preparing ligand for Autodock Vina (Required)
 ***********************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_ligand.py
 
 **********************************************************************************************************************************
-* 				Virtual Screening Running 
+* 				Preparing docking list (Required)
 ***********************************************************************************************************************************
-Please, run your virtual screening using our MPI solution. See, READMINE file at virtual_screening for more details.
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_docking_list.py /home/faccioli/workspace/drugdesign/test/virtual_screening/vina/spark
+
+
+**********************************************************************************************************************************
+* 				Virtual Screening Running (Required)
+***********************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/vina_docking.py
 
 *************************************************************************************************************************************
 * 				Virtual Screening Analysis 
 *************************************************************************************************************************************
-
-Enter at directory testing directory: cd /home/faccioli/workspace/drugdesign/test/virtual_screening/vina/spark
 
 ************************************************************************************************************************************
 * 				Create file for analysis  (Required)
