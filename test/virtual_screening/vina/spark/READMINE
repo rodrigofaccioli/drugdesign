@@ -9,6 +9,16 @@ Enter at directory testing directory: cd /home/faccioli/workspace/drugdesign/tes
 Checking your config.ini file. It is used in all application
 
 ***********************************************************************************************************************************
+* 				Preparing receptors for Autodock Vina (Required)
+***********************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_receptor.py
+
+**********************************************************************************************************************************
+* 				Creating Box for Vina program (Required)
+***********************************************************************************************************************************
+It is necessary creating box for Vina program.
+
+***********************************************************************************************************************************
 * 				Preparing ligand for Autodock Vina (Required)
 ***********************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_ligand.py
@@ -18,11 +28,10 @@ Checking your config.ini file. It is used in all application
 ***********************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_docking_list.py /home/faccioli/workspace/drugdesign/test/virtual_screening/vina/spark
 
-
 **********************************************************************************************************************************
 * 				Virtual Screening Running (Required)
 ***********************************************************************************************************************************
-/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/vina_docking.py
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/vina_docking.py docking_list.txt
 
 *************************************************************************************************************************************
 * 				Virtual Screening Analysis 
