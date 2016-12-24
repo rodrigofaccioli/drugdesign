@@ -331,3 +331,13 @@ def get_model_from_receptor_ligand_model(receptor_ligand_model):
     # getting model
     model = int(s[len(s)-1])
     return model
+
+""" This function obtains the name of 
+path that saving pdbqt files for analysis 
+"""
+def get_directory_temp_analysis(path_analysis):
+    path_analysis_temp = os.path.join(path_analysis,"temp")
+    #Checking path_analysis
+    if not os.path.exists(path_analysis_temp):
+        os.makedirs(path_analysis_temp)
+    return path_analysis_temp
