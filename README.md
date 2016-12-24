@@ -17,11 +17,13 @@ The main features are described below:
 1. Virtual Screening (using one or more receptors).
 Analysis can be done by using both experimental (from the PDB database) and theoretical (from molecular dynamics simulation) data, thus providing a broader understanding about the selected compounds and receptors and generating more accurate results.
 
-2. Big Data Analytics through Apache Spark. 
+2. It selects compounds based on biophysics properties instead of Vina score. 
+
+3. Big Data Analytics through Apache Spark. 
 Virtual Screening usually outputs a considerable amount of data, by using Spark this data can be analyzed more efficiently.
 
 ====================================================================================
 		Understanding drugdesign
 ====================================================================================
 The project was decomposed into branches in order to facilitate organization and allow for flexible development.
-For more information, please see the READMINE file under each specific directory.
+For more information, please see the README file under each specific directory.
