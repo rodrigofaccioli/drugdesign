@@ -1,5 +1,8 @@
 import os
-import urllib.request
+#Python 2.7
+import urllib
+#Pyhton 3
+#import urllib.request
 import shutil
 
 
@@ -43,5 +46,8 @@ def time_execution_log(finish_time, start_time, log_name):
 
 
 def download_file(url, file_name):
-    with urllib.request.urlopen(url) as response, open(file_name, 'wb') as out_file:
-        shutil.copyfileobj(response, out_file)
+    #Python 2.7
+    urllib.urlretrieve (url, file_name)
+    #Python 3
+    #with urllib.request.urlopen(url) as response, open(file_name, 'wb') as out_file:
+    #    shutil.copyfileobj(response, out_file)
