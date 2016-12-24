@@ -1,0 +1,110 @@
+It is directory for testing of virtual screening from Autodock Vina by Apache Spark.
+
+Enter at directory testing directory: cd /home/faccioli/workspace/drugdesign/test/virtual_screening/vina/spark
+
+***********************************************************************************************************************************
+* 				config.ini file
+***********************************************************************************************************************************
+
+Checking your config.ini file. It is used in all application
+
+***********************************************************************************************************************************
+* 				Preparing receptors for Autodock Vina (Required)
+***********************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_receptor.py
+
+**********************************************************************************************************************************
+* 				Creating Box for Vina program (Required)
+***********************************************************************************************************************************
+It is necessary creating box for Vina program.
+
+***********************************************************************************************************************************
+* 				Preparing ligand for Autodock Vina (Required)
+***********************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_ligand.py
+
+**********************************************************************************************************************************
+* 				Preparing docking list (Required)
+***********************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_docking_list.py /home/faccioli/workspace/drugdesign/test/virtual_screening/vina/spark
+
+**********************************************************************************************************************************
+* 				Virtual Screening Running (Required)
+***********************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/vina_docking.py docking_list.txt
+
+**********************************************************************************************************************************
+* 				LOG files to JSON files (Optional)
+***********************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/log_to_json.py
+
+*************************************************************************************************************************************
+* 				Virtual Screening Analysis 
+*************************************************************************************************************************************
+
+************************************************************************************************************************************
+* 				Create file for analysis  (Required)
+*************************************************************************************************************************************
+It must be your first step for analysis.
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/create_file_for_analysis.py
+
+*************************************************************************************************************************************
+* 				Prepare files for analysis  (Required)
+*************************************************************************************************************************************
+It must be your second step for analysis.
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_files_for_analysis.py
+
+*************************************************************************************************************************************
+* 				Ligand Efficiency
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/ligand_efficiency.py
+Output is summary_energies.dat file. It joins the vina energy and ligand efficiency
+
+*************************************************************************************************************************************
+* 				Prepare files for Burried area  (Obsolete)
+*************************************************************************************************************************************
+It must be executed before Burried area analysis.
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_complex_files_for_analysis.py
+
+*************************************************************************************************************************************
+* 				Computing Burried area total
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_areas.py 0.14 24
+
+*************************************************************************************************************************************
+* 				Computing Burried area of Receptor and All Residues
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_receptor.py
+
+*************************************************************************************************************************************
+* 				Computing Burried area of ligand
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_ligand.py  0.14 24
+
+*************************************************************************************************************************************
+* 				Hydrogen Bond
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bond.py 4.0 30.0
+
+*************************************************************************************************************************************
+* 				Full Data Analysis
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/vs_full_data_analysis.py
+
+*************************************************************************************************************************************
+* 				Selecting complex based on buried area
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/buried_area_residue_selection.py
+
+*************************************************************************************************************************************
+* 				Selecting complex based on hydrogen bond
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/hydrogen_bond_residue_selection.py
+
+*************************************************************************************************************************************
+* 				Selecting complex based on mult-objective
+*************************************************************************************************************************************
+/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/mult_objective_selection.py
+
+
+
