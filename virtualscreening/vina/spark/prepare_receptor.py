@@ -25,6 +25,8 @@ if __name__ == '__main__':
 
     # Adding Python Source file
     sc.addPyFile(os.path.join(path_spark_drugdesign, "vina_utils.py"))
+    sc.addPyFile(os.path.join(path_spark_drugdesign, "json_utils.py"))
+    sc.addPyFile(os.path.join(path_spark_drugdesign, "os_utils.py"))
 
     # Broadcast
     pythonsh = sc.broadcast(pythonsh)
