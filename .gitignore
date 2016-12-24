@@ -2,8 +2,8 @@
 test/virtual_screening/vina/spark/analysis
 test/virtual_screening/vina/spark/*.log
 test/virtual_screening/vina/spark/config.ini
-test/virtual_screening/vina/spark/log/*
-test/virtual_screening/vina/spark/structures/*
+test/virtual_screening/vina/spark/log/
+test/virtual_screening/vina/spark/structures/
 test/virtual_screening/vina/spark/docking_list.txt
 .idea
 .idea/drugdesign.iml
