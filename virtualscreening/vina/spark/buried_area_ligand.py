@@ -134,7 +134,7 @@ def main():
 	#Path for drugdesign project
 	path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')	
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"vina_utils.py"))
-	sc.addPyFile(os.path.join(path_spark_drugdesign,"os_util.py"))
+	sc.addPyFile(os.path.join(path_spark_drugdesign,"os_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"gromacs_utils.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"pdb_io.py"))
 	sc.addPyFile(os.path.join(path_spark_drugdesign,"json_utils.py"))
