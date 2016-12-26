@@ -1,9 +1,4 @@
 import os
-#Python 2.7
-import urllib
-#Pyhton 3
-#import urllib.request
-import shutil
 
 
 def make_directory(directory):
@@ -45,9 +40,16 @@ def time_execution_log(finish_time, start_time, log_name):
     log_file.write(msg)
 
 
-def download_file(url, file_name):
-    #Python 2.7
-    urllib.urlretrieve (url, file_name)
-    #Python 3
-    #with urllib.request.urlopen(url) as response, open(file_name, 'wb') as out_file:
-    #    shutil.copyfileobj(response, out_file)
+try:
+    import urllib.request
+    import shutil
+
+    def download_file(url, file_name):
+        with urllib.request.urlopen(url) as response, open(file_name, 'wb') as out_file:
+            shutil.copyfileobj(response, out_file)
+
+except ImportError:
+    import urllib
+
+    def download_file(url, file_name):
+        urllib.urlretrieve(url, file_name)

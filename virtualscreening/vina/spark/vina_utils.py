@@ -236,7 +236,7 @@ def _generate_parameters_to_complexo_dm():
              energy_range=9999,
              exhaustiveness=10,
              cpu=1)
-    create_json_file('parameters_complexo_dm', d)
+    create_json_file('parameters_complexo_dm.json', d)
 
 
 # Use pdbid_box.json and general_parameters.json to crete the config_complexo_dm.txt
@@ -251,14 +251,14 @@ def generate_config_complexo_dm(box_json, general_parameters_json):
     for key, value in box_dict.items():
         line = ''.join([str(key),
                         ' = ',
-                        str(),
+                        str(value),
                         '\n'])
         file.write(line)
 
     for key, value in parameters_dict.items():
         line = ''.join([str(key),
                         ' = ',
-                        str(),
+                        str(value),
                         '\n'])
         file.write(line)
     file.close()
