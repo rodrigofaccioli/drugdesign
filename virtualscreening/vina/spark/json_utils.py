@@ -9,13 +9,16 @@ def create_json_file(output_file_name, data):
 # Create a dictionary from log file. This dictionary will be used to create json
 def create_jsondata_from_docking_output_file(docking_output):
     f_file = open(docking_output, "r")
-    data = {}
+    list_dict = []
+
     for line in f_file:
         splited_line = str(line).split()
         if not len(splited_line) == 0 and splited_line[0].isdigit():
-            key = str(splited_line[0])
-            value = ', '.join([splited_line[1], splited_line[2], splited_line[3]])
-            data[key] = value
+            data = dict(mode=int(splited_line[0]),
+                        affinity=float(splited_line[1]),
+                        dist_from=float(splited_line[2]),
+                        best_mode=float(splited_line[3]))
+            list_dict.append(data)
 
     f_file.close()
-    return data
+    return list_dict

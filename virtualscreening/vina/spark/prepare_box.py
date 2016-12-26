@@ -1,14 +1,17 @@
-import configparser
 import os
 import sys
 from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
 from pbox_description import pbox_description
-from datetime import datetime
 from subprocess import Popen, PIPE
 from os_utils import check_file_exists, download_file
-from vina_utils import get_value_from_box_center, get_value_from_box_size, format_output_file_to_dict, calculate_avg_value
+from vina_utils import get_value_from_box_center, get_value_from_box_size
 from json_utils import create_json_file
+
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 
 def load_pbox_file(file_of_pdbid_list):
@@ -76,15 +79,15 @@ if __name__ == '__main__':
                            prepare_box_obj.get_pdb_id(),
                            '.pdb',
                            ' -o ',
-                           ' temporary_',
+                           'temporary_',
                            prepare_box_obj.get_pdb_id(),
-                          '.pdbqt ',
-                           ' -A ',
-                           ' none ',
-                           ' -U ',
-                           ' waters ',
-                           ' -e ',
-                           ' >/dev/null 2>/dev/null'])
+                           '.pdbqt ',
+                           '-A ',
+                           'none ',
+                           '-U ',
+                           'waters ',
+                           '-e ',
+                           '>/dev/null 2>/dev/null'])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
@@ -103,18 +106,18 @@ if __name__ == '__main__':
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
+
         # Delete the temporary pdbqt
         command = ''.join(['rm temporary_',
                            prepare_box_obj.get_pdb_id(),
-                          '.pdbqt'])
+                           '.pdbqt'])
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
         # Uses gromacs to detect the box. note that the receptor is rotated!
         # This means that the pdb_id_box.pdb file must be used for visualizations
 
-        command = ''.join([
-                           'echo System | ',
+        command = ''.join(['echo System | ',
                            gromacs_path.value,
                            'gmx editconf ',
                            ' -f ',
@@ -145,8 +148,7 @@ if __name__ == '__main__':
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
-        command = ''.join([
-                           "echo 'System' | ",
+        command = ''.join(["echo 'System' | ",
                            gromacs_path.value,
                            'gmx editconf ',
                            ' -f ',
@@ -172,6 +174,18 @@ if __name__ == '__main__':
         box_size = get_value_from_box_size(box_size)
 
         # Deletes the temporary .pdb
+        command = ''.join(['rm ',
+                           prepare_box_obj.get_pdb_id(),
+                           '.pdb'])
+        proc = Popen(command, shell=True, stdout=PIPE)
+        proc.communicate()
+
+        command = ''.join(['rm ',
+                           prepare_box_obj.get_pdb_id(),
+                           '_box.pdb'])
+        proc = Popen(command, shell=True, stdout=PIPE)
+        proc.communicate()
+
         command = ''.join(['rm ',
                            prepare_box_obj.get_pdb_id(),
                            '_ok.pdb'])
