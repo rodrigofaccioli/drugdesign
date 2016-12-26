@@ -218,16 +218,16 @@ Therefore, values from gromacs are multiplied by 10.
 
 def get_value_from_box_center(box):
     splited_value_box = str(box).split()
-    return dict(box_center_x=str(float(splited_value_box[0]) * 10),
-                box_center_y=str(float(splited_value_box[1]) * 10),
-                box_center_z=str(float(splited_value_box[2]) * 10))
+    return dict(box_center_x="{0:.2f}".format(float(splited_value_box[0]) * 10),
+                box_center_y="{0:.2f}".format(float(splited_value_box[1]) * 10),
+                box_center_z="{0:.2f}".format(float(splited_value_box[2]) * 10))
 
 
 def get_value_from_box_size(box):
     splited_value_box = str(box).split()
-    return dict(box_size_x=str(float(splited_value_box[0]) * 10),
-                box_size_y=str(float(splited_value_box[1]) * 10),
-                box_size_z=str(float(splited_value_box[2]) * 10))
+    return dict(box_size_x="{0:.2f}".format(float(splited_value_box[0]) * 10),
+                box_size_y="{0:.2f}".format(float(splited_value_box[1]) * 10),
+                box_size_z="{0:.2f}".format(float(splited_value_box[2]) * 10))
 
 
 def _generate_parameters_to_complexo_dm():
