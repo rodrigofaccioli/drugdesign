@@ -34,8 +34,7 @@ if __name__ == '__main__':
     config.read('config.ini')
 
     # Vina configuration for broadcast
-    vina_program = config.get('VINA', 'vina_program')
-    mol2_path = config.get('VINA', 'mol2_path')
+    vina_program = config.get('VINA', 'vina_program')    
     pythonsh = config.get('VINA', 'pythonsh')
     script_receptor4 = config.get('VINA', 'script_receptor4')
     script_ligand4 = config.get('VINA', 'script_ligand4')
