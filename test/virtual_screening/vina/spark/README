@@ -4,9 +4,7 @@ Enter at directory testing directory: cd /home/faccioli/workspace/drugdesign/tes
 
 ***********************************************************************************************************************************
 * 				config.ini file
-<<<<<<< HEAD
 ***********************************************************************************************************************************
-
 Checking your config.ini file. It is used in all application
 
 ***********************************************************************************************************************************
@@ -20,23 +18,8 @@ Checking your config.ini file. It is used in all application
 It is necessary creating box for Vina program.
 
 ***********************************************************************************************************************************
-=======
-***********************************************************************************************************************************
-
-Checking your config.ini file. It is used in all application
 
 ***********************************************************************************************************************************
-* 				Preparing receptors for Autodock Vina (Required)
-***********************************************************************************************************************************
-/home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_receptor.py
-
-**********************************************************************************************************************************
-* 				Creating Box for Vina program (Required)
-***********************************************************************************************************************************
-It is necessary creating box for Vina program.
-
-***********************************************************************************************************************************
->>>>>>> development
 * 				Preparing ligand for Autodock Vina (Required)
 ***********************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_ligand.py
@@ -50,14 +33,11 @@ It is necessary creating box for Vina program.
 * 				Virtual Screening Running (Required)
 ***********************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/vina_docking.py docking_list.txt
-<<<<<<< HEAD
-=======
 
 **********************************************************************************************************************************
 * 				LOG files to JSON files (Optional)
 ***********************************************************************************************************************************
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/log_to_json.py
->>>>>>> development
 
 *************************************************************************************************************************************
 * 				Virtual Screening Analysis 
