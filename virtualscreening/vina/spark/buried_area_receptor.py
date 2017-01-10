@@ -5,7 +5,7 @@ from subprocess import Popen, PIPE
 from datetime import datetime
 from vina_utils import get_directory_complex_pdb_analysis, get_files_pdb, get_name_model_pdb, get_ligand_from_receptor_ligand_model, get_separator_filename_mode, get_directory_pdb_analysis, loading_pdb_2_list, get_name_receptor_pdb, get_files_pdb_filter, get_receptor_from_receptor_ligand_model, get_model_from_receptor_ligand_model
 import os, sys
-from os_util import preparing_path
+from os_utils import preparing_path
 from gromacs_utils import get_value_from_xvg_sasa
 from pdb_io import replace_chain_atom_line
 import shutil
