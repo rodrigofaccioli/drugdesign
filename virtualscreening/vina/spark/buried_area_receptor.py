@@ -272,83 +272,87 @@ def main():
 			process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
 			stdout, stderr = process.communicate()
 			#coping file
-			shutil.copy(f_ndx_temporary, f_ndx_temporary_sasa)
-			#Get all residues for computing area receptor
-			all_res = get_residues_receptor_from_ndx_files(f_ndx_temporary)
-			returned_list = []
-			for res in all_res:
-				script_make_ndx_buried_area_receptor_res = SparkFiles.get("make_ndx_buried_area_receptor_res.sh") #Getting bash script that was copied by addFile command
-				command = script_make_ndx_buried_area_receptor_res + " " + gromacs_path.value + " "+ pdb_complex + " "+ f_ndx_temporary_sasa + " "+ str(res)
-				process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
-				stdout, stderr = process.communicate()
-				# compute surface of system - saved on xvg
-				command = gromacs_path.value +"gmx sasa -surface complex -output rec_"+str(res)+ " -o "+ f_xvg_temporary_sasa_res_lig + " -xvg none -f " + pdb_complex +" -s " + pdb_complex + " -n "+ f_ndx_temporary + " -nopbc "
-				process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
-				stdout, stderr = process.communicate()
-				# compute surface of receptor - save on xvg
-				command = gromacs_path.value +"gmx sasa -surface rec -output rec_"+str(res)+ " -o "+ f_xvg_temporary_sasa_res + " -xvg none -f " + pdb_complex +" -s " + pdb_complex + " -n "+ f_ndx_temporary + " -nopbc "
-				process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
-				stdout, stderr = process.communicate()
-				#calculate area
-				if os.path.exists(f_xvg_temporary_sasa_res_lig):
-					buried_receptor_system = get_value_from_xvg_sasa(f_xvg_temporary_sasa_res_lig)
-				else:
-					buried_receptor_system = 0
-				if os.path.exists(f_xvg_temporary_sasa_res):
-					buried_receptor_res  = get_value_from_xvg_sasa(f_xvg_temporary_sasa_res)
-				else:
-					buried_receptor_res = 0
-				res_buried_area = buried_receptor_res - buried_receptor_system
-				if (res_buried_area > 0) and (buried_receptor_res > 0):
-					res_buried_area_perc = res_buried_area/buried_receptor_res
-					#Generating result
-					result = (base_name, res, res_buried_area,  res_buried_area_perc)
-					returned_list.append(result)
-				#Deleting files
-				if os.path.exists(f_xvg_temporary_sasa_res_lig):
-					os.remove(f_xvg_temporary_sasa_res_lig)
-				if os.path.exists(f_xvg_temporary_sasa_res):
-					os.remove(f_xvg_temporary_sasa_res)
-
-			#Computing Receptor Area
-			command = gromacs_path.value +"gmx sasa -surface complex -output rec"+ " -o "+ f_xvg_temporary_sasa_rec_lig + " -xvg none -f " + pdb_complex +" -s " + pdb_complex + " -n "+ f_ndx_temporary + " -nopbc "
-			process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
-			stdout, stderr = process.communicate()
-
-			command = gromacs_path.value +"gmx sasa -surface rec -output rec"+ " -o "+ f_xvg_temporary_sasa_rec + " -xvg none -f " + pdb_complex +" -s " + pdb_complex + " -n "+ f_ndx_temporary + " -nopbc "
-			process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
-			stdout, stderr = process.communicate()
-
-			if os.path.exists(f_xvg_temporary_sasa_rec_lig):
-				sasa_rec_lig = get_value_from_xvg_sasa(f_xvg_temporary_sasa_rec_lig)
-			else:
-				sasa_rec_lig = 0
-
-			if os.path.exists(f_xvg_temporary_sasa_rec):
-				sasa_rec = get_value_from_xvg_sasa(f_xvg_temporary_sasa_rec)
-			else:
-				sasa_rec = 0
-
-			receptor_area = sasa_rec - sasa_rec_lig
-
-			#Saving result file
-			output_receptor_buried_area = open(f_output_receptor_buried_area, "w")
-			output_receptor_buried_area.write(str(base_name)+" "+str(receptor_area) +"\n")
-			output_receptor_buried_area.close()
-
-			#Deleting all files
-			if os.path.exists(f_xvg_temporary_sasa_rec_lig):
-				os.remove(f_xvg_temporary_sasa_rec_lig)
-			if os.path.exists(f_xvg_temporary_sasa_rec):
-				os.remove(f_xvg_temporary_sasa_rec)
 			if os.path.exists(f_ndx_temporary):
-				os.remove(f_ndx_temporary)
-			if os.path.exists(f_ndx_temporary_sasa):
-				os.remove(f_ndx_temporary_sasa)
-			if os.path.exists(f_ndx_temporary_index_z):
-				os.remove(f_ndx_temporary_index_z)
+				shutil.copy(f_ndx_temporary, f_ndx_temporary_sasa)
+				#Get all residues for computing area receptor
+				all_res = get_residues_receptor_from_ndx_files(f_ndx_temporary)
+				returned_list = []
+				for res in all_res:
+					script_make_ndx_buried_area_receptor_res = SparkFiles.get("make_ndx_buried_area_receptor_res.sh") #Getting bash script that was copied by addFile command
+					command = script_make_ndx_buried_area_receptor_res + " " + gromacs_path.value + " "+ pdb_complex + " "+ f_ndx_temporary_sasa + " "+ str(res)
+					process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
+					stdout, stderr = process.communicate()
+					# compute surface of system - saved on xvg
+					command = gromacs_path.value +"gmx sasa -surface complex -output rec_"+str(res)+ " -o "+ f_xvg_temporary_sasa_res_lig + " -xvg none -f " + pdb_complex +" -s " + pdb_complex + " -n "+ f_ndx_temporary + " -nopbc "
+					process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
+					stdout, stderr = process.communicate()
+					# compute surface of receptor - save on xvg
+					command = gromacs_path.value +"gmx sasa -surface rec -output rec_"+str(res)+ " -o "+ f_xvg_temporary_sasa_res + " -xvg none -f " + pdb_complex +" -s " + pdb_complex + " -n "+ f_ndx_temporary + " -nopbc "
+					process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
+					stdout, stderr = process.communicate()
+					#calculate area
+					if os.path.exists(f_xvg_temporary_sasa_res_lig):
+						buried_receptor_system = get_value_from_xvg_sasa(f_xvg_temporary_sasa_res_lig)
+					else:
+						buried_receptor_system = 0
+					if os.path.exists(f_xvg_temporary_sasa_res):
+						buried_receptor_res  = get_value_from_xvg_sasa(f_xvg_temporary_sasa_res)
+					else:
+						buried_receptor_res = 0
+					res_buried_area = buried_receptor_res - buried_receptor_system
+					if (res_buried_area > 0) and (buried_receptor_res > 0):
+						res_buried_area_perc = res_buried_area/buried_receptor_res
+						#Generating result
+						result = (base_name, res, res_buried_area,  res_buried_area_perc)
+						returned_list.append(result)
+					#Deleting files
+					if os.path.exists(f_xvg_temporary_sasa_res_lig):
+						os.remove(f_xvg_temporary_sasa_res_lig)
+					if os.path.exists(f_xvg_temporary_sasa_res):
+						os.remove(f_xvg_temporary_sasa_res)
 
-			return returned_list
+					#Computing Receptor Area
+					command = gromacs_path.value +"gmx sasa -surface complex -output rec"+ " -o "+ f_xvg_temporary_sasa_rec_lig + " -xvg none -f " + pdb_complex +" -s " + pdb_complex + " -n "+ f_ndx_temporary + " -nopbc "
+					process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
+					stdout, stderr = process.communicate()
+
+					command = gromacs_path.value +"gmx sasa -surface rec -output rec"+ " -o "+ f_xvg_temporary_sasa_rec + " -xvg none -f " + pdb_complex +" -s " + pdb_complex + " -n "+ f_ndx_temporary + " -nopbc "
+					process = Popen(command,shell=True, stdout=PIPE, stderr=PIPE)
+					stdout, stderr = process.communicate()
+
+					if os.path.exists(f_xvg_temporary_sasa_rec_lig):
+						sasa_rec_lig = get_value_from_xvg_sasa(f_xvg_temporary_sasa_rec_lig)
+					else:
+						sasa_rec_lig = 0
+
+					if os.path.exists(f_xvg_temporary_sasa_rec):
+						sasa_rec = get_value_from_xvg_sasa(f_xvg_temporary_sasa_rec)
+					else:
+						sasa_rec = 0
+
+					receptor_area = sasa_rec - sasa_rec_lig
+
+					#Saving result file
+					output_receptor_buried_area = open(f_output_receptor_buried_area, "w")
+					output_receptor_buried_area.write(str(base_name)+" "+str(receptor_area) +"\n")
+					output_receptor_buried_area.close()
+
+					#Deleting all files
+					if os.path.exists(f_xvg_temporary_sasa_rec_lig):
+						os.remove(f_xvg_temporary_sasa_rec_lig)
+					if os.path.exists(f_xvg_temporary_sasa_rec):
+						os.remove(f_xvg_temporary_sasa_rec)
+					if os.path.exists(f_ndx_temporary):
+						os.remove(f_ndx_temporary)
+					if os.path.exists(f_ndx_temporary_sasa):
+						os.remove(f_ndx_temporary_sasa)
+					if os.path.exists(f_ndx_temporary_index_z):
+						os.remove(f_ndx_temporary_index_z)
+
+					return returned_list
+			else:
+				#Here means that some problem for computing area
+				return (base_name, "NAN", float(0),  float(0))
 
 # ********** Finish function **********************************************************
 
@@ -364,7 +368,7 @@ def main():
 			list_receptor_model_file = (model_file, full_path_for_save_complex)
 			save_model_receptor(list_receptor_model_file)
 			list_ret = compute_buried_area_all_residues_and_receptor_area(full_path_for_save_complex)
-			if os.path.exists(full_path_for_save_complex):	
+			if os.path.exists(full_path_for_save_complex):
 				os.remove(full_path_for_save_complex)
 			return list_ret
 # ********** Finish function **********************************************************
