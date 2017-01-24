@@ -17,10 +17,14 @@ except ImportError:
 def load_md_unrestricted_min(file_of_unrestricted_min):
     list_ret = []
     f_file = open(file_of_unrestricted_min, "r")
+    count = 0
     for line in f_file:
         splited_line = str(line).split()
+        count += 1
+        line_number = count
+        dir_number = str(line_number)
         ion_is = str(splited_line[0]).strip()
-        obj = unrestricted_minimization(ion_is)
+        obj = unrestricted_minimization(dir_number, ion_is)
         list_ret.append(obj)
     return list_ret
 
@@ -57,10 +61,22 @@ if __name__ == '__main__':
 
     def run_unrestricted_min(unrestricted_min_obj):
 
+        mddir = unrestricted_min_obj.get_dir_number()
+
+        min_none_mdp = ''.join([os.getcwd(),
+                                '/',
+                                'min_none.mdp'])
+
+        work_path = ''.join([os.getcwd(),
+                             '/',
+                             mddir,
+                             '/'])
+        os.chdir(work_path)
+
         command = ''.join([gromacs_path.value,
                            './gmx grompp ',
                            ' -f ',
-                           ' min_none.mdp ',
+                           min_none_mdp,
                            ' -c ',
                            unrestricted_min_obj.get_ion_is(),
                            ' -p ',

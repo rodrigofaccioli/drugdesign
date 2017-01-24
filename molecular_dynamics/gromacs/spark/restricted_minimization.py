@@ -17,10 +17,14 @@ except ImportError:
 def load_md_restricted_min(file_of_restricted_min):
     list_ret = []
     f_file = open(file_of_restricted_min, "r")
+    count = 0
     for line in f_file:
         splited_line = str(line).split()
+        count += 1
+        line_number = count
+        dir_number = str(line_number)
         min_none = str(splited_line[0]).strip()
-        obj = restricted_minimization(min_none)
+        obj = restricted_minimization(dir_number, min_none)
         list_ret.append(obj)
     return list_ret
 
@@ -57,10 +61,22 @@ if __name__ == '__main__':
 
     def run_restricted_min(restricted_min_obj):
 
+        mddir = restricted_min_obj.get_dir_number()
+
+        min_all_mdp = ''.join([os.getcwd(),
+                                '/',
+                                'min_all.mdp'])
+
+        work_path = ''.join([os.getcwd(),
+                             '/',
+                             mddir,
+                             '/'])
+        os.chdir(work_path)
+
         command = ''.join([gromacs_path.value,
                            './gmx grompp ',
                            ' -f ',
-                           ' min_all.mdp ',
+                           min_all_mdp,
                            ' -c ',
                            restricted_min_obj.get_min_none(),
                            ' -p ',

@@ -17,10 +17,14 @@ except ImportError:
 def load_md_add_ions(file_of_add_ions):
     list_ret = []
     f_file = open(file_of_add_ions, "r")
+    count = 0
     for line in f_file:
         splited_line = str(line).split()
+        count += 1
+        line_number = count
+        dir_number = str(line_number)
         phys_pattern = str(splited_line[0]).strip()
-        obj = add_ions(phys_pattern)
+        obj = add_ions(dir_number, phys_pattern)
         list_ret.append(obj)
     return list_ret
 
@@ -57,10 +61,22 @@ if __name__ == '__main__':
 
     def run_add_ions(add_ion_obj):
 
+        mddir = add_ion_obj.get_dir_number()
+
+        min_none_mdp = ''.join([os.getcwd(),
+                                '/',
+                                'min_none.mdp'])
+
+        work_path = ''.join([os.getcwd(),
+                             '/',
+                             mddir,
+                             '/'])
+        os.chdir(work_path)
+
         command = ''.join([gromacs_path.value,
                            './gmx grompp ',
                            ' -f ',
-                           ' min_none.mdp ',
+                           min_none_mdp,
                            ' -c ',
                            ' water_ok.gro ',
                            ' -p ',
@@ -95,7 +111,7 @@ if __name__ == '__main__':
         command = ''.join([gromacs_path.value,
                            './gmx grompp ',
                            ' -f ',
-                           ' min_none.mdp ',
+                           min_none_mdp,
                            ' -c ',
                            ' ion_neutral.gro ',
                            ' -p ',

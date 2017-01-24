@@ -17,10 +17,14 @@ except ImportError:
 def load_md_genbox(file_of_genbox):
     list_ret = []
     f_file = open(file_of_genbox, "r")
+    count = 0
     for line in f_file:
         splited_line = str(line).split()
+        count += 1
+        line_number = count
+        dir_number = str(line_number)
         box_size = str(splited_line[0]).strip()
-        obj = genbox(box_size)
+        obj = genbox(dir_number, box_size)
         list_ret.append(obj)
     return list_ret
 
@@ -57,6 +61,18 @@ if __name__ == '__main__':
 
     def run_genbox(genbox_obj):
 
+        mddir = genbox_obj.get_dir_number()
+
+        min_none_mdp = ''.join([os.getcwd(),
+                                '/',
+                                'min_none.mdp'])
+
+        work_path = ''.join([os.getcwd(),
+                             '/',
+                             mddir,
+                             '/'])
+        os.chdir(work_path)
+
         command = ''.join(['echo Protein | ',
                            gromacs_path.value,
                           './gmx editconf',
@@ -91,7 +107,7 @@ if __name__ == '__main__':
                           './gmx',
                            ' grompp ',
                            ' -f ',
-                           ' min_none.mdp ',
+                           min_none_mdp,
                            ' -c ',
                            ' water.gro ',
                            ' -p ',

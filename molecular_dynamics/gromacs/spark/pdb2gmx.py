@@ -17,10 +17,14 @@ except ImportError:
 def load_md_pdb2gmx(file_of_pdb2gmx):
     list_ret = []
     f_file = open(file_of_pdb2gmx, "r")
+    count = 0
     for line in f_file:
         splited_line = str(line).split()
+        count += 1
+        line_number = count
+        dir_number = str(line_number)
         pdb_input = str(splited_line[0]).strip()
-        obj = pdb2gmx(pdb_input)
+        obj = pdb2gmx(dir_number, pdb_input)
         list_ret.append(obj)
     return list_ret
 
@@ -57,11 +61,24 @@ if __name__ == '__main__':
 
     def run_pdb2gmx(pdb2gmx_obj):
 
+        mddir = pdb2gmx_obj.get_dir_number()
+        make_directory(mddir)
+
+        pdb_path = ''.join([os.getcwd(),
+                            '/',
+                            pdb2gmx_obj.get_pdb_input()])
+
+        work_path = ''.join([os.getcwd(),
+                               '/',
+                              mddir,
+                              '/'])
+        os.chdir(work_path)
+
         command = ''.join(['echo 0 0 0 0 | ',
                            gromacs_path.value,
                            './gmx pdb2gmx ',
                            ' -f ',
-                           pdb2gmx_obj.get_pdb_input(),
+                           pdb_path,
                            ' -o ',
                            ' prot ',
                            ' -p ',
