@@ -1,4 +1,4 @@
-import configparser
+import ConfigParser as configparser
 import os
 import sys
 from pyspark import SparkContext, SparkConf, SparkFiles
@@ -22,6 +22,8 @@ if __name__ == '__main__':
     pdb_path = config.get('DEFAULT', 'pdb_path')
     pdbqt_receptor_path = config.get('DEFAULT', 'pdbqt_receptor_path')
     path_spark_drugdesign = config.get('DRUGDESIGN', 'path_spark_drugdesign')
+
+    make_directory(pdbqt_receptor_path)
 
     # Adding Python Source file
     sc.addPyFile(os.path.join(path_spark_drugdesign, "vina_utils.py"))
@@ -49,7 +51,7 @@ if __name__ == '__main__':
                            receptor_pdbqt,
                            '.pdbqt',
                            ' -v '])
-        print(command)
+                                   
         proc = Popen(command, shell=True, stdout=PIPE)
         proc.communicate()
 
