@@ -1,5 +1,5 @@
-***********************************************************************************************************************************
-* 				Preparing box to Vina Program
+
+>###Preparing box to Vina Program
 ***********************************************************************************************************************************
 This application assists to create box to Vina program.
 
@@ -8,8 +8,9 @@ command line:
 spark-submit prepare_box.py <list_pdbid>
 
 Example:
+```
 /home/faccioli/Programs/spark-1.4.1-bin-hadoop2.4/bin/spark-submit /home/faccioli/workspace/drugdesign/virtualscreening/vina/spark/prepare_box.py list_pdb_prepare_box.txt
-
+```
 
 
 

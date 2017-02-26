@@ -1,3 +1,4 @@
+>###Spark directory
 In this directory contains Python scripts to complete analysis of virtual screening by Apache Spark [1].
 
 After performing virtual screening by Autodock Vina, the below scripts can be able to run.
@@ -5,8 +6,8 @@ After performing virtual screening by Autodock Vina, the below scripts can be ab
 * prepare_ligand.py
 prepare ligands for performing virtual screening. 
 
-* create_file_for_analysis.py	(Required)
-It must be your first step for analysis. It will create a txt file that all score of log files will be sorted by score. 
+* create_file_for_analysis.py (Required).
+It must be your first step for analysis. It will create a txt file that all score of log files will be sorted by score.
 
 * prepare_files_for_analysis.py	(Required)
 It must be your second step for analysis. It will prepare all files for analysis. The Vina structures output will be organizated into
@@ -22,4 +23,4 @@ computes the ligand efficency.
 * vs_full_data_analysis.py
 it performs a join of all files into vs_full_data_analysis.txt file.
 
-[1] spark.apache.org 
+[1] [spark.apache.org](spark.apache.org)

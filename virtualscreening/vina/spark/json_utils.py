@@ -22,3 +22,16 @@ def create_jsondata_from_docking_output_file(docking_output):
 
     f_file.close()
     return list_dict
+
+
+def json_to_list(json_file):
+
+    cleaned_input = json.loads(json_file)
+    list_dict = cleaned_input.values()
+    list_tuple = []
+
+    for item in list_dict:
+        list_item = tuple(item.values())
+        list_tuple.append(list_item)
+
+    return list_tuple
