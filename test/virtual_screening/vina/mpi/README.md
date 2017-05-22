@@ -1,6 +1,11 @@
+>###Mpi directory
 In this directory contains all files for running vina using mpi.
 
 
 1. Run python/prepare_input_files.py. It will be create config.conf and overall_docking_list.txt files based on config.ini file.
 2. Run MPI Vina implementation. 
-Example of command line: mpirun -np 4 drugdesign/virtualscreening/vina/mpi/build/vs_main_adaptative config.conf overall_docking_list.txt
+
+Example of command line: 
+```
+mpirun -np 4 drugdesign/virtualscreening/vina/mpi/build/vs_main_adaptative config.conf overall_docking_list.txt
+```
