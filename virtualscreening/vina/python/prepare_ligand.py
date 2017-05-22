@@ -6,7 +6,7 @@
     Leandro Oliveira Bortot  - leandro.bortot@usp.br / leandro.obt@gmail.com 
 """
 
-import ConfigParser as configparser
+import configparser
 import vina
 import ligand_database as database
 

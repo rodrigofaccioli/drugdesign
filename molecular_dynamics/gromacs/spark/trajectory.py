@@ -4,15 +4,12 @@ from subprocess import Popen, PIPE
 from datetime import datetime
 import os
 import sys
+import configparser
 from md_description import md_description
 from gromacs_utils import check_file_exists
 from os_utils import make_directory, preparing_path, time_execution_log
 from basic_analysis import run_basic_analysis
 
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
 
 def search_for_ligand_ndx_file(ndx_file):
     other = 0

@@ -1,4 +1,6 @@
 import os
+import urllib.request
+import shutil
 
 
 def make_directory(directory):
@@ -40,16 +42,8 @@ def time_execution_log(finish_time, start_time, log_name):
     log_file.write(msg)
 
 
-try:
-    import urllib.request
-    import shutil
+def download_file(url, file_name):
+    with urllib.request.urlopen(url) as response, open(file_name, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)
 
-    def download_file(url, file_name):
-        with urllib.request.urlopen(url) as response, open(file_name, 'wb') as out_file:
-            shutil.copyfileobj(response, out_file)
 
-except ImportError:
-    import urllib
-
-    def download_file(url, file_name):
-        urllib.urlretrieve(url, file_name)

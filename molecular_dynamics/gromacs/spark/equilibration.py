@@ -4,14 +4,10 @@ from subprocess import Popen, PIPE
 from datetime import datetime
 import os
 import sys
+import configparser
 from md_description import equilibration
 from gromacs_utils import check_file_exists, replace_line_in_file
 from os_utils import preparing_path, time_execution_log
-
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
 
 
 def load_md_equilibration(file_of_equilibration):

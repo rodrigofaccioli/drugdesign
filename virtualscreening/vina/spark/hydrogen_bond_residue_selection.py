@@ -1,7 +1,7 @@
 import pyspark.sql.functions as func
 from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
-import ConfigParser as configparser
+import configparser
 import os
 from datetime import datetime
 from vina_utils import get_directory_pdb_analysis, get_ligand_from_receptor_ligand_model
