@@ -1,6 +1,6 @@
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SQLContext, Row	
-import ConfigParser as configparser
+import configparser
 import os
 from vina_utils import get_file_name_sorted_energy, get_ligand_from_receptor_ligand_model, get_name_model_pdb
 from datetime import datetime

@@ -8,7 +8,7 @@
 
 import os
 import vina
-import ConfigParser as configparser
+import configparser
 import vs_preparation as prep
 import ligand_database as database
 

@@ -1,7 +1,7 @@
 from pyspark import SparkContext, SparkConf
 import os
 import operator
-import ConfigParser as configparser
+import configparser
 import ntpath
 from  vina_utils import get_file_name_sorted_energy, get_files_log, get_separator_filename_mode
 

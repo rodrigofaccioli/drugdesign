@@ -1,5 +1,5 @@
 from pyspark import SparkContext, SparkConf
-import ConfigParser as configparser
+import configparser
 from subprocess import Popen, PIPE
 from datetime import datetime
 import ntpath

@@ -1,7 +1,7 @@
 from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
 import os, sys
-import ConfigParser as configparser
+import configparser
 from database_io import load_database
 from database_crud import get_torsion_atom_from_database
 from vina_utils import get_files_pdbqt, get_files_pdbqt

@@ -4,14 +4,10 @@ from subprocess import Popen, PIPE
 from datetime import datetime
 import os
 import sys
+import configparser
 from md_description import pdb2gmx
 from gromacs_utils import check_file_exists
 from os_utils import make_directory, preparing_path, time_execution_log
-
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
 
 
 def load_md_pdb2gmx(file_of_pdb2gmx):

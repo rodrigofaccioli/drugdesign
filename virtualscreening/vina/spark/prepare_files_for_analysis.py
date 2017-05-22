@@ -2,7 +2,7 @@ from pyspark import SparkContext, SparkConf
 from pyspark.sql import SQLContext, Row	
 import os
 import operator
-import ConfigParser as configparser
+import configparser
 import ntpath
 from vina_utils import get_file_name_sorted_energy, get_directory_pdbqt_analysis, get_files_pdbqt, get_directory_pdb_analysis, get_files_pdb, loading_pdb_2_list, get_name_receptor_pdb, get_name_model_pdb, get_files_pdb_filter
 from summary_statistics import get_summary_statistics, save_txt_summary_statistics

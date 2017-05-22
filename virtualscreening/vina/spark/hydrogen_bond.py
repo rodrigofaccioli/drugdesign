@@ -1,7 +1,7 @@
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SQLContext, Row	
 from pyspark.sql.functions import col
-import ConfigParser as configparser
+import configparser
 import os
 import sys
 from subprocess import Popen, PIPE

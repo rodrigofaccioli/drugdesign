@@ -1,6 +1,6 @@
 from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
-import ConfigParser as configparser
+import configparser
 from subprocess import Popen, PIPE
 from datetime import datetime
 from vina_utils import get_directory_complex_pdb_analysis, get_files_pdb, get_name_model_pdb, get_ligand_from_receptor_ligand_model, get_separator_filename_mode, get_directory_pdb_analysis, loading_pdb_2_list, get_name_receptor_pdb, get_files_pdb_filter

@@ -1,6 +1,6 @@
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SQLContext, Row	
-import ConfigParser as configparser
+import configparser
 import os
 from vina_utils import get_file_name_sorted_energy
 from datetime import datetime

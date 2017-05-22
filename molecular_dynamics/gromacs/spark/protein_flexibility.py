@@ -4,14 +4,10 @@ from subprocess import Popen, PIPE
 from gromacs_utils import check_file_exists
 import sys
 import os
+import configparser
 from os_utils import make_directory, preparing_path, time_execution_log
 from pf_description import pf_description
 from datetime import datetime
-
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
 
 
 def load_prot_flex(file_of_protein_flexibility):

@@ -1,5 +1,6 @@
 import os
 import sys
+import configparser
 from pyspark import SparkContext, SparkConf, SparkFiles
 from pyspark.sql import SQLContext, Row
 from pbox_description import pbox_description
@@ -7,11 +8,6 @@ from subprocess import Popen, PIPE
 from os_utils import check_file_exists, download_file
 from vina_utils import get_value_from_box_center, get_value_from_box_size
 from json_utils import create_json_file
-
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
 
 
 def load_pbox_file(file_of_pdbid_list):

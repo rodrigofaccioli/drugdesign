@@ -1,4 +1,4 @@
-import ConfigParser as configparser
+import configparser
 import os
 import sys
 from subprocess import Popen, PIPE
