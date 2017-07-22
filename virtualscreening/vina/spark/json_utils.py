@@ -35,3 +35,20 @@ def json_to_list(json_file):
         list_tuple.append(list_item)
 
     return list_tuple
+    
+    
+# Receive a json file and maps the values to objects. *It's necessary to inform the obj_type (constructor)
+
+def jsondata2obj(json_file, obj_type):
+
+    file = open(json_file, "r")
+    json_data = json.load(file)
+    list_ret = []
+
+
+    for k, v in json_data.items():
+        for values in v:
+            obj = obj_type(**values)
+            list_ret.append(obj)
+
+    return list_ret
