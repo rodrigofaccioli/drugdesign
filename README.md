@@ -1,8 +1,7 @@
 ====================================================================================
 					drugdesign
 ====================================================================================
-This project was decomposed into other projects. Therefore,
-it is no longer continued. More information, please, contact
+This project was decomposed into other projects. Therefore, it is no longer continued since August 16, 2017. More information, please, contact
 the author.
 
 It was idealized as a collaborative endeavor in the drug design area.
