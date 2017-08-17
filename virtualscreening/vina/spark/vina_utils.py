@@ -2,7 +2,7 @@ import os
 import ntpath
 import json
 from math import sqrt
-from json_utils import create_json_file
+#from json_utils import create_json_file
 
 
 def get_files_mol2(mypath):
@@ -16,7 +16,7 @@ def get_files_mol2(mypath):
 
 
 """ This function obtains all pdb files
-    in mypath 
+    in mypath
 """
 
 
@@ -47,7 +47,7 @@ def get_files_pdb_filter(mypath, reference):
 
 
 """ This function obtains all pdbqt files
-    in mypath 
+    in mypath
 """
 
 
@@ -62,7 +62,7 @@ def get_files_pdbqt(mypath):
 
 
 """ This function obtains all log files
-    in mypath 
+    in mypath
 """
 
 
@@ -77,7 +77,7 @@ def get_files_log(mypath):
 
 
 """ This function obtains the name of
-sorted energy file 
+sorted energy file
 """
 
 
@@ -91,13 +91,13 @@ def get_separator_filename_mode():
     Example:
         >>> get_separator_filename_mode()
     @return: the separator file mode
-    @rtype: string        
+    @rtype: string
 	"""
     return '+----+'
 
 
 """ This function obtains the name of
-path that saving pdbqt files for analysis 
+path that saving pdbqt files for analysis
 """
 
 
@@ -169,7 +169,7 @@ def get_ligand_from_receptor_ligand_model(receptor_ligand_model):
     return ligand_name
 
 
-""" This function obtains the name of 
+""" This function obtains the name of
 path that saving pdbqt files for analysis
 """
 
@@ -182,8 +182,8 @@ def get_directory_pdb_analysis(path_analysis):
     return path_analysis_pdb
 
 
-""" This function obtains the name of 
-path that saving pdbqt files for analysis 
+""" This function obtains the name of
+path that saving pdbqt files for analysis
 """
 
 
@@ -196,7 +196,7 @@ def get_directory_complex_pdb_analysis(path_analysis):
 
 
 """ This function loading pdb file to list.
-list_ret is composed by pdb_path_file and loaded file. 
+list_ret is composed by pdb_path_file and loaded file.
 """
 
 
@@ -291,35 +291,35 @@ def calculate_avg_value(docking_output):
                 err=err)
 
 def get_receptor_from_receptor_ligand_model(receptor_ligand_model):
-    """ 
+    """
     This function obtains the name of receptor based on receptor_ligand_model
     Example of input: compl_ns3pro_dm_0_-_NuBBE_485_obabel_3D+----+20
-    """ 
+    """
     separator_model = get_separator_filename_mode()
     separator_receptor = "_-_"
     string_ref = receptor_ligand_model
-    
+
     receptor_name = string_ref.split(separator_receptor)[0] #Removing all, except receptor name
     return receptor_name
 
 def get_model_from_receptor_ligand_model(receptor_ligand_model):
-    """ 
+    """
     This function obtains the model based on receptor_ligand_model
     Example of input: compl_ns3pro_dm_0_-_NuBBE_485_obabel_3D+----+20
     Return: 20
-    """     
+    """
     separator_model = get_separator_filename_mode()
     separator_receptor = "_-_"
     string_ref = receptor_ligand_model
-    
+
     s = string_ref.split(separator_receptor) #Removing receptor
     s = str(s[1]).split(separator_model) #Removing ligand name
     # getting model
     model = int(s[len(s)-1])
     return model
 
-""" This function obtains the name of 
-path that saving pdbqt files for analysis 
+""" This function obtains the name of
+path that saving pdbqt files for analysis
 """
 def get_directory_temp_analysis(path_analysis):
     path_analysis_temp = os.path.join(path_analysis,"temp")
