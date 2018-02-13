@@ -1,8 +1,4 @@
-====================================================================================
-					drugdesign
-====================================================================================
-This project was decomposed into other projects. Therefore, it is no longer continued since August 16, 2017. More information, please, contact
-the author.
+# drugdesign
 
 It was idealized as a collaborative endeavor in the drug design area.
 
@@ -24,9 +20,3 @@ Analysis can be done by using both experimental (from the PDB database) and theo
 
 3. Big Data Analytics through Apache Spark.
 Virtual Screening usually outputs a considerable amount of data, by using Spark this data can be analyzed more efficiently.
-
-====================================================================================
-		Understanding drugdesign
-====================================================================================
-The project was decomposed into branches in order to facilitate organization and allow for flexible development.
-For more information, please see the README file under each specific directory.
